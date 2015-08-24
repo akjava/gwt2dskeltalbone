@@ -1,6 +1,8 @@
 package com.akjava.gwt.skeltalboneanimation.client;
 
 import com.akjava.gwt.lib.client.CanvasUtils;
+import com.akjava.gwt.lib.client.game.PointXY;
+import com.akjava.lib.common.graphics.Rect;
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.dom.client.ImageElement;
 
@@ -29,6 +31,15 @@ public double getAlpha() {
 
 public void setAlpha(double alpha) {
 	this.alpha = alpha;
+}
+
+public int incrementX(int mx){
+	this.x+=mx;
+	return this.x;
+}
+public int incrementY(int my){
+	this.y+=my;
+	return this.y;
 }
 
 public int getX() {
@@ -78,6 +89,90 @@ private double scaleY=1;
  * draw at center
  */
 public void draw(Canvas canvas){
-	CanvasUtils.drawCenter(canvas, imageElement,x,y,scaleX,scaleY,angle,alpha);
+//ThreePointImageCustomAnimation.drawImageAt(canvas, imageElement, x, y, imageElement.getWidth()/2, imageElement.getHeight()/2, angle,scaleX,scaleY);
+	CanvasUtils.drawCenter(canvas, imageElement,x-canvas.getCoordinateSpaceWidth()/2,y-canvas.getCoordinateSpaceHeight()/2,scaleX,scaleY,angle,alpha);
+}
+
+public void incrementAngle(int vectorX) {
+	angle+=vectorX;
+	angle=angle%360;
+	if(angle<0){
+		angle=360+angle;
+	}
+}
+PointXY[] result;
+Rect rect;
+public PointXY[] getCornerPoint(){
+	if(result==null){
+		result=new PointXY[4];
+		for(int i=0;i<4;i++){
+			result[i]=new PointXY(0, 0);
+		}
+	}
+	int iw=imageElement.getWidth();
+	int ih=imageElement.getHeight();
+	int iws=(int) (scaleX*iw);
+	int ihs=(int) (scaleY*ih);
+	result[0].set(-iws/2, -ihs/2);
+	BoneUtils.turnedAngle(result[0], angle);
+	result[0].incrementXY(x, y);
+	
+	result[1].set(iws/2, -ihs/2);
+	BoneUtils.turnedAngle(result[1], angle);
+	result[1].incrementXY(x, y);
+	
+	result[2].set(-iws/2, ihs/2);
+	BoneUtils.turnedAngle(result[2], angle);
+	result[2].incrementXY(x, y);
+	
+	result[3].set(iws/2, ihs/2);
+	BoneUtils.turnedAngle(result[3], angle);
+	result[3].incrementXY(x, y);
+	
+	
+	
+	return result;
+}
+private Rect bounds;
+public Rect getBounds() {
+	if(bounds==null){
+		updateBounds();
+	}
+	return bounds;
+}
+
+public void setBounds(Rect bounds) {
+	this.bounds = bounds;
+}
+public void updateBounds(){
+	bounds=calculateBounds();
+}
+
+public Rect calculateBounds(){
+	if(rect==null){
+		rect=new Rect();
+	}
+	int minX=Integer.MAX_VALUE;int minY=Integer.MAX_VALUE;int maxX=Integer.MIN_VALUE;int maxY=Integer.MIN_VALUE;
+	
+	PointXY[] corners=getCornerPoint();
+	for(PointXY pt:corners){
+		if(pt.getX()<minX){
+			minX=pt.getX();
+		}
+		if(pt.getY()<minY){
+			minY=pt.getY();
+		}
+		if(pt.getX()>maxX){
+			maxX=pt.getX();
+		}
+		if(pt.getY()>maxY){
+			maxY=pt.getY();
+		}
+	}
+	int w=maxX-minX;
+	int h= maxY-minY;
+	
+	rect.set(minX, minY, w,h);
+	return rect;
 }
 }

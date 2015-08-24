@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.akjava.gwt.lib.client.LogUtils;
+import com.akjava.gwt.lib.client.game.PointXY;
 import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
 
 public class BoneUtils {
@@ -56,5 +57,14 @@ public class BoneUtils {
 		double turnedX=Math.cos(radian)*x-Math.sin(radian)*y;
 		double turnedY=Math.cos(radian)*y+Math.sin(radian)*x;
 		return new double[]{turnedX, turnedY};
+	}
+	public static PointXY turnedAngle(PointXY point,double angle){
+		int x=point.getX();
+		int y=point.getY();
+		double radian=Math.toRadians(angle);
+		double turnedX=Math.cos(radian)*x-Math.sin(radian)*y;
+		double turnedY=Math.cos(radian)*y+Math.sin(radian)*x;
+		 point.set((int)turnedX, (int)turnedY);
+		 return point;
 	}
 }

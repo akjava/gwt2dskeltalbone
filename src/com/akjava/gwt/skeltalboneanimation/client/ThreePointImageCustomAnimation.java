@@ -160,7 +160,7 @@ loader.load("upper.png", new ImageElementListener() {
 	}
 	ImageElement rootImage,backImage,chestImage;
 	
-	public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvasY,int imageX,int imageY,double angle){
+	public static void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvasY,int imageX,int imageY,double angle){
 		canvas.getContext2d().save();
 		double radiant=Math.toRadians(angle);
 		canvas.getContext2d().translate(canvasX+imageX,canvasY+imageY);//rotate center
@@ -175,13 +175,41 @@ loader.load("upper.png", new ImageElementListener() {
 	}
 	
 	
-	public void drawImageAt(Canvas canvas,ImageElement image,int canvasX,int canvasY,int imageX,int imageY,double angle){
+	public static void drawImageAt(Canvas canvas,ImageElement image,int canvasX,int canvasY,int imageX,int imageY,double angle){
 		canvas.getContext2d().save();
 		double radiant=Math.toRadians(angle);
 		canvas.getContext2d().translate(canvasX+imageX,canvasY+imageY);//rotate center
 		
 		canvas.getContext2d().rotate(radiant);
 		canvas.getContext2d().translate(-(canvasX+imageX),-(canvasY+imageY));//and back
+		
+		canvas.getContext2d().translate(canvasX,canvasY);	
+		
+		canvas.getContext2d().drawImage(image, 0,0);
+		canvas.getContext2d().restore();
+	}
+	/**
+	 * 
+	 * @param canvas
+	 * @param image
+	 * @param canvasX
+	 * @param canvasY
+	 * @param imageX
+	 * @param imageY
+	 * @param angle
+	 * @param scaleX
+	 * @param scaleY
+	 * @deprecated something storange
+	 */
+	public static void drawImageAt(Canvas canvas,ImageElement image,int canvasX,int canvasY,int imageX,int imageY,double angle,double scaleX,double scaleY){
+		canvas.getContext2d().save();
+		double radiant=Math.toRadians(angle);
+		canvas.getContext2d().translate(canvasX+imageX,canvasY+imageY);//rotate center
+		
+		canvas.getContext2d().rotate(radiant);
+		canvas.getContext2d().translate(-(canvasX+imageX),-(canvasY+imageY));//and back
+		
+		canvas.getContext2d().scale(scaleX,scaleY);
 		
 		canvas.getContext2d().translate(canvasX,canvasY);	
 		

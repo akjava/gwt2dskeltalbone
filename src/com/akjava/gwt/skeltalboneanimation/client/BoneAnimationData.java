@@ -1,19 +1,19 @@
 package com.akjava.gwt.skeltalboneanimation.client;
 
-//same as bone?
-public class BoneCalculator {
+//almost same but has angle,usually create from framedata
+public class BoneAnimationData {
 private String name;
-public BoneCalculator(String name, double x, double y) {
+public BoneAnimationData(String name, double x, double y) {
 	super();
 	this.name = name;
 	this.x = x;
 	this.y = y;
 }
-private BoneCalculator parent;
-public BoneCalculator getParent() {
+private BoneAnimationData parent;
+public BoneAnimationData getParent() {
 	return parent;
 }
-public void setParent(BoneCalculator parent) {
+public void setParent(BoneAnimationData parent) {
 	this.parent = parent;
 }
 public String getName() {

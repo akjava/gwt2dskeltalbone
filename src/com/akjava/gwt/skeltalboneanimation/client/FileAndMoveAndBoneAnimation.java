@@ -1,7 +1,10 @@
 package com.akjava.gwt.skeltalboneanimation.client;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.akjava.gwt.html5.client.file.File;
 import com.akjava.gwt.html5.client.file.FileUploadForm;
@@ -10,6 +13,7 @@ import com.akjava.gwt.html5.client.file.FileUtils.DataURLListener;
 import com.akjava.gwt.lib.client.CanvasUtils;
 import com.akjava.gwt.lib.client.GWTHTMLUtils;
 import com.akjava.gwt.lib.client.ImageElementUtils;
+import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.lib.client.experimental.CanvasDragMoveControler;
 import com.akjava.gwt.lib.client.experimental.CanvasMoveListener;
 import com.akjava.gwt.lib.client.experimental.RectCanvasUtils;
@@ -21,7 +25,9 @@ import com.akjava.gwt.skeltalboneanimation.client.bones.SkeltalAnimations;
 import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
 import com.akjava.lib.common.graphics.Rect;
 import com.akjava.lib.common.utils.ListUtils;
+import com.google.common.base.MoreObjects;
 import com.google.gwt.canvas.client.Canvas;
+import com.google.gwt.dom.client.CanvasElement;
 import com.google.gwt.dom.client.ImageElement;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
@@ -29,10 +35,12 @@ import com.google.gwt.event.dom.client.MouseWheelEvent;
 import com.google.gwt.event.dom.client.MouseWheelHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
+import com.google.gwt.text.shared.Renderer;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.ToggleButton;
+import com.google.gwt.user.client.ui.ValueListBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 
 
@@ -45,11 +53,16 @@ private Canvas canvas;
 private CanvasDragMoveControler canvasControler;
 
 private List<ImageDrawingData> datas=new ArrayList<ImageDrawingData>();
+private Map<ImageDrawingData,Integer> dataBelongintMap=new HashMap<ImageDrawingData, Integer>();
+
 private ImageDrawingData selection;
 	
 	private CheckBox showBoundsCheck;
 	
 	private boolean modeAnimation;
+	private List<Canvas> convertedDatas=new ArrayList<Canvas>();
+	private ValueListBox<TwoDimensionBone> boneListBox;
+	private boolean showBone=true;
 	public FileAndMoveAndBoneAnimation(){
 		HorizontalPanel upButtons=new HorizontalPanel();
 		add(upButtons);
@@ -66,6 +79,14 @@ private ImageDrawingData selection;
 				modeAnimation=event.getValue();
 				buttons1.setVisible(!event.getValue());	
 				buttons2.setVisible(event.getValue());	
+				
+				if(modeAnimation){
+					convertedDatas.clear();
+					for(ImageDrawingData data:datas){
+						convertedDatas.add(data.convertToCanvas());
+					}
+				}
+				
 				updateCanvas();
 			}
 			
@@ -146,7 +167,46 @@ Button unselect=new Button("unselect",new ClickHandler() {
 		rootBone = new TwoDimensionBone("root",0, 0,null);
 		
 		TwoDimensionBone back=rootBone.addBone(new TwoDimensionBone("back",0, -100));
-		TwoDimensionBone chest=back.addBone(new TwoDimensionBone("chest",0, -200));
+		TwoDimensionBone chest=back.addBone(new TwoDimensionBone("chest",0, -100));
+		
+		final List<TwoDimensionBone> allbones=BoneUtils.getAllBone(rootBone);
+		boneListBox = new ValueListBox<TwoDimensionBone>(new Renderer<TwoDimensionBone>(){
+
+			@Override
+			public String render(TwoDimensionBone object) {
+				if(object==null){
+					return null;
+				}
+				return object.getName();
+			}
+
+			@Override
+			public void render(TwoDimensionBone object, Appendable appendable) throws IOException {
+				// TODO Auto-generated method stub
+				
+			}
+		});
+		
+		buttons1.add(boneListBox);
+		boneListBox.addValueChangeHandler(new ValueChangeHandler<TwoDimensionBone>() {
+
+			@Override
+			public void onValueChange(ValueChangeEvent<TwoDimensionBone> event) {
+				TwoDimensionBone bone=event.getValue();
+				if(bone==null){
+					
+					return;
+				}else{
+					int index=allbones.indexOf(bone);
+					dataBelongintMap.put(selection, index);
+				}
+				
+			}
+		});
+		
+		boneListBox.setValue(rootBone);
+		boneListBox.setAcceptableValues(allbones);
+		
 		
 		//create buttons2
 		BoneControlRange boneControler=new BoneControlRange(rootBone);
@@ -161,6 +221,19 @@ Button unselect=new Button("unselect",new ClickHandler() {
 				updateCanvas();
 			}
 		});
+		CheckBox showBoneCheck=new CheckBox("showBone");
+		buttons2.add(showBoneCheck);
+		showBoneCheck.setValue(true);
+		showBoneCheck.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
+
+			@Override
+			public void onValueChange(ValueChangeEvent<Boolean> event) {
+				showBone=event.getValue();
+				updateCanvas();
+			}
+			
+		});
+		
 		
 		canvas = CanvasUtils.createCanvas(800, 800);
 		
@@ -174,6 +247,12 @@ Button unselect=new Button("unselect",new ClickHandler() {
 			@Override
 			public void start(int sx, int sy) {
 				selection=null;
+				if(modeAnimation){
+					return;//only editmode
+				}
+				
+				
+				
 				for(int i=datas.size()-1;i>=0;i--){
 					ImageDrawingData data=datas.get(i);
 				//for(ImageDrawingData data:datas){
@@ -189,6 +268,11 @@ Button unselect=new Button("unselect",new ClickHandler() {
 					datas.add(0, selection);
 				}
 				*/
+
+				if(selection!=null){
+					int index=dataBelongintMap.get(selection);
+					boneListBox.setValue(allbones.get(index));
+				}
 				
 				updateCanvas();
 			}
@@ -299,6 +383,8 @@ Button unselect=new Button("unselect",new ClickHandler() {
 		data.setY(maxObjectSize);
 		datas.add(data);
 		updateCanvas();
+		
+		dataBelongintMap.put(data, 0);
 	}
 	
 	private void updateCanvas(){
@@ -342,9 +428,61 @@ Button unselect=new Button("unselect",new ClickHandler() {
 		}
 		painter.paintBone(rootBone);//bone-last
 	}
+	public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvasY,int imageX,int imageY,double angle){
+		canvas.getContext2d().save();
+		double radiant=Math.toRadians(angle);
+		canvas.getContext2d().translate(canvasX+imageX,canvasY+imageY);//rotate center
+		
+		canvas.getContext2d().rotate(radiant);
+		canvas.getContext2d().translate(-(canvasX+imageX),-(canvasY+imageY));//and back
+		
+		canvas.getContext2d().translate(canvasX,canvasY);	
+		
+		canvas.getContext2d().drawImage(image, 0,0);
+		canvas.getContext2d().restore();
+	}
 
 	private void updateCanvasOnAnimation() {
 		//TODO add show bone check
+		//TODO make class,it's hard to understand
+		List<double[]> emptyBonePosition=painter.calculatorBonesFinalPositionAndAngle(rootBone,painter.EMPTY_FRAME);
+		List<double[]> movedBonePosition=painter.calculatorBonesFinalPositionAndAngle(rootBone,singleFrame);
+		int offsetX=painter.getOffsetX();
+		int offsetY=painter.getOffsetY();
+		for(int i=0;i<datas.size();i++){
+			int boneIndex=dataBelongintMap.get(datas.get(i));
+			
+			int boneX=(int)emptyBonePosition.get(boneIndex)[0];
+			int boneY=(int)emptyBonePosition.get(boneIndex)[1];
+			
+			int movedX=(int)movedBonePosition.get(boneIndex)[0];
+			int movedY=(int)movedBonePosition.get(boneIndex)[1];
+			
+			
+			
+			//LogUtils.log(boneX+","+boneY+","+movedX+","+movedY);
+			double angle=movedBonePosition.get(boneIndex)[2];
+			
+			ImageDrawingData data=datas.get(i);
+			Canvas converted=convertedDatas.get(i);
+			
+			int diffX=(boneX+offsetX)-(data.getX()-converted.getCoordinateSpaceWidth()/2);
+			int diffY=(boneY+offsetY)-(data.getY()-converted.getCoordinateSpaceHeight()/2);
+			
+			
+			int imageX=(int)(data.getX()-converted.getCoordinateSpaceWidth()/2)-(boneX+offsetX); //
+			int imageY=(int)(data.getY()-converted.getCoordinateSpaceHeight()/2)-(boneY+offsetY);//
+			LogUtils.log(imageX+","+imageY);
+			
+			drawImageAt(canvas,converted.getCanvasElement(),movedX+offsetX-diffX,movedY+offsetY-diffY,diffX,diffY,angle);
+			//canvas.getContext2d().drawImage(converted.getCanvasElement(), (int)(data.getX()-converted.getCoordinateSpaceWidth()/2), (int)(data.getY()-converted.getCoordinateSpaceHeight()/2));
+			//
+		}
+		
+		if(showBone){
+		canvas.getContext2d().setGlobalAlpha(0.5);
 		painter.paintBone(rootBone,singleFrame);
+		canvas.getContext2d().setGlobalAlpha(1.0);
+		}
 	}
 }

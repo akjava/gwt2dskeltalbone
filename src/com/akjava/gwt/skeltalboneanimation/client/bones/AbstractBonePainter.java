@@ -6,15 +6,15 @@ import java.util.List;
 import java.util.Map;
 
 import com.akjava.gwt.lib.client.LogUtils;
-import com.akjava.gwt.skeltalboneanimation.client.BoneCalculator;
+import com.akjava.gwt.skeltalboneanimation.client.BoneAnimationData;
 import com.akjava.gwt.skeltalboneanimation.client.BoneUtils;
 
 public abstract class AbstractBonePainter implements BonePainter{
-	private static final AnimationFrame emptyFrame=new AnimationFrame();
+	public static final AnimationFrame EMPTY_FRAME=new AnimationFrame();
 	private Map<String,double[]> cache=new HashMap<String, double[]>();
 	
-	protected void makeBoneCalculator(List<BoneCalculator> list,TwoDimensionBone bone,AnimationFrame frame,BoneCalculator parent){
-		BoneCalculator calculator=new BoneCalculator(bone.getName(),bone.getX(),bone.getY());
+	protected void makeBoneAnimationData(List<BoneAnimationData> list,TwoDimensionBone bone,AnimationFrame frame,BoneAnimationData parent){
+		BoneAnimationData calculator=new BoneAnimationData(bone.getName(),bone.getX(),bone.getY());
 		calculator.setParent(parent);
 		list.add(calculator);
 		
@@ -25,13 +25,28 @@ public abstract class AbstractBonePainter implements BonePainter{
 			calculator.setAngle(boneFrame.getAngle());
 		}
 		for(TwoDimensionBone child:bone.getChildrens()){
-			makeBoneCalculator(list, child, frame, calculator);
+			makeBoneAnimationData(list, child, frame, calculator);
 		}
 	}
 	protected int offsetX;
+	public int getOffsetX() {
+		return offsetX;
+	}
+
+	public void setOffsetX(int offsetX) {
+		this.offsetX = offsetX;
+	}
+
+	public int getOffsetY() {
+		return offsetY;
+	}
+
+	public void setOffsetY(int offsetY) {
+		this.offsetY = offsetY;
+	}
 	protected int offsetY;
 	
-	public void paintBone(BoneCalculator bone,AnimationFrame frame){
+	public void paintBone(BoneAnimationData bone,AnimationFrame frame){
 		
 		double[] pt=BoneUtils.getFinalPositionAndAngle(bone);
 		if(bone.getParent()!=null){
@@ -51,23 +66,33 @@ public void paintBone(TwoDimensionBone root){
 		
 		startPaint();
 		cache.clear();
-		List<BoneCalculator> list=new ArrayList<BoneCalculator>();
-		makeBoneCalculator(list,root,emptyFrame,null);
+		List<BoneAnimationData> list=new ArrayList<BoneAnimationData>();
+		makeBoneAnimationData(list,root,EMPTY_FRAME,null);
 
-		for(BoneCalculator bone:list){
-			paintBone(bone,emptyFrame);
+		for(BoneAnimationData bone:list){
+			paintBone(bone,EMPTY_FRAME);
 		}
 		endPaint();
+	}
+
+	public List<double[]> calculatorBonesFinalPositionAndAngle(TwoDimensionBone root,AnimationFrame frame){
+		List<BoneAnimationData> list=new ArrayList<BoneAnimationData>();
+		makeBoneAnimationData(list,root,frame,null);
+		List<double[]> pts=new ArrayList<double[]>();
+		for(BoneAnimationData bc:list){
+			pts.add(BoneUtils.getFinalPositionAndAngle(bc));
+		}
+		return pts;
 	}
 
 	public void paintBone(TwoDimensionBone root,AnimationFrame frame){
 		
 		startPaint();
 		cache.clear();
-		List<BoneCalculator> list=new ArrayList<BoneCalculator>();
-		makeBoneCalculator(list,root,frame,null);
+		List<BoneAnimationData> list=new ArrayList<BoneAnimationData>();
+		makeBoneAnimationData(list,root,frame,null);
 
-		for(BoneCalculator bone:list){
+		for(BoneAnimationData bone:list){
 			paintBone(bone,frame);
 		}
 		endPaint();

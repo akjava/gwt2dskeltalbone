@@ -44,10 +44,10 @@ public class BoneUtils {
 	}
 	
 	
-	public static List<BoneCalculator> getParents(BoneCalculator bone){
-		List<BoneCalculator> parents=new ArrayList<BoneCalculator>();
+	public static List<BoneAnimationData> getParents(BoneAnimationData bone){
+		List<BoneAnimationData> parents=new ArrayList<BoneAnimationData>();
 		while(bone.getParent()!=null){
-			BoneCalculator parent=bone.getParent();
+			BoneAnimationData parent=bone.getParent();
 			parents.add(0,parent);//root first
 			bone=parent;
 		}
@@ -55,8 +55,8 @@ public class BoneUtils {
 		return parents;
 	}
 	//TODO make interface
-	public static double[] getFinalPositionAndAngle(BoneCalculator bone){
-		List<BoneCalculator> parents=getParents(bone);
+	public static double[] getFinalPositionAndAngle(BoneAnimationData bone){
+		List<BoneAnimationData> parents=getParents(bone);
 		if(parents.size()==0){
 			return new double[]{bone.getX(),bone.getY(),bone.getAngle()};
 		}
@@ -66,7 +66,7 @@ public class BoneUtils {
 		double y=parents.get(0).getY();
 		double angle=parents.get(0).getAngle();
 		for(int i=1;i<parents.size();i++){
-			BoneCalculator parent=parents.get(i);
+			BoneAnimationData parent=parents.get(i);
 			LogUtils.log(parent.getName()+",angle="+angle);
 			double[] turnd=turnedAngle(parent.getX(), parent.getY(), angle);
 			x+=turnd[0];

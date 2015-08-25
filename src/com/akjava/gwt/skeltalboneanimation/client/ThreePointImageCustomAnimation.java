@@ -217,8 +217,8 @@ loader.load("upper.png", new ImageElementListener() {
 		canvas.getContext2d().restore();
 	}
 	
-	public void makeBoneCalculator(List<BoneCalculator> list,TwoDimensionBone bone,AnimationFrame frame,BoneCalculator parent){
-		BoneCalculator calculator=new BoneCalculator(bone.getName(),bone.getX(),bone.getY());
+	public void makeBoneCalculator(List<BoneAnimationData> list,TwoDimensionBone bone,AnimationFrame frame,BoneAnimationData parent){
+		BoneAnimationData calculator=new BoneAnimationData(bone.getName(),bone.getX(),bone.getY());
 		calculator.setParent(parent);
 		list.add(calculator);
 		
@@ -236,7 +236,7 @@ loader.load("upper.png", new ImageElementListener() {
 	private Map<String,double[]> cache=new HashMap<String, double[]>();
 	private Canvas canvas;
 	private Canvas imageCanvas;
-	public void drawFrame(BoneCalculator bone,AnimationFrame frame){
+	public void drawFrame(BoneAnimationData bone,AnimationFrame frame){
 		int offsetX=200;
 		int offsetY=200;
 		double[] pt=BoneUtils.getFinalPositionAndAngle(bone);
@@ -310,10 +310,10 @@ loader.load("upper.png", new ImageElementListener() {
 		LogUtils.log("frame:"+index);
 		CanvasUtils.clear(canvas);
 		cache.clear();
-		List<BoneCalculator> list=new ArrayList<BoneCalculator>();
+		List<BoneAnimationData> list=new ArrayList<BoneAnimationData>();
 		makeBoneCalculator(list,root,frame,null);
 
-		for(BoneCalculator bone:list){
+		for(BoneAnimationData bone:list){
 			drawFrame(bone,frame);
 		}
 	}

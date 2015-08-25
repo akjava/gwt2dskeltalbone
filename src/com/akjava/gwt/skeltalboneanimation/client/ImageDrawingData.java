@@ -93,6 +93,22 @@ public void draw(Canvas canvas){
 	CanvasUtils.drawCenter(canvas, imageElement,x-canvas.getCoordinateSpaceWidth()/2,y-canvas.getCoordinateSpaceHeight()/2,scaleX,scaleY,angle,alpha);
 }
 
+private Canvas canvas;
+public Canvas convertToCanvas(){
+	if(canvas==null){
+		canvas=Canvas.createIfSupported();
+	}
+	
+	Rect bounds=getBounds();
+	
+	CanvasUtils.setSize(canvas, bounds.getWidth(), bounds.getHeight());
+	
+	CanvasUtils.drawCenter(canvas, imageElement,0,0,scaleX,scaleY,angle,alpha);
+
+	
+	return canvas;
+}
+
 public void incrementAngle(int vectorX) {
 	angle+=vectorX;
 	angle=angle%360;

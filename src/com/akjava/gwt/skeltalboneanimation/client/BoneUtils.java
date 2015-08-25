@@ -5,6 +5,8 @@ import java.util.List;
 
 import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.lib.client.game.PointXY;
+import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationFrame;
+import com.akjava.gwt.skeltalboneanimation.client.bones.BoneFrame;
 import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
 
 public class BoneUtils {
@@ -19,6 +21,28 @@ public class BoneUtils {
 		
 		return parents;
 	}
+	
+	public static  AnimationFrame createEmptyAnimationFrame(TwoDimensionBone root){
+		AnimationFrame frame=new AnimationFrame();
+		for(TwoDimensionBone bone:getAllBone(root)){
+			frame.add(new BoneFrame(bone.getName(), 0, 0, 0));
+		}
+		return frame;
+	}
+	private static void getAllBone(List<TwoDimensionBone> list,TwoDimensionBone bone){
+		list.add(bone);
+		for(TwoDimensionBone children:bone.getChildrens()){
+			getAllBone(list,children);
+		}
+		
+	}
+	
+	public static List<TwoDimensionBone> getAllBone(TwoDimensionBone bone){
+		List<TwoDimensionBone> list=new ArrayList<TwoDimensionBone>();
+		getAllBone(list,bone);
+		return list;
+	}
+	
 	
 	public static List<BoneCalculator> getParents(BoneCalculator bone){
 		List<BoneCalculator> parents=new ArrayList<BoneCalculator>();

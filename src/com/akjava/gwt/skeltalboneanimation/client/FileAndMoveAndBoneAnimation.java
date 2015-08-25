@@ -10,13 +10,16 @@ import com.akjava.gwt.html5.client.file.FileUtils.DataURLListener;
 import com.akjava.gwt.lib.client.CanvasUtils;
 import com.akjava.gwt.lib.client.GWTHTMLUtils;
 import com.akjava.gwt.lib.client.ImageElementUtils;
-import com.akjava.gwt.lib.client.LogUtils;
-import com.akjava.gwt.lib.client.MultiImageElementLoader;
-import com.akjava.gwt.lib.client.MultiImageElementLoader.MultiImageElementListener;
 import com.akjava.gwt.lib.client.experimental.CanvasDragMoveControler;
 import com.akjava.gwt.lib.client.experimental.CanvasMoveListener;
 import com.akjava.gwt.lib.client.experimental.RectCanvasUtils;
-import com.akjava.gwt.lib.client.game.PointXY;
+import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationFrame;
+import com.akjava.gwt.skeltalboneanimation.client.bones.BoneControlRange;
+import com.akjava.gwt.skeltalboneanimation.client.bones.BoneControlRange.BoneControlListener;
+import com.akjava.gwt.skeltalboneanimation.client.bones.CanvasBonePainter;
+import com.akjava.gwt.skeltalboneanimation.client.bones.SkeltalAnimations;
+import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
+import com.akjava.lib.common.graphics.Rect;
 import com.akjava.lib.common.utils.ListUtils;
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.dom.client.ImageElement;
@@ -29,24 +32,48 @@ import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.HorizontalPanel;
+import com.google.gwt.user.client.ui.ToggleButton;
 import com.google.gwt.user.client.ui.VerticalPanel;
 
 
 /*
  * select image files and move,turn,scale it.
  */
-public class FileAndMoveAnimation extends VerticalPanel{
+public class FileAndMoveAndBoneAnimation extends VerticalPanel{
 
 private Canvas canvas;
-private CanvasDragMoveControler controler;
+private CanvasDragMoveControler canvasControler;
 
 private List<ImageDrawingData> datas=new ArrayList<ImageDrawingData>();
 private ImageDrawingData selection;
 	
 	private CheckBox showBoundsCheck;
-	public FileAndMoveAnimation(){
-		HorizontalPanel buttons=new HorizontalPanel();
-		add(buttons);
+	
+	private boolean modeAnimation;
+	public FileAndMoveAndBoneAnimation(){
+		HorizontalPanel upButtons=new HorizontalPanel();
+		add(upButtons);
+		
+		final HorizontalPanel buttons1=new HorizontalPanel();
+		final HorizontalPanel buttons2=new HorizontalPanel();
+		buttons2.setVisible(false);
+		
+		ToggleButton animationBt=new ToggleButton("animation-mode");
+		animationBt.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
+
+			@Override
+			public void onValueChange(ValueChangeEvent<Boolean> event) {
+				modeAnimation=event.getValue();
+				buttons1.setVisible(!event.getValue());	
+				buttons2.setVisible(event.getValue());	
+				updateCanvas();
+			}
+			
+		});
+		upButtons.add(animationBt);
+		
+		upButtons.add(buttons1);
+		upButtons.add(buttons2);
 		
 		FileUploadForm upload=FileUtils.createSingleFileUploadForm(new DataURLListener() {
 			
@@ -57,7 +84,7 @@ private ImageDrawingData selection;
 
 			
 		});
-		buttons.add(upload);
+		buttons1.add(upload);
 		
 		showBoundsCheck = new CheckBox("show bounds");
 		showBoundsCheck.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
@@ -67,7 +94,7 @@ private ImageDrawingData selection;
 				updateCanvas();
 			}
 		});
-		buttons.add(showBoundsCheck);
+		buttons1.add(showBoundsCheck);
 		
 		
 		Button up=new Button("up",new ClickHandler() {
@@ -84,7 +111,7 @@ private ImageDrawingData selection;
 				}
 			}
 		});
-		buttons.add(up);
+		buttons1.add(up);
 		
 		Button down=new Button("down",new ClickHandler() {
 			
@@ -102,7 +129,7 @@ private ImageDrawingData selection;
 				}
 			}
 		});
-		buttons.add(down);
+		buttons1.add(down);
 		
 Button unselect=new Button("unselect",new ClickHandler() {
 			
@@ -114,8 +141,26 @@ Button unselect=new Button("unselect",new ClickHandler() {
 			}
 			
 		});
-		buttons.add(unselect);
+		buttons1.add(unselect);
 		
+		rootBone = new TwoDimensionBone("root",0, 0,null);
+		
+		TwoDimensionBone back=rootBone.addBone(new TwoDimensionBone("back",0, -100));
+		TwoDimensionBone chest=back.addBone(new TwoDimensionBone("chest",0, -200));
+		
+		//create buttons2
+		BoneControlRange boneControler=new BoneControlRange(rootBone);
+		buttons2.add(boneControler);
+		boneControler.setListener(new BoneControlListener() {
+			@Override
+			public void changed(TwoDimensionBone bone, int angle, int moveX, int moveY) {
+				if(bone==null){
+					return;
+				}
+				singleFrame.getBoneFrame(bone.getName()).setAngle(angle);
+				updateCanvas();
+			}
+		});
 		
 		canvas = CanvasUtils.createCanvas(800, 800);
 		
@@ -124,7 +169,7 @@ Button unselect=new Button("unselect",new ClickHandler() {
 		GWTHTMLUtils.disableSelectionEnd(canvas.getElement());//not work
 		add(canvas);
 		
-		controler = new CanvasDragMoveControler(canvas,new CanvasMoveListener() {
+		canvasControler = new CanvasDragMoveControler(canvas,new CanvasMoveListener() {
 			
 			@Override
 			public void start(int sx, int sy) {
@@ -159,7 +204,7 @@ Button unselect=new Button("unselect",new ClickHandler() {
 				if(selection!=null){
 					
 					
-					if(controler.isRightMouse()){
+					if(canvasControler.isRightMouse()){
 						selection.incrementAngle(vectorX);
 					}else{
 						selection.incrementX(vectorX);
@@ -193,21 +238,49 @@ Button unselect=new Button("unselect",new ClickHandler() {
 		});
 		
 		
-		MultiImageElementLoader loader=new MultiImageElementLoader();
-		loader.loadImages(new MultiImageElementListener() {
+		
+		final SkeltalAnimations animations=new SkeltalAnimations("test", 33.3);
+		
+		singleFrame = BoneUtils.createEmptyAnimationFrame(rootBone);
+		animations.add(singleFrame);
+		
+		painter = new CanvasBonePainter(canvas) {
 			
 			@Override
-			public void onLoad(List<ImageElement> elements) {
+			public void paintBone(String name, String parent,int startX, int startY, int endX, int endY, double angle) {
+				Rect rect=Rect.fromCenterPoint(endX,endY,10,10);
 				
-			}
-			
-			@Override
-			public void onError(List<String> paths) {
-				// TODO Auto-generated method stub
+				String color;
+				if(parent!=null){
+					color="#f00";
+				}else{
+					color="#00f";
+				}
 				
+				canvas.getContext2d().setFillStyle(color);//TODO method
+				RectCanvasUtils.fillCircle(rect, canvas, true);
+				//RectCanvasUtils.fill(rect,canvas,color);
+				
+				canvas.getContext2d().setStrokeStyle("#000");
+				if(parent!=null){
+					CanvasUtils.drawLine(canvas, startX, startY,endX,endY);
+				}
+				
+				double[] turned=BoneUtils.turnedAngle(-10,0, angle);
+				CanvasUtils.drawLine(canvas, endX, endY,endX+turned[0],endY+turned[1]);
 			}
-		}, "upper.png");
+		};
+		
+		updateCanvas();
 	}
+	
+	
+	private AnimationFrame singleFrame;
+	private CanvasBonePainter painter;
+	private TwoDimensionBone rootBone;
+
+
+
 	
 	private void uploadImage(ImageElement element) {
 		ImageDrawingData data=new ImageDrawingData(element);
@@ -230,6 +303,15 @@ Button unselect=new Button("unselect",new ClickHandler() {
 	
 	private void updateCanvas(){
 		CanvasUtils.clear(canvas);
+		if(modeAnimation){
+			updateCanvasOnAnimation();
+		}else{
+			updateCanvasOnEdit();
+		}
+	}
+
+	private void updateCanvasOnEdit() {
+
 		for(int i=0;i<datas.size();i++){
 		//for(int i=datas.size()-1;i>=0;i--){//first item draw last,because on-mouse-select item moved to first
 			ImageDrawingData data=datas.get(i);
@@ -258,5 +340,11 @@ Button unselect=new Button("unselect",new ClickHandler() {
 			
 			}
 		}
+		painter.paintBone(rootBone);//bone-last
+	}
+
+	private void updateCanvasOnAnimation() {
+		//TODO add show bone check
+		painter.paintBone(rootBone,singleFrame);
 	}
 }

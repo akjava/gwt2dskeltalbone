@@ -29,4 +29,7 @@ public void add(String boneName,double x,double y,double angle){
 public void add(BoneFrame boneFrame){
 	boneFrames.put(boneFrame.getBoneName(), boneFrame);
 }
+public BoneFrame getBoneFrame(String name){
+	return boneFrames.get(name);
+}
 }

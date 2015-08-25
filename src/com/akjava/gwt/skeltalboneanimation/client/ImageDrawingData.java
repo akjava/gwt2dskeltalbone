@@ -121,13 +121,13 @@ public PointXY[] getCornerPoint(){
 	BoneUtils.turnedAngle(result[1], angle);
 	result[1].incrementXY(x, y);
 	
-	result[2].set(-iws/2, ihs/2);
-	BoneUtils.turnedAngle(result[2], angle);
-	result[2].incrementXY(x, y);
-	
-	result[3].set(iws/2, ihs/2);
+	result[3].set(-iws/2, ihs/2);
 	BoneUtils.turnedAngle(result[3], angle);
 	result[3].incrementXY(x, y);
+	
+	result[2].set(iws/2, ihs/2);
+	BoneUtils.turnedAngle(result[2], angle);
+	result[2].incrementXY(x, y);
 	
 	
 	
@@ -146,6 +146,27 @@ public void setBounds(Rect bounds) {
 }
 public void updateBounds(){
 	bounds=calculateBounds();
+}
+
+private boolean useBoundsForCollision=false;
+public boolean collision(int screenX,int screenY){
+	if(useBoundsForCollision){
+	return getBounds().contains(screenX, screenY);
+	}else{
+		
+		int offx=screenX-x;
+		int offy=screenY-y;
+		
+		double[] turnedCordinates=BoneUtils.turnedAngle(offx,offy, -angle);
+		
+		
+		int iw=imageElement.getWidth();
+		int ih=imageElement.getHeight();
+		int iws=(int) (scaleX*iw);
+		int ihs=(int) (scaleY*ih);
+		Rect r=new Rect(x-iws/2,y-ihs/2,iws,ihs);
+		return r.contains((int)turnedCordinates[0]+x, (int)turnedCordinates[1]+y);
+	}
 }
 
 public Rect calculateBounds(){

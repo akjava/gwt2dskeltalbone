@@ -23,7 +23,8 @@ public class GWT2DSkeltalBoneAnimation implements EntryPoint {
 		//ThreePointImageCustomAnimation animation=new ThreePointImageCustomAnimation();
 		
 		//ImageMoveAnimation animation=new ImageMoveAnimation();
-		FileAndMoveAnimation animation=new FileAndMoveAnimation();
+		//FileAndMoveAnimation animation=new FileAndMoveAnimation();
+		FileAndMoveAndBoneAnimation animation=new FileAndMoveAndBoneAnimation();
 		
 		root.add(animation);
 	}

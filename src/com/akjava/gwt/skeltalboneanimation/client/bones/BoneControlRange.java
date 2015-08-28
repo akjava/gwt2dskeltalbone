@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.skeltalboneanimation.client.BoneUtils;
 import com.akjava.gwt.skeltalboneanimation.client.ui.LabeledInputRangeWidget;
 import com.google.common.base.MoreObjects;
@@ -24,6 +25,10 @@ public class BoneControlRange extends VerticalPanel{
 	private Map<String,Integer> rangeMap=new HashMap<String, Integer>();
 
 	private LabeledInputRangeWidget inputRange;
+	public LabeledInputRangeWidget getInputRange() {
+		return inputRange;
+	}
+
 	public BoneControlRange(TwoDimensionBone rootBone){
 		HorizontalPanel panel=new HorizontalPanel();
 		add(panel);
@@ -69,6 +74,7 @@ public class BoneControlRange extends VerticalPanel{
 			
 			@Override
 			public void onValueChange(ValueChangeEvent<Number> event) {
+				LogUtils.log("on-range-changed");
 				TwoDimensionBone selection=getSelection();
 				if(selection==null){
 					return;
@@ -118,7 +124,8 @@ public class BoneControlRange extends VerticalPanel{
 	}
 	
 	public void setSelection(TwoDimensionBone value){
-		 boneListBox.setValue(value);
+		if(value!=null)
+		 boneListBox.setValue(value,true);
 	}
 	
 	public TwoDimensionBone getSelection(){

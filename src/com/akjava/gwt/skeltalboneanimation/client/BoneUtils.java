@@ -54,6 +54,16 @@ public class BoneUtils {
 		
 		return parents;
 	}
+	
+	public static TwoDimensionBone findBoneByName(Iterable<TwoDimensionBone> bones,String name){
+		for(TwoDimensionBone bone:bones){
+			if(bone.getName().equals(name)){
+				return bone;
+			}
+		}
+		return null;
+	}
+	
 	//TODO make interface
 	public static double[] getFinalPositionAndAngle(BoneAnimationData bone){
 		List<BoneAnimationData> parents=getParents(bone);

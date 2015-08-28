@@ -3,6 +3,7 @@ package com.akjava.gwt.skeltalboneanimation.client.ui;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.akjava.gwt.html5.client.input.Range;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
@@ -55,7 +56,7 @@ public class LabeledInputRangeWidget extends HorizontalPanel{
 		}
 		public void setValue(double value){
 			setTextBoxText(String.valueOf(value));
-			range.setValue(value);
+			range.setValue(value,true);
 		} 
 		public double getValue(){
 			return (Double) range.getValue();

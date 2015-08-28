@@ -12,7 +12,7 @@ import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.lib.client.game.PointXY;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationFrame;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneFrame;
-import com.akjava.gwt.skeltalboneanimation.client.bones.SkeltalAnimations;
+import com.akjava.gwt.skeltalboneanimation.client.bones.SkeletalAnimation;
 import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.cell.client.ImageLoadingCell;
@@ -45,7 +45,7 @@ public class ThreePointImageCustomAnimation extends VerticalPanel{
 		TwoDimensionBone chest=back.addBone(new TwoDimensionBone("chest",chestSide, -chestHeight));
 		
 		//animations
-		final SkeltalAnimations animations=new SkeltalAnimations("test", 33.3);
+		final SkeletalAnimation animations=new SkeletalAnimation("test", 33.3);
 		
 		//first frame - do nothing
 		for(int i=0;i<6;i++){

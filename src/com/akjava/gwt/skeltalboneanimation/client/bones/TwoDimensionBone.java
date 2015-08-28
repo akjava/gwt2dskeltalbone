@@ -58,5 +58,8 @@ public TwoDimensionBone addBone(TwoDimensionBone twoDimensionBone) {
 	twoDimensionBone.setParent(this);
 	return twoDimensionBone;
 }
-
+public String toString(){
+	String parent=getParent()==null?"":getParent().getName();
+	return parent+","+getName()+","+getX()+","+getY();
+}
 }

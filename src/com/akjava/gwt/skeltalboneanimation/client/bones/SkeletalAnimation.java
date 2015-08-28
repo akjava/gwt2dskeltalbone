@@ -3,9 +3,13 @@ package com.akjava.gwt.skeltalboneanimation.client.bones;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SkeltalAnimations {
+public class SkeletalAnimation {
 	private String name;
-	public SkeltalAnimations(String name, double fps) {
+	private double fps;
+	public SkeletalAnimation(){
+		this("",33.34);
+	}
+	public SkeletalAnimation(String name, double fps) {
 		super();
 		this.name = name;
 		this.fps = fps;
@@ -22,7 +26,7 @@ public class SkeltalAnimations {
 	public void setFps(double fps) {
 		this.fps = fps;
 	}
-	private double fps;
+	
 	private List<AnimationFrame> frames=new ArrayList<AnimationFrame>();
 	public List<AnimationFrame> getFrames() {
 		return frames;

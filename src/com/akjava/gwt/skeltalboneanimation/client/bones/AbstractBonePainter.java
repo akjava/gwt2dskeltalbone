@@ -9,7 +9,7 @@ import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.skeltalboneanimation.client.BoneAnimationData;
 import com.akjava.gwt.skeltalboneanimation.client.BoneUtils;
 
-public abstract class AbstractBonePainter implements BonePainter{
+public abstract class AbstractBonePainter implements BonePainter, BoneModifier{
 	public static final AnimationFrame EMPTY_FRAME=new AnimationFrame();
 	private Map<String,double[]> cache=new HashMap<String, double[]>();
 	
@@ -75,14 +75,20 @@ public void paintBone(TwoDimensionBone root){
 		endPaint();
 	}
 
-	public List<double[]> calculatorBonesFinalPositionAndAngle(TwoDimensionBone root,AnimationFrame frame){
+	public List<BoneWithXYAngle> calculatorBonesFinalPositionAndAngle(TwoDimensionBone root,AnimationFrame frame){
+		List<BoneWithXYAngle> boneWiths=new ArrayList<BoneWithXYAngle>();
+		List<TwoDimensionBone> bones=BoneUtils.getAllBone(root);
+		
 		List<BoneAnimationData> list=new ArrayList<BoneAnimationData>();
 		makeBoneAnimationData(list,root,frame,null);
-		List<double[]> pts=new ArrayList<double[]>();
+		//List<double[]> pts=new ArrayList<double[]>();
+		
 		for(BoneAnimationData bc:list){
-			pts.add(BoneUtils.getFinalPositionAndAngle(bc));
+			double[] pts=BoneUtils.getFinalPositionAndAngle(bc);
+			TwoDimensionBone tbone=BoneUtils.findBoneByName(bones, bc.getName());
+			boneWiths.add(new BoneWithXYAngle(tbone, (int)pts[0], (int)pts[1], pts[2]));
 		}
-		return pts;
+		return boneWiths;
 	}
 
 	public void paintBone(TwoDimensionBone root,AnimationFrame frame){

@@ -1,7 +1,9 @@
 package com.akjava.gwt.skeltalboneanimation.client;
 
 import com.google.gwt.core.client.EntryPoint;
-import com.google.gwt.core.client.GWT;
+import com.google.gwt.dom.client.Style.Unit;
+import com.google.gwt.user.client.ui.DockLayoutPanel;
+import com.google.gwt.user.client.ui.RootLayoutPanel;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 
@@ -14,8 +16,8 @@ public class GWT2DSkeltalBoneAnimation implements EntryPoint {
 	 * This is the entry point method.
 	 */
 	public void onModuleLoad() {
-		VerticalPanel root=new VerticalPanel();
-		RootPanel.get().add(root);
+		DockLayoutPanel root=new DockLayoutPanel(Unit.PX);
+		RootLayoutPanel.get().add(root);
 		
 		//TurnAngleAnimation animation=new TurnAngleAnimation();
 		//ThreePointShapeAnimation animation=new ThreePointShapeAnimation();
@@ -24,7 +26,9 @@ public class GWT2DSkeltalBoneAnimation implements EntryPoint {
 		
 		//ImageMoveAnimation animation=new ImageMoveAnimation();
 		//FileAndMoveAnimation animation=new FileAndMoveAnimation();
-		FileAndMoveAndBoneAnimation animation=new FileAndMoveAndBoneAnimation();
+		//FileAndMoveAndBoneAnimation animation=new FileAndMoveAndBoneAnimation();
+		
+		SimpleBoneEditorPage animation=new SimpleBoneEditorPage(root);
 		
 		root.add(animation);
 	}

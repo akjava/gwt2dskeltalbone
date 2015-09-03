@@ -17,16 +17,14 @@ import com.akjava.gwt.lib.client.ImageElementUtils;
 import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.lib.client.experimental.CanvasDragMoveControler;
 import com.akjava.gwt.lib.client.experimental.CanvasMoveListener;
-import com.akjava.gwt.lib.client.experimental.RectCanvasUtils;
+import com.akjava.gwt.skeltalboneanimation.client.bones.AbstractBonePainter;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationFrame;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneControlRange;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneControlRange.BoneControlListener;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BonePositionControler;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneWithXYAngle;
-import com.akjava.gwt.skeltalboneanimation.client.bones.CanvasBonePainter;
 import com.akjava.gwt.skeltalboneanimation.client.bones.SkeletalAnimation;
 import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
-import com.akjava.lib.common.graphics.Rect;
 import com.akjava.lib.common.utils.ListUtils;
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.dom.client.CanvasElement;
@@ -315,6 +313,7 @@ Button remove=new Button("remove",new ClickHandler() {
 		singleFrame = BoneUtils.createEmptyAnimationFrame(rootBone);
 		animations.add(singleFrame);
 		
+		/*
 		painter = new CanvasBonePainter(canvas) {
 			
 			@Override
@@ -340,11 +339,14 @@ Button remove=new Button("remove",new ClickHandler() {
 				double[] turned=BoneUtils.turnedAngle(-10,0, angle);
 				CanvasUtils.drawLine(canvas, endX, endY,endX+turned[0],endY+turned[1]);
 			}
+
+			
 		};
 		
 		updateCanvas();
 		
 		bonePositionControler=new BonePositionControler(painter,rootBone);
+		*/
 	}
 	
 	
@@ -427,7 +429,7 @@ Button remove=new Button("remove",new ClickHandler() {
 
 
 	private AnimationFrame singleFrame;
-	private CanvasBonePainter painter;
+	private AbstractBonePainter painter;
 	private TwoDimensionBone rootBone;
 	private List<TwoDimensionBone> allbones;
 	private BoneControlRange boneControlerRange;
@@ -526,7 +528,7 @@ Button remove=new Button("remove",new ClickHandler() {
 			
 			}
 		}
-		painter.paintBone(rootBone);//bone-last
+		painter.paintBone();//bone-last
 	}
 	public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvasY,int imageX,int imageY,double angle){
 		canvas.getContext2d().save();
@@ -543,7 +545,7 @@ Button remove=new Button("remove",new ClickHandler() {
 	}
 
 	private void updateCanvasOnAnimation() {
-		bonePositionControler.update(singleFrame);//TODO update on value changed only
+		bonePositionControler.updateBoth(singleFrame);//TODO update on value changed only
 		//TODO add show bone check
 		//TODO make class,it's hard to understand
 		 List<BoneWithXYAngle> emptyBonePosition=bonePositionControler.getRawInitialData();
@@ -551,8 +553,12 @@ Button remove=new Button("remove",new ClickHandler() {
 		 
 		
 		
-		int offsetX=painter.getOffsetX();
-		int offsetY=painter.getOffsetY();
+		//int offsetX=painter.getOffsetX();
+		//int offsetY=painter.getOffsetY();
+		
+		int offsetX=0;
+		int offsetY=0;
+		
 		for(int i=0;i<imageDrawingDatas.size();i++){
 			int boneIndex=dataBelongintMap.get(imageDrawingDatas.get(i));
 			
@@ -585,7 +591,7 @@ Button remove=new Button("remove",new ClickHandler() {
 		
 		if(showBone){
 		canvas.getContext2d().setGlobalAlpha(0.5);
-		painter.paintBone(rootBone,singleFrame);
+		painter.paintBone(singleFrame);
 		canvas.getContext2d().setGlobalAlpha(1.0);
 		}
 	}

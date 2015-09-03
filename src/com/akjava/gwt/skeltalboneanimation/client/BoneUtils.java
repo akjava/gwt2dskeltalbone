@@ -3,11 +3,13 @@ package com.akjava.gwt.skeltalboneanimation.client;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.lib.client.game.PointXY;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationFrame;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneFrame;
 import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
+import com.akjava.lib.common.utils.FileNames;
+import com.google.common.base.Function;
+import com.google.common.collect.FluentIterable;
 
 public class BoneUtils {
 
@@ -20,6 +22,20 @@ public class BoneUtils {
 		}
 		
 		return parents;
+	}
+	public static TwoDimensionBone getRoot(TwoDimensionBone bone){
+		List<TwoDimensionBone> parents=new ArrayList<TwoDimensionBone>();
+		while(bone.getParent()!=null){
+			TwoDimensionBone parent=bone.getParent();
+			parents.add(0,parent);//root first
+			bone=parent;
+		}
+		
+		if(parents.isEmpty()){
+			return bone;
+		}
+		
+		return parents.get(0);
 	}
 	
 	public static  AnimationFrame createEmptyAnimationFrame(TwoDimensionBone root){
@@ -77,7 +93,7 @@ public class BoneUtils {
 		double angle=parents.get(0).getAngle();
 		for(int i=1;i<parents.size();i++){
 			BoneAnimationData parent=parents.get(i);
-			LogUtils.log(parent.getName()+",angle="+angle);
+			//LogUtils.log(parent.getName()+",angle="+angle);
 			double[] turnd=turnedAngle(parent.getX(), parent.getY(), angle);
 			x+=turnd[0];
 			y+=turnd[1];
@@ -100,5 +116,39 @@ public class BoneUtils {
 		double turnedY=Math.cos(radian)*y+Math.sin(radian)*x;
 		 point.set((int)turnedX, (int)turnedY);
 		 return point;
+	}
+	public static String createBoneName(TwoDimensionBone parentBone){
+		TwoDimensionBone root=getRoot(parentBone);
+		List<TwoDimensionBone> bones=getAllBone(root);
+		//need make method?
+		List<String> names=FluentIterable.from(bones).transform(new Function<TwoDimensionBone, String>() {
+			@Override
+			public String apply(TwoDimensionBone input) {
+				return input.getName();
+			}
+		}).toList();
+		String newName=FileNames.createotExistNumberName(names, parentBone.getName()+"-bone", 1);
+		return newName;
+	}
+	public static boolean existBoneByName(TwoDimensionBone root,String name,TwoDimensionBone target){
+		List<TwoDimensionBone> bones=getAllBone(root);
+		bones.remove(target);
+		//need make method?
+		List<String> names=FluentIterable.from(bones).transform(new BoneNameFunction()).toList();
+		
+		for(String boneName:names){
+			if(name.equals(boneName)){
+				return true;
+			}
+		}
+
+		return false;
+	}
+	
+	public static class BoneNameFunction implements Function<TwoDimensionBone, String>{
+		@Override
+		public String apply(TwoDimensionBone input) {
+			return input.getName();
+		}
 	}
 }

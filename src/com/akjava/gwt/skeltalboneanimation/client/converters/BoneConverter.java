@@ -51,11 +51,14 @@ public class BoneConverter extends Converter<TwoDimensionBone, List<String>>{
 		List<TwoDimensionBone> boneList=Lists.newArrayList(boneMap.values());
 		for(int i=0;i<boneList.size();i++){
 			String parentName=parentNames.get(i);
-			if(parentName!=null){
+			if(parentName!=null && !parentName.isEmpty()){
 				TwoDimensionBone parent=boneMap.get(parentName);
-				boneList.get(i).setParent(parent);
+				//boneList.get(i).setParent(parent);
+				
 				if(parent==null){
-					LogUtils.log("invalid parent-name in"+boneList.get(i).getName()+" parentName="+parentName);
+					LogUtils.log("invalid parent-name in "+boneList.get(i).getName()+" parentName="+parentName);
+				}else{
+					parent.addBone(boneList.get(i));
 				}
 			}
 		}

@@ -91,7 +91,15 @@ public class AnimationControlRange extends VerticalPanel{
 		
 		}
 	
+	public void updateNameLabel(){
+		int value=(int)inputRange.getValue();
+		inputRange.getNameLabel().setText(value+" of "+((int)inputRange.getRange().getMax()));
+	}
+	/*
+	 * possible,not fire event
+	 */
 	public void syncDatas(){//for modified animation data
+		inputRange.getRange().setMax(animation.getFrames().size());
 		AnimationFrame frame=getSelection();
 		if(frame==null){
 			inputRange.setValue(1);//first;
@@ -100,9 +108,16 @@ public class AnimationControlRange extends VerticalPanel{
 			if(index!=-1){
 				inputRange.setValue(index+1);
 			}else{
-				inputRange.setValue(1);
+				int selectionIndex=(int)inputRange.getValue()-1;
+				if(selectionIndex<animation.getFrames().size()){
+					inputRange.setValue(selectionIndex);//this is same value & possible not fire update
+				}else{
+					inputRange.setValue(animation.getFrames().size());
+				}
+				//inputRange.setValue(1);
 			}
 		}
+		updateNameLabel();
 	}
 	
 	private AnimationControlListener listener;

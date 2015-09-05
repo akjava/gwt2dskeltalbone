@@ -6,6 +6,7 @@ import com.akjava.gwt.html5.client.file.FileUtils;
 import com.akjava.gwt.html5.client.file.FileUtils.DataURLListener;
 import com.akjava.gwt.lib.client.CanvasUtils;
 import com.akjava.gwt.lib.client.GWTHTMLUtils;
+import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.lib.client.experimental.CanvasDragMoveControler;
 import com.akjava.gwt.lib.client.experimental.CanvasMoveListener;
 import com.akjava.gwt.lib.client.experimental.RectCanvasUtils;
@@ -60,7 +61,8 @@ private BoneControlRange boneControlerRange;
 		
 		
 		//allbones = BoneUtils.getAllBone(rootBone);
-		
+		 SkeletalAnimation animations = new SkeletalAnimation("test", 33.3);
+		 
 		createCanvas();
 		createBoneControls(animations,rootBone,canvas);
 		
@@ -118,7 +120,7 @@ private BoneControlRange boneControlerRange;
 		    upper.add(downloadLinks);
 		    
 		    
-		    SkeletalAnimation animations = new SkeletalAnimation("test", 33.3);
+		   
 			currentSelectionFrame = BoneUtils.createEmptyAnimationFrame(getRootBone());
 			animations.add(currentSelectionFrame);
 			animations.add(BoneUtils.createEmptyAnimationFrame(getRootBone()));
@@ -136,6 +138,14 @@ private BoneControlRange boneControlerRange;
 		
 		updateCanvas();
 	}
+	private void onAnimationRangeChanged(int index){
+		currentSelectionFrame=animationControler.getSelection();
+		
+		boneControlerRange.setFrame(currentSelectionFrame);
+		
+		bonePositionControler.updateBoth(currentSelectionFrame);
+		updateCanvas();
+	}
 	private Widget createZeroColumnButtons(SkeletalAnimation animations) {
 		HorizontalPanel panel=new HorizontalPanel();
 		panel.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
@@ -144,18 +154,7 @@ private BoneControlRange boneControlerRange;
 		animationControler.getInputRange().addtRangeListener(new ValueChangeHandler<Number>() {
 			@Override
 			public void onValueChange(ValueChangeEvent<Number> event) {
-				currentSelectionFrame=animationControler.getSelection();
-				
-				/*
-				String selectionBone=boneControlerRange.getSelection().getName();
-				BoneFrame frame=currentSelectionFrame.getBoneFrame(selectionBone);
-				boneControlerRange.getInputRange().setValue(frame.getAngle());
-				*/
-				boneControlerRange.setFrame(currentSelectionFrame);
-				
-				bonePositionControler.updateBoth(currentSelectionFrame);
-				updateCanvas();
-				
+				onAnimationRangeChanged(event.getValue().intValue());
 			}
 		});
 		
@@ -186,16 +185,34 @@ private BoneControlRange boneControlerRange;
 	}
 	private void setNewRootBone(TwoDimensionBone newRoot) {
 		setRootBone(newRoot);
+		
+		SkeletalAnimation animations=animationControler.getAnimation();
 		animations.clear();
+		
+		
+		animationControler.setAnimation(animations);
 		
 		currentSelectionFrame = BoneUtils.createEmptyAnimationFrame(getRootBone());
 		animations.add(currentSelectionFrame);
 		
 		boneControlerRange.setRootBone(newRoot);//reset
 		
+		animationControler.syncDatas();
+		
 		bonePositionControler.updateBoth(currentSelectionFrame);
 		updateCanvas();
 	}
+	
+	private void onBoneAngleRangeChanged(TwoDimensionBone bone,int angle){
+		if(bone==null){
+			return;
+		}
+		//LogUtils.log("update:"+bone.getName());
+		currentSelectionFrame.getBoneFrame(bone.getName()).setAngle(angle);
+		bonePositionControler.updateAnimationData(currentSelectionFrame);
+		updateCanvas();
+	}
+	
 	private Widget createFirstColumnButtons() {
 		HorizontalPanel panel=new HorizontalPanel();
 		panel.setVerticalAlignment(ALIGN_MIDDLE);
@@ -205,13 +222,7 @@ private BoneControlRange boneControlerRange;
 		boneControlerRange.setListener(new BoneControlListener() {
 			@Override
 			public void changed(TwoDimensionBone bone, int angle, int moveX, int moveY) {
-				if(bone==null){
-					return;
-				}
-				//LogUtils.log("update:"+bone.getName());
-				currentSelectionFrame.getBoneFrame(bone.getName()).setAngle(angle);
-				bonePositionControler.updateAnimationData(currentSelectionFrame);
-				updateCanvas();
+				onBoneAngleRangeChanged(bone,angle);
 			}
 		});
 		
@@ -231,11 +242,11 @@ private BoneControlRange boneControlerRange;
 		return panel;
 	}
 	protected void doCreateNewData() {
-		boolean confirm=Window.confirm("clear all frame?if not saved data all gone");
+		boolean confirm=Window.confirm("clear all frame?if not saved data would all gone");
 		if(!confirm){
 			return;
 		}
-		//TODO
+		setNewRootBone(getRootBone());
 	}
 
 	protected void doLoadData(String lines) {
@@ -446,7 +457,7 @@ private BoneControlRange boneControlerRange;
 
 
 	private HorizontalPanel downloadLinks;
-	private SkeletalAnimation animations;
+	
 	private AnimationControlRange animationControler;
 
 

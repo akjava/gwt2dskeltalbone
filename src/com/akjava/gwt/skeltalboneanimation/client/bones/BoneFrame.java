@@ -36,4 +36,7 @@ public double getAngle() {
 public void setAngle(double angle) {
 	this.angle = angle;
 }
+public BoneFrame copy(){
+	return new BoneFrame(boneName,x,y,angle);
+}
 }

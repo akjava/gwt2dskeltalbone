@@ -34,4 +34,12 @@ public void add(BoneFrame boneFrame){
 public BoneFrame getBoneFrame(String name){
 	return boneFrames.get(name);
 }
+
+public AnimationFrame copy(){
+	AnimationFrame frame=new AnimationFrame();
+	for(BoneFrame bones:boneFrames.values()){
+		frame.add(bones.copy());
+	}
+	return frame;
+}
 }

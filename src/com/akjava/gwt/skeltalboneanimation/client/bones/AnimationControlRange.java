@@ -1,5 +1,6 @@
 package com.akjava.gwt.skeltalboneanimation.client.bones;
 
+import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.skeltalboneanimation.client.ui.LabeledInputRangeWidget;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
@@ -24,6 +25,39 @@ public class AnimationControlRange extends VerticalPanel{
 	public void setAnimation(SkeletalAnimation animation) {
 		this.animation = animation;
 	}
+	
+	public void insertBefore(AnimationFrame frame){
+		AnimationFrame selection=getSelection();
+		if(selection==null){
+			LogUtils.log("some how selection is null.quit insert");
+			return;
+		}
+		int index=animation.getFrames().indexOf(selection);
+		if(index==-1){
+			LogUtils.log("some how no index.quit insert");
+			return;
+		}
+		animation.getFrames().add(index, frame);
+	}
+	public void insertAfter(AnimationFrame frame){
+		AnimationFrame selection=getSelection();
+		if(selection==null){
+			LogUtils.log("some how selection is null.quit insert");
+			return;
+		}
+		int index=animation.getFrames().indexOf(selection);
+		if(index==-1){
+			LogUtils.log("some how no index.quit insert");
+			return;
+		}
+		animation.getFrames().add(index+1, frame);
+	}
+	public void removeFrame(AnimationFrame frame){
+		
+		animation.getFrames().remove(frame);
+		
+	}
+	
 	public AnimationFrame getSelection(){
 		int index=(int)(inputRange.getValue()-1);
 		if(index<0 || index>=animation.getFrames().size()){
@@ -96,27 +130,18 @@ public class AnimationControlRange extends VerticalPanel{
 		inputRange.getNameLabel().setText(value+" of "+((int)inputRange.getRange().getMax()));
 	}
 	/*
-	 * possible,not fire event
+	 * same as last time & usually not call fire-changed
 	 */
 	public void syncDatas(){//for modified animation data
 		inputRange.getRange().setMax(animation.getFrames().size());
-		AnimationFrame frame=getSelection();
-		if(frame==null){
-			inputRange.setValue(1);//first;
-		}else{
-			int index=animation.getFrames().indexOf(frame);
-			if(index!=-1){
-				inputRange.setValue(index+1);
-			}else{
-				int selectionIndex=(int)inputRange.getValue()-1;
-				if(selectionIndex<animation.getFrames().size()){
-					inputRange.setValue(selectionIndex);//this is same value & possible not fire update
-				}else{
-					inputRange.setValue(animation.getFrames().size());
-				}
-				//inputRange.setValue(1);
-			}
+		//AnimationFrame frame=getSelection();
+		
+		int selectionIndex=getSelectionIndex();
+		
+		if(selectionIndex>animation.getFrames().size()){
+			inputRange.setValue(animation.getFrames().size());
 		}
+		
 		updateNameLabel();
 	}
 	
@@ -133,6 +158,18 @@ public class AnimationControlRange extends VerticalPanel{
 	
 	public static interface AnimationControlListener{
 		public void changed(AnimationFrame frame);
+	}
+
+
+	public int getSelectionIndex() {
+		return (int)inputRange.getValue()-1;
+	}
+	public void setSelection(AnimationFrame frame,boolean fireEvent) {
+		int index=animation.getFrames().indexOf(frame);
+		
+		if(index!=-1){
+			inputRange.setValue(index+1,fireEvent);
+		}
 	}
 	
 	

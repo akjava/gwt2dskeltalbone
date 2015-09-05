@@ -58,9 +58,12 @@ public class LabeledInputRangeWidget extends HorizontalPanel{
 		value=value.substring(0, Math.min(5, value.length()));//limit text
 		textBox.setValue(value);
 		}
-		public void setValue(double value){
+		public void setValue(double value,boolean fireevent){
 			setTextBoxText(String.valueOf(value));
-			range.setValue(value,true);
+			range.setValue(value,fireevent);
+		} 
+		public void setValue(double value){
+			setValue(value,true);
 		} 
 		public double getValue(){
 			return (Double) range.getValue();

@@ -1,6 +1,7 @@
 package com.akjava.gwt.skeltalboneanimation.client.bones;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class AnimationFrame {
@@ -32,7 +33,17 @@ public void add(BoneFrame boneFrame){
 	boneFrames.put(boneFrame.getBoneName(), boneFrame);
 }
 public BoneFrame getBoneFrame(String name){
-	return boneFrames.get(name);
+	BoneFrame boneFrame=boneFrames.get(name);
+
+	return boneFrame;
+}
+public void insertEmptyFrames(List<TwoDimensionBone> bones){
+	for(TwoDimensionBone bone:bones){
+		if(boneFrames.get(bone.getName())==null){
+			add(new BoneFrame(bone.getName()));
+		}
+	}
+	
 }
 
 public AnimationFrame copy(){

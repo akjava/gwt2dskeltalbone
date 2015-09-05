@@ -9,6 +9,9 @@ public BoneFrame(String boneName, int x, int y, double angle) {
 	this.y = y;
 	this.angle = angle;
 }
+public BoneFrame(String name) {
+	this(name,0,0,0);
+}
 public String getBoneName() {
 	return boneName;
 }
@@ -38,5 +41,9 @@ public void setAngle(double angle) {
 }
 public BoneFrame copy(){
 	return new BoneFrame(boneName,x,y,angle);
+}
+
+public boolean isAllZeroFrame(){
+	return x==0 && y==0 && angle==0;
 }
 }

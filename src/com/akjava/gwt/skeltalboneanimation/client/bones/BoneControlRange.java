@@ -129,6 +129,8 @@ public class BoneControlRange extends VerticalPanel{
 		//select(if not found ,select root)
 	public void setRootBone(TwoDimensionBone rootBone){
 		Preconditions.checkNotNull(rootBone);
+		rangeMap.clear();
+		
 		List<TwoDimensionBone> bones=BoneUtils.getAllBone(rootBone);
 		boneListBox.setValue(rootBone);
 		boneListBox.setAcceptableValues(bones);

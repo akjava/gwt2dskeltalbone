@@ -45,7 +45,7 @@ public class AnimationConverter extends Converter<SkeletalAnimation,List<String>
 		AnimationFrame frame=null;
 		boolean firstLineParsed=false;
 		for(String line:filterd){
-			String[] data=line.trim().split("");
+			String[] data=line.trim().split(",");
 			if(data[0].isEmpty()){
 				continue;
 			}

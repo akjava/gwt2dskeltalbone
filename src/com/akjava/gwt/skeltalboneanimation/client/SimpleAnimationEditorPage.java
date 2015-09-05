@@ -1,5 +1,8 @@
 package com.akjava.gwt.skeltalboneanimation.client;
 
+import java.util.List;
+
+import com.akjava.gwt.html5.client.download.HTML5Download;
 import com.akjava.gwt.html5.client.file.File;
 import com.akjava.gwt.html5.client.file.FileUploadForm;
 import com.akjava.gwt.html5.client.file.FileUtils;
@@ -13,6 +16,7 @@ import com.akjava.gwt.lib.client.experimental.RectCanvasUtils;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AbstractBonePainter;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationControlRange;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationFrame;
+import com.akjava.gwt.skeltalboneanimation.client.bones.BoneAndAnimationData;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneControlRange;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneControlRange.BoneControlListener;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneFrame;
@@ -20,9 +24,12 @@ import com.akjava.gwt.skeltalboneanimation.client.bones.BonePositionControler;
 import com.akjava.gwt.skeltalboneanimation.client.bones.CanvasBoneSettings;
 import com.akjava.gwt.skeltalboneanimation.client.bones.SkeletalAnimation;
 import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
+import com.akjava.gwt.skeltalboneanimation.client.converters.AnimationConverter;
+import com.akjava.gwt.skeltalboneanimation.client.converters.BoneAndAnimationConverter;
 import com.akjava.gwt.skeltalboneanimation.client.converters.BoneConverter;
 import com.akjava.lib.common.graphics.Rect;
 import com.akjava.lib.common.utils.CSVUtils;
+import com.google.common.base.Joiner;
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
@@ -154,7 +161,7 @@ private BoneControlRange boneControlerRange;
 		animationControler.getInputRange().addtRangeListener(new ValueChangeHandler<Number>() {
 			@Override
 			public void onValueChange(ValueChangeEvent<Number> event) {
-				onAnimationRangeChanged(event.getValue().intValue());
+				onAnimationRangeChanged(event.getValue().intValue()-1);
 			}
 		});
 		
@@ -183,24 +190,35 @@ private BoneControlRange boneControlerRange;
 		
 		return panel;
 	}
-	private void setNewRootBone(TwoDimensionBone newRoot) {
+	
+	private void setNewBoneAndAnimation(TwoDimensionBone newRoot,SkeletalAnimation animations){
 		setRootBone(newRoot);
 		
-		SkeletalAnimation animations=animationControler.getAnimation();
-		animations.clear();
-		
+		if(animations==null || animations.getFrames().size()==0){
+			LogUtils.log("animation null or empty");
+		}
 		
 		animationControler.setAnimation(animations);
 		
-		currentSelectionFrame = BoneUtils.createEmptyAnimationFrame(getRootBone());
-		animations.add(currentSelectionFrame);
+		currentSelectionFrame = animations.getFrames().get(0);
 		
 		boneControlerRange.setRootBone(newRoot);//reset
+		boneControlerRange.setFrame(currentSelectionFrame);
+		
 		
 		animationControler.syncDatas();
 		
+		//no need always first frame would be selected.
+		//animationControler.setSelection(animations.getFrames().get(0), false);
+		
 		bonePositionControler.updateBoth(currentSelectionFrame);
 		updateCanvas();
+	}
+	private void setNewRootBone(TwoDimensionBone newRoot) {
+		SkeletalAnimation animations=new SkeletalAnimation();
+		animations.add(BoneUtils.createEmptyAnimationFrame(newRoot));
+		
+		setNewBoneAndAnimation(newRoot,animations);
 	}
 	
 	private void onBoneAngleRangeChanged(TwoDimensionBone bone,int angle){
@@ -250,23 +268,51 @@ private BoneControlRange boneControlerRange;
 	}
 
 	protected void doLoadData(String lines) {
-		//TODO
+		BoneAndAnimationData data=new BoneAndAnimationConverter().reverse().convert(CSVUtils.splitLinesWithGuava(lines));
 		
-		//copy to singleFrame & everyframe
+		List<TwoDimensionBone> bones=BoneUtils.getAllBone(data.getBone());
+		
+		for(AnimationFrame frame:data.getAnimation().getFrames()){
+			frame.insertEmptyFrames(bones);
+		}
+		
+		setNewBoneAndAnimation(data.getBone(), data.getAnimation());
 	}
 	protected void doSaveData() {
-		//TODO
+		
+		BoneAndAnimationData data=new BoneAndAnimationData();
+		data.setBone(getRootBone());
+		data.setAnimation(animationControler.getAnimation());
+		
+		
+		List<String> lines=new BoneAndAnimationConverter().convert(data);
+		downloadLinks.add(HTML5Download.get().generateTextDownloadLink(Joiner.on("\r\n").join(lines), "2dboneanimation.txt", "download",true));
+		
+		
+	
 	}
 	protected void doAddAfterData() {
-		//TODO
-		
+		AnimationFrame frame=animationControler.getSelection();
+		animationControler.insertAfter(frame.copy());
+		animationControler.syncDatas();
+		animationControler.setSelection(frame,false);//update later
+		onAnimationRangeChanged(animationControler.getSelectionIndex());
+		updateCanvas();
 	}	
 	protected void doAddBeforeData() {
-		//TODO
-		
+		AnimationFrame frame=animationControler.getSelection();
+		animationControler.insertBefore(frame.copy());
+		animationControler.syncDatas();
+		animationControler.setSelection(frame,false);//update later
+		onAnimationRangeChanged(animationControler.getSelectionIndex());
+		updateCanvas();
 	}
 	protected void doRemoveData() {
-		//TODO
+		AnimationFrame frame=animationControler.getSelection();
+		animationControler.removeFrame(frame);
+		animationControler.syncDatas();
+		onAnimationRangeChanged(animationControler.getSelectionIndex());
+		updateCanvas();
 	}
 	
 	private void createCanvas(){

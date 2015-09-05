@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneAndAnimationData;
 import com.google.common.base.Converter;
+import com.google.common.collect.Lists;
 
 public class BoneAndAnimationConverter extends Converter<BoneAndAnimationData,List<String>> {
 	private AnimationConverter animationConverter=new AnimationConverter();
@@ -16,11 +17,12 @@ public class BoneAndAnimationConverter extends Converter<BoneAndAnimationData,Li
 		
 		List<String> animations=animationConverter.convert(data.getAnimation());
 		
-		bones.add("");//for separator
+		List<String> lines=Lists.newArrayList(bones);
+		lines.add("");//for separator
 		for(String line:animations){
-			bones.add(line);
+			lines.add(line);
 		}
-		return bones;
+		return lines;
 	}
 
 

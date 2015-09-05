@@ -222,6 +222,9 @@ private BoneControlRange boneControlerRange;
 					frame.setAngle(0);
 				}
 				boneControlerRange.getInputRange().setValue(0);
+				
+				bonePositionControler.updateAnimationData(currentSelectionFrame);
+				updateCanvas();
 			}
 		});
 		panel.add(resetAll);

@@ -4,8 +4,6 @@ import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.user.client.ui.DockLayoutPanel;
 import com.google.gwt.user.client.ui.RootLayoutPanel;
-import com.google.gwt.user.client.ui.RootPanel;
-import com.google.gwt.user.client.ui.VerticalPanel;
 
 /**
  * Entry point classes define <code>onModuleLoad()</code>.
@@ -28,7 +26,8 @@ public class GWT2DSkeltalBoneAnimation implements EntryPoint {
 		//FileAndMoveAnimation animation=new FileAndMoveAnimation();
 		//FileAndMoveAndBoneAnimation animation=new FileAndMoveAndBoneAnimation();
 		
-		SimpleBoneEditorPage animation=new SimpleBoneEditorPage(root);
+		//SimpleBoneEditorPage animation=new SimpleBoneEditorPage(root);
+		SimpleAnimationEditorPage animation=new SimpleAnimationEditorPage(root);
 		
 		root.add(animation);
 	}

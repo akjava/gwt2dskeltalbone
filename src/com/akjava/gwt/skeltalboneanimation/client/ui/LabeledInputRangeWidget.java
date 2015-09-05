@@ -12,7 +12,7 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.TextBox;
 
 /**
- * @deprecated original is in threejstest
+ * becareful  original is in threejstest.some modified here
  * @author aki
  *
  */
@@ -24,12 +24,16 @@ public class LabeledInputRangeWidget extends HorizontalPanel{
 		}
 		private TextBox textBox;
 		private Map<ValueChangeHandler<Number>,HandlerRegistration> registMap=new HashMap<ValueChangeHandler<Number>, HandlerRegistration>();
+		private Label nameLabel;
+		public Label getNameLabel() {
+			return nameLabel;
+		}
 		public LabeledInputRangeWidget(String name,Number min,Number max,Number step){
 			this.setVerticalAlignment(ALIGN_MIDDLE);
-			Label label=new Label(name);
-			label.setAutoHorizontalAlignment(ALIGN_CENTER);
-			label.setWidth("80px");
-			add(label);
+			nameLabel = new Label(name);
+			nameLabel.setAutoHorizontalAlignment(ALIGN_CENTER);
+			nameLabel.setWidth("80px");
+			add(nameLabel);
 			range = new Range(name,min,max,step);
 			range.setWidth("360px");
 			add(range);

@@ -37,4 +37,7 @@ public class SkeletalAnimation {
 	public void add(AnimationFrame frame){
 		frames.add(frame);
 	}
+	public void clear() {
+		frames.clear();
+	}
 }

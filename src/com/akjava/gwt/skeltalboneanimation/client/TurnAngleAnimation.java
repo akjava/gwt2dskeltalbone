@@ -1,7 +1,6 @@
 package com.akjava.gwt.skeltalboneanimation.client;
 
 import com.akjava.gwt.lib.client.CanvasUtils;
-import com.akjava.gwt.lib.client.game.PointXY;
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.VerticalPanel;

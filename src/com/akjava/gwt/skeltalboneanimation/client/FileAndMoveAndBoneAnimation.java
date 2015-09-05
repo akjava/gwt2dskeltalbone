@@ -17,14 +17,17 @@ import com.akjava.gwt.lib.client.ImageElementUtils;
 import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.lib.client.experimental.CanvasDragMoveControler;
 import com.akjava.gwt.lib.client.experimental.CanvasMoveListener;
+import com.akjava.gwt.lib.client.experimental.RectCanvasUtils;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AbstractBonePainter;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationFrame;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneControlRange;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneControlRange.BoneControlListener;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BonePositionControler;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneWithXYAngle;
+import com.akjava.gwt.skeltalboneanimation.client.bones.CanvasBoneSettings;
 import com.akjava.gwt.skeltalboneanimation.client.bones.SkeletalAnimation;
 import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
+import com.akjava.lib.common.graphics.Rect;
 import com.akjava.lib.common.utils.ListUtils;
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.dom.client.CanvasElement;
@@ -66,6 +69,7 @@ private ImageDrawingData imageDataSelection;
 	
 	
 	private BonePositionControler bonePositionControler;
+	private CanvasBoneSettings settings;
 	public FileAndMoveAndBoneAnimation(){
 		super(false);
 		HorizontalPanel upButtons=new HorizontalPanel();
@@ -240,6 +244,7 @@ Button remove=new Button("remove",new ClickHandler() {
 				if(bone==null){
 					return;
 				}
+				LogUtils.log("update:"+bone.getName());
 				singleFrame.getBoneFrame(bone.getName()).setAngle(angle);
 				updateCanvas();
 			}
@@ -306,15 +311,17 @@ Button remove=new Button("remove",new ClickHandler() {
 			}
 		});
 		
-		
+		settings=new CanvasBoneSettings(canvas, rootBone);
 		
 		final SkeletalAnimation animations=new SkeletalAnimation("test", 33.3);
 		
 		singleFrame = BoneUtils.createEmptyAnimationFrame(rootBone);
 		animations.add(singleFrame);
 		
-		/*
-		painter = new CanvasBonePainter(canvas) {
+		bonePositionControler=new BonePositionControler(settings);
+		bonePositionControler.setCollisionOrderDesc(true);
+		
+		painter = new AbstractBonePainter(bonePositionControler) {
 			
 			@Override
 			public void paintBone(String name, String parent,int startX, int startY, int endX, int endY, double angle) {
@@ -340,13 +347,25 @@ Button remove=new Button("remove",new ClickHandler() {
 				CanvasUtils.drawLine(canvas, endX, endY,endX+turned[0],endY+turned[1]);
 			}
 
+			@Override
+			public void startPaint() {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void endPaint() {
+				// TODO Auto-generated method stub
+				
+			}
+
 			
 		};
 		
 		updateCanvas();
 		
-		bonePositionControler=new BonePositionControler(painter,rootBone);
-		*/
+		
+		
 	}
 	
 	
@@ -556,8 +575,8 @@ Button remove=new Button("remove",new ClickHandler() {
 		//int offsetX=painter.getOffsetX();
 		//int offsetY=painter.getOffsetY();
 		
-		int offsetX=0;
-		int offsetY=0;
+		int offsetX=bonePositionControler.getSettings().getOffsetX();
+		int offsetY=bonePositionControler.getSettings().getOffsetY();
 		
 		for(int i=0;i<imageDrawingDatas.size();i++){
 			int boneIndex=dataBelongintMap.get(imageDrawingDatas.get(i));

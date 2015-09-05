@@ -94,10 +94,11 @@ public class BoneUtils {
 		for(int i=1;i<parents.size();i++){
 			BoneAnimationData parent=parents.get(i);
 			//LogUtils.log(parent.getName()+",angle="+angle);
+			angle+=parent.getAngle();
 			double[] turnd=turnedAngle(parent.getX(), parent.getY(), angle);
 			x+=turnd[0];
 			y+=turnd[1];
-			angle+=parent.getAngle();
+			
 		}
 		return new double[]{x,y,angle};
 	}

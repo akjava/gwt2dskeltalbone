@@ -165,12 +165,14 @@ public class BonePositionControler {
 	}
 	
 	public TwoDimensionBone collisionAnimationedData(int screenX,int screenY){
-		BoneSettings modifier=settings;
+		Preconditions.checkNotNull(settings);
+		
 		if(rawAnimationedData==null){
+			LogUtils.log("rawAnimationData is null.need update");
 			return null;
 		}
-		screenX-=modifier.getOffsetX();
-		screenY-=modifier.getOffsetY();
+		screenX-=settings.getOffsetX();
+		screenY-=settings.getOffsetY();
 		
 		List<BoneWithXYAngle> datas=rawAnimationedData;
 		if(collisionOrderDesc){

@@ -5,14 +5,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.skeltalboneanimation.client.BoneUtils;
 import com.akjava.gwt.skeltalboneanimation.client.ui.LabeledInputRangeWidget;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.text.shared.Renderer;
+import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.ValueListBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
@@ -28,9 +30,20 @@ public class BoneControlRange extends VerticalPanel{
 	public LabeledInputRangeWidget getInputRange() {
 		return inputRange;
 	}
+	
+	public void setFrame(AnimationFrame frame){
+		boneMap.clear();
+		for(BoneFrame boneFrame:frame.getBoneFrames().values()){
+			rangeMap.put(boneFrame.getBoneName(),(int) boneFrame.getAngle());
+		}
+		
+		String selection=boneListBox.getValue().getName();
+		inputRange.setValue(MoreObjects.firstNonNull(rangeMap.get(selection), 0));
+	}
 
 	public BoneControlRange(TwoDimensionBone rootBone){
 		HorizontalPanel panel=new HorizontalPanel();
+		panel.setVerticalAlignment(ALIGN_MIDDLE);
 		add(panel);
 		
 		
@@ -69,12 +82,12 @@ public class BoneControlRange extends VerticalPanel{
 			}
 		});
 		
-		inputRange = new LabeledInputRangeWidget("range", -180, 180, 1);
+		inputRange = new LabeledInputRangeWidget("Angle:", -180, 180, 1);
 		inputRange.addtRangeListener(new ValueChangeHandler<Number>() {
 			
 			@Override
 			public void onValueChange(ValueChangeEvent<Number> event) {
-				LogUtils.log("on-range-changed");
+				//LogUtils.log("on-range-changed");
 				TwoDimensionBone selection=getSelection();
 				if(selection==null){
 					return;
@@ -88,6 +101,15 @@ public class BoneControlRange extends VerticalPanel{
 		});
 		
 		panel.add(inputRange);
+		
+		Button reset=new Button("Reset",new ClickHandler() {
+			
+			@Override
+			public void onClick(ClickEvent event) {
+				inputRange.setValue(0);
+			}
+		});
+		panel.add(reset);
 		
 		setRootBone(rootBone);
 			

@@ -1,13 +1,10 @@
 package com.akjava.gwt.skeltalboneanimation.client.bones;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import com.akjava.gwt.lib.client.LogUtils;
-import com.akjava.gwt.skeltalboneanimation.client.BoneAnimationData;
-import com.akjava.gwt.skeltalboneanimation.client.BoneUtils;
 
 public abstract class AbstractBonePainter implements BonePainter{
 	public static final AnimationFrame EMPTY_FRAME=new AnimationFrame();
@@ -49,10 +46,10 @@ public void paintBone(){
 		}
 		startPaint();
 		cache.clear();
-		List<BoneAnimationData> list=new ArrayList<BoneAnimationData>();
-		positionControler.makeBoneAnimationData(list,rootBone,frame);
+		//List<BoneAnimationData> list=new ArrayList<BoneAnimationData>();
+		//positionControler.makeBoneAnimationData(list,rootBone,frame);
 		
-		List<BoneWithXYAngle> result = positionControler.calculatorBonesFinalPositionAndAngle(rootBone,EMPTY_FRAME);
+		List<BoneWithXYAngle> result = positionControler.calculatorBonesFinalPositionAndAngle(rootBone,frame);
 
 		for(BoneWithXYAngle data:result){
 			TwoDimensionBone bone=data.getBone();

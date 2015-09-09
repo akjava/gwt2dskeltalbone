@@ -330,6 +330,8 @@ private CheckBox flipVerticalCheck;
 			public void onSelect(ImageDrawingData selection) {
 				//LogUtils.log(selection.getName());
 				driver.edit(selection);
+				updateCanvas();
+				imageDataSelectionOnCanvas=selection;//for mouse-wheel-zoom
 			}
 		};
 		
@@ -370,6 +372,8 @@ private CheckBox flipVerticalCheck;
 		//set-editor & update list
 		drawingDataObjects.addItem(data);
 		animationModeToggle.setValue(false, true);//for convert image
+		
+		drawingDataObjects.setSelected(data, true);//select upload
 		
 		updateCanvas();
 	}
@@ -583,13 +587,21 @@ private CheckBox flipVerticalCheck;
 				
 				String color;
 				if(parent!=null){
-					color="#f00";
+					color="#00f";
 				}else{
-					color="#00f";//root bone;
+					color="#f00";//root bone;
 				}
 				
 				canvas.getContext2d().setFillStyle(color);//TODO method
 				RectCanvasUtils.fillCircle(rect, canvas, true);
+				
+				if(drawingDataObjects.getSelection()!=null){
+					String boneName=drawingDataObjects.getSelection().getBoneName();
+					if(name.equals(boneName)){
+						//canvas.getContext2d().setStrokeStyle("#f00");
+						RectCanvasUtils.stroke(rect, canvas, "#f00");
+					}
+				}
 				
 				//draw selection
 				String selectionColor="#040";

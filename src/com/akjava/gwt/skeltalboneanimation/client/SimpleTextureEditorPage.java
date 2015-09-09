@@ -82,6 +82,7 @@ private ImageDrawingData value;
 private ValueListBox<String> boneNameList;
 private CheckBox flipHorizontalCheck;
 private CheckBox flipVerticalCheck;
+private Label xLabel,yLabel,scaleLabel,angleLabel;
 	public ImageDrawingDataEditor(){
 		boneNameList = new ValueListBox<String>(new Renderer<String>() {
 
@@ -129,7 +130,26 @@ private CheckBox flipVerticalCheck;
 				flush();
 			}
 		});
+		HorizontalPanel status=new HorizontalPanel();
+		status.setSpacing(2);
+		add(status);
+		status.setVerticalAlignment(ALIGN_MIDDLE);
 		
+		status.add(new Label("X:"));
+		xLabel=new Label();
+		status.add(xLabel);
+		
+		status.add(new Label("Y:"));
+		yLabel=new Label();
+		status.add(yLabel);
+		
+		status.add(new Label("Angle:"));
+		angleLabel=new Label();
+		status.add(angleLabel);
+		
+		status.add(new Label("Scale:"));
+		scaleLabel=new Label();
+		status.add(scaleLabel);
 	}
 	public void setBoneNames(List<String> names){
 		if(names.size()>0){
@@ -171,6 +191,12 @@ private CheckBox flipVerticalCheck;
 			
 			flipHorizontalCheck.setValue(value.isFlipHorizontal());
 			flipVerticalCheck.setValue(value.isFlipVertical());
+			
+			xLabel.setText(String.valueOf(value.getX()));
+			yLabel.setText(String.valueOf(value.getY()));
+			angleLabel.setText(String.valueOf(value.getAngle()));
+			scaleLabel.setText(String.valueOf(value.getScaleX()));
+			
 		}
 }
 

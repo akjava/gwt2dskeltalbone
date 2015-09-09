@@ -1,22 +1,115 @@
 package com.akjava.gwt.skeltalboneanimation.client;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.akjava.gwt.lib.client.CanvasUtils;
+import com.akjava.gwt.lib.client.ImageElementUtils;
+import com.akjava.gwt.lib.client.ValueUtils;
 import com.akjava.gwt.lib.client.game.PointXY;
 import com.akjava.lib.common.graphics.Rect;
+import com.akjava.lib.common.utils.ValuesUtils;
+import com.google.common.base.Joiner;
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.dom.client.ImageElement;
 
 public class ImageDrawingData {
 private ImageElement imageElement;
-public ImageDrawingData(ImageElement imageElement) {
-	super();
-	this.imageElement = imageElement;
+private boolean flipVertical;
+private boolean flipHorizontal;
+public boolean isFlipVertical() {
+	return flipVertical;
 }
 
+public void setFlipVertical(boolean flipVertical) {
+	this.flipVertical = flipVertical;
+}
+
+public boolean isFlipHorizontal() {
+	return flipHorizontal;
+}
+
+public void setFlipHorizontal(boolean flipHorizontal) {
+	this.flipHorizontal = flipHorizontal;
+}
+
+public ImageDrawingData(String name,ImageElement imageElement) {
+	super();
+	this.imageElement = imageElement;
+	this.name=name;
+}
+private String name;
+public String getName() {
+	return name;
+}
+
+public void setName(String name) {
+	this.name = name;
+}
 private double alpha=1;
 private int x;
 private int y;
 private double angle;
+
+private String boneName;
+public String getBoneName() {
+	return boneName;
+}
+
+public void setBoneName(String boneName) {
+	this.boneName = boneName;
+}
+
+public String toString(){
+	List<String> values=new ArrayList<String>();
+	if(name==null){
+	values.add("");	
+	}else{
+	values.add(name);
+	}
+	
+	values.add(String.valueOf(x));
+	values.add(String.valueOf(y));
+	values.add(String.valueOf(angle));
+	values.add(String.valueOf(scaleX));
+	values.add(String.valueOf(scaleY));
+	values.add(String.valueOf(alpha));
+	
+	return Joiner.on(",").join(values);
+}
+
+/*
+ * name,x,y,angle,scaleX,scaleY,alpha
+ * imageElement must set by manual
+ */
+public static ImageDrawingData createFromCsv(String csv){
+	ImageDrawingData data=new ImageDrawingData(null,null);
+	if(csv==null){
+		return data;
+	}
+	String values[]=csv.split(",");
+	data.setName(values[0]);
+	if(values.length>1){
+		data.setX(ValuesUtils.toInt(values[1], 0));
+	}
+	if(values.length>2){
+		data.setY(ValuesUtils.toInt(values[2], 0));
+	}
+	if(values.length>3){
+		data.setAngle(ValuesUtils.toDouble(values[3], 0));
+	}
+	if(values.length>4){
+		data.setScaleX(ValuesUtils.toDouble(values[4], 1));
+	}
+	if(values.length>5){
+		data.setScaleY(ValuesUtils.toDouble(values[5], 1));
+	}
+	if(values.length>6){
+		data.setAlpha(ValuesUtils.toDouble(values[6], 0));
+	}
+	return data;
+}
+
 public ImageElement getImageElement() {
 	return imageElement;
 }
@@ -88,11 +181,27 @@ private double scaleY=1;
 /*
  * draw at center
  */
+private  Canvas workingCanvas;
+public   Canvas getWorkingCanvas(){
+	if(workingCanvas==null){
+		workingCanvas=Canvas.createIfSupported();
+	}
+	return workingCanvas;
+}
 public void draw(Canvas canvas){
 //ThreePointImageCustomAnimation.drawImageAt(canvas, imageElement, x, y, imageElement.getWidth()/2, imageElement.getHeight()/2, angle,scaleX,scaleY);
+if(flipHorizontal || flipVertical){
+	Canvas flipped=ImageElementUtils.flip(imageElement, flipHorizontal, flipVertical, getWorkingCanvas());
+	CanvasUtils.drawCenter(canvas, flipped.getCanvasElement(),x-canvas.getCoordinateSpaceWidth()/2,y-canvas.getCoordinateSpaceHeight()/2,scaleX,scaleY,angle,alpha);
+}else{
 	CanvasUtils.drawCenter(canvas, imageElement,x-canvas.getCoordinateSpaceWidth()/2,y-canvas.getCoordinateSpaceHeight()/2,scaleX,scaleY,angle,alpha);
+	}
 }
 
+/*
+ * why need canvas?
+ * re-calcuate scale or turn-angle is hard to do
+ */
 private Canvas canvas;
 public Canvas convertToCanvas(){
 	if(canvas==null){
@@ -103,7 +212,13 @@ public Canvas convertToCanvas(){
 	
 	CanvasUtils.setSize(canvas, bounds.getWidth(), bounds.getHeight());
 	
-	CanvasUtils.drawCenter(canvas, imageElement,0,0,scaleX,scaleY,angle,alpha);
+	//draw(canvas);
+	if(flipHorizontal || flipVertical){
+		Canvas flipped=ImageElementUtils.flip(imageElement, flipHorizontal, flipVertical, getWorkingCanvas());
+		CanvasUtils.drawCenter(canvas, flipped.getCanvasElement(),0,0,scaleX,scaleY,angle,alpha);
+		}else{
+		CanvasUtils.drawCenter(canvas, imageElement,0,0,scaleX,scaleY,angle,alpha);}
+	
 
 	
 	return canvas;

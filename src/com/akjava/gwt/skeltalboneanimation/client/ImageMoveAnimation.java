@@ -86,8 +86,8 @@ private CanvasDragMoveControler controler;
 		loader.loadImages(new MultiImageElementListener() {
 			
 			@Override
-			public void onLoad(List<ImageElement> elements) {
-				data=new ImageDrawingData(elements.get(0));
+			public void onLoad(List<String> paths,List<ImageElement> elements) {
+				data=new ImageDrawingData(paths.get(0),elements.get(0));
 				data.setX(data.getImageElement().getWidth());
 				data.setY(data.getImageElement().getHeight());
 				updateCanvas();

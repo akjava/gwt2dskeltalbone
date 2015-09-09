@@ -58,6 +58,15 @@ public class BoneUtils {
 		getAllBone(list,bone);
 		return list;
 	}
+	public static List<String> getAllBoneName(TwoDimensionBone root){
+		List<TwoDimensionBone> list=new ArrayList<TwoDimensionBone>();
+		getAllBone(list,root);
+		List<String> names=new ArrayList<String>();
+		 for(TwoDimensionBone bone:list){
+			 names.add(bone.getName());
+		 }
+		 return names;
+	}
 	
 	
 	public static List<BoneAnimationData> getParents(BoneAnimationData bone){

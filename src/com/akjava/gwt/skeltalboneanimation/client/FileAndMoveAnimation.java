@@ -49,7 +49,7 @@ private ImageDrawingData selection;
 			
 			@Override
 			public void uploaded(File file, String text) {
-				uploadImage(ImageElementUtils.create(text));
+				uploadImage(file.getFileName(),ImageElementUtils.create(text));
 			}
 
 			
@@ -194,7 +194,7 @@ Button unselect=new Button("unselect",new ClickHandler() {
 		loader.loadImages(new MultiImageElementListener() {
 			
 			@Override
-			public void onLoad(List<ImageElement> elements) {
+			public void onLoad(List<String> paths,List<ImageElement> elements) {
 				
 			}
 			
@@ -206,8 +206,8 @@ Button unselect=new Button("unselect",new ClickHandler() {
 		}, "upper.png");
 	}
 	
-	private void uploadImage(ImageElement element) {
-		ImageDrawingData data=new ImageDrawingData(element);
+	private void uploadImage(String name,ImageElement element) {
+		ImageDrawingData data=new ImageDrawingData(name,element);
 		int maxObjectSize=200;
 		int imgw=data.getImageElement().getWidth();
 		int imgh=data.getImageElement().getHeight();

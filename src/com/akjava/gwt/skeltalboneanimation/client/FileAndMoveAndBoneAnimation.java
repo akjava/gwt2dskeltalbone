@@ -111,7 +111,7 @@ private ImageDrawingData imageDataSelection;
 			
 			@Override
 			public void uploaded(File file, String text) {
-				uploadImage(ImageElementUtils.create(text),0);
+				uploadImage(file.getFileName(),ImageElementUtils.create(text),0);
 			}
 
 			
@@ -486,8 +486,8 @@ Button remove=new Button("remove",new ClickHandler() {
 		updateCanvas();
 	}
 	
-	private void uploadImage(ImageElement element,int index) {
-		ImageDrawingData data=new ImageDrawingData(element);
+	private void uploadImage(String name,ImageElement element,int index) {
+		ImageDrawingData data=new ImageDrawingData(name,element);
 		int maxObjectSize=200;
 		int imgw=data.getImageElement().getWidth();
 		int imgh=data.getImageElement().getHeight();
@@ -619,6 +619,6 @@ Button remove=new Button("remove",new ClickHandler() {
 
 	@Override
 	public void loadFile(File file, String dataUrl) {
-		uploadImage(ImageElementUtils.create(dataUrl),loadFileIndex);	
+		uploadImage(file.getFileName(),ImageElementUtils.create(dataUrl),loadFileIndex);	
 	}
 }

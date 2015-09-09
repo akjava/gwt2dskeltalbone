@@ -4,6 +4,7 @@ import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.user.client.ui.DockLayoutPanel;
 import com.google.gwt.user.client.ui.RootLayoutPanel;
+import com.google.gwt.user.client.ui.TabLayoutPanel;
 
 /**
  * Entry point classes define <code>onModuleLoad()</code>.
@@ -14,8 +15,10 @@ public class GWT2DSkeltalBoneAnimation implements EntryPoint {
 	 * This is the entry point method.
 	 */
 	public void onModuleLoad() {
-		DockLayoutPanel root=new DockLayoutPanel(Unit.PX);
-		RootLayoutPanel.get().add(root);
+		TabLayoutPanel tab=new TabLayoutPanel(24, Unit.PX);
+		
+		RootLayoutPanel.get().add(tab);
+		
 		
 		//TurnAngleAnimation animation=new TurnAngleAnimation();
 		//ThreePointShapeAnimation animation=new ThreePointShapeAnimation();
@@ -26,9 +29,21 @@ public class GWT2DSkeltalBoneAnimation implements EntryPoint {
 		//FileAndMoveAnimation animation=new FileAndMoveAnimation();
 		//FileAndMoveAndBoneAnimation animation=new FileAndMoveAndBoneAnimation();
 		
-		//SimpleBoneEditorPage animation=new SimpleBoneEditorPage(root);
-		SimpleAnimationEditorPage animation=new SimpleAnimationEditorPage(root);
+		DockLayoutPanel boneDock=new DockLayoutPanel(Unit.PX);
+		tab.add(boneDock,"Bone");
+		SimpleBoneEditorPage bonePage=new SimpleBoneEditorPage(boneDock);
+		boneDock.add(bonePage);
 		
-		root.add(animation);
+		DockLayoutPanel animationDock=new DockLayoutPanel(Unit.PX);
+		tab.add(animationDock,"Animation");
+		SimpleAnimationEditorPage animationPage=new SimpleAnimationEditorPage(animationDock);
+		animationDock.add(animationPage);
+		
+		DockLayoutPanel textureDock=new DockLayoutPanel(Unit.PX);
+		tab.add(textureDock,"Texture");
+		SimpleTextureEditorPage texturePage=new SimpleTextureEditorPage(textureDock);
+		textureDock.add(texturePage);
+		
+		tab.selectTab(0);
 	}
 }

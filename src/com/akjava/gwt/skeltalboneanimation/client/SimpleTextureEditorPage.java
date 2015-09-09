@@ -84,6 +84,54 @@ private CheckBox flipHorizontalCheck;
 private CheckBox flipVerticalCheck;
 private Label xLabel,yLabel,scaleLabel,angleLabel;
 	public ImageDrawingDataEditor(){
+		//move controler
+		HorizontalPanel movePanel=new HorizontalPanel();
+		movePanel.add(new Button("Top",new ClickHandler() {
+			
+			@Override
+			public void onClick(ClickEvent event) {
+				if(value==null){
+					return;
+				}
+				drawingDataObjects.topItem(value);
+				updateCanvas();
+			}
+		}));
+		movePanel.add(new Button("Up",new ClickHandler() {
+			
+			@Override
+			public void onClick(ClickEvent event) {
+				if(value==null){
+					return;
+				}
+				drawingDataObjects.upItem(value);
+				updateCanvas();
+			}
+		}));
+		movePanel.add(new Button("Down",new ClickHandler() {
+			
+			@Override
+			public void onClick(ClickEvent event) {
+				if(value==null){
+					return;
+				}
+				drawingDataObjects.downItem(value);
+				updateCanvas();
+			}
+		}));
+		movePanel.add(new Button("Bottom",new ClickHandler() {
+			
+			@Override
+			public void onClick(ClickEvent event) {
+				if(value==null){
+					return;
+				}
+				drawingDataObjects.bottomItem(value);
+				updateCanvas();
+			}
+		}));
+		add(movePanel);
+		
 		boneNameList = new ValueListBox<String>(new Renderer<String>() {
 
 			@Override

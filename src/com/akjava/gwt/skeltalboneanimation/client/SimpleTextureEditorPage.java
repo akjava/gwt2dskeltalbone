@@ -8,6 +8,7 @@ import com.akjava.gwt.html5.client.file.File;
 import com.akjava.gwt.html5.client.file.FileUploadForm;
 import com.akjava.gwt.html5.client.file.FileUtils;
 import com.akjava.gwt.html5.client.file.FileUtils.DataURLListener;
+import com.akjava.gwt.html5.client.input.Range;
 import com.akjava.gwt.jszip.client.JSZip;
 import com.akjava.gwt.jszip.client.JSZipUtils;
 import com.akjava.gwt.jszip.client.JSZipUtils.ZipListener;
@@ -33,6 +34,7 @@ import com.akjava.gwt.skeltalboneanimation.client.bones.SkeletalAnimation;
 import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
 import com.akjava.gwt.skeltalboneanimation.client.converters.BoneAndAnimationConverter;
 import com.akjava.gwt.skeltalboneanimation.client.converters.TextureDataConverter;
+import com.akjava.gwt.skeltalboneanimation.client.ui.LabeledInputRangeWidget;
 import com.akjava.lib.common.graphics.Rect;
 import com.akjava.lib.common.utils.CSVUtils;
 import com.akjava.lib.common.utils.FileNames;
@@ -92,6 +94,7 @@ private CheckBox flipVerticalCheck;
 private CheckBox visibleCheck;
 private Label xLabel,yLabel,scaleLabel,angleLabel;
 private FlushTextBox<ImageDrawingData> idEditor;
+private LabeledInputRangeWidget alphaRange;
 	public ImageDrawingDataEditor(){
 		//move controler
 		HorizontalPanel movePanel=new HorizontalPanel();
@@ -229,6 +232,20 @@ private FlushTextBox<ImageDrawingData> idEditor;
 		idEditor = new FlushTextBox<ImageDrawingData>(this);
 		idEditor.setWidth("160px");
 		namePanel.add(idEditor);
+		
+		alphaRange = new LabeledInputRangeWidget("transparent:", 0.01, 1.0, 0.01);
+		alphaRange.getRange().addValueChangeHandler(new ValueChangeHandler<Number>() {
+			@Override
+			public void onValueChange(ValueChangeEvent<Number> event) {
+				flush();
+			}
+		});
+		alphaRange.getRange().setWidth("100px");
+		HorizontalPanel rangePanel=new HorizontalPanel();
+		rangePanel.setVerticalAlignment(ALIGN_MIDDLE);
+		add(rangePanel);
+		//rangePanel.add(new Label("alpha:"));
+		rangePanel.add(alphaRange);
 	}
 	public void setBoneNames(List<String> names){
 		if(names.size()>0){
@@ -242,14 +259,15 @@ private FlushTextBox<ImageDrawingData> idEditor;
 		}
 
 		@Override
-		public void flush() {
+		 public void flush() {
+			
 			// TODO Auto-generated method stub
 			if(value==null){
 				return;
 			}
 			
 			if(isExistDrawingDataName(value.getId(),idEditor.getValue())){
-				Window.alert(idEditor.getValue()+" is already exist.can't update");
+				Window.alert(idEditor.getValue()+" is already exist.can't update.value id is "+value.getId());
 				idEditor.setValue(value.getId());//reback for notify
 				return;
 			}
@@ -263,6 +281,7 @@ private FlushTextBox<ImageDrawingData> idEditor;
 			value.setVisible(visibleCheck.getValue());
 			
 			
+			value.setAlpha(alphaRange.getValue());
 			
 			onImageDrawingDataFlush();
 		}
@@ -273,7 +292,7 @@ private FlushTextBox<ImageDrawingData> idEditor;
 		}
 
 		@Override
-		public void setValue(ImageDrawingData value) {
+		 public void setValue(ImageDrawingData value) {
 			this.value=value;
 			if(value==null){
 				//LogUtils.log("setValue:null");
@@ -285,13 +304,15 @@ private FlushTextBox<ImageDrawingData> idEditor;
 			
 			flipHorizontalCheck.setValue(value.isFlipHorizontal());
 			flipVerticalCheck.setValue(value.isFlipVertical());
+			visibleCheck.setValue(value.isVisible());
 			
 			xLabel.setText(String.valueOf(value.getX()));
 			yLabel.setText(String.valueOf(value.getY()));
 			angleLabel.setText(String.valueOf(value.getAngle()));
 			scaleLabel.setText(String.valueOf(value.getScaleX()));
 		
-			visibleCheck.setValue(value.isVisible());
+			alphaRange.setValue(value.getAlpha(),false);
+			
 			idEditor.setValue(value.getId());
 		}
 }
@@ -946,7 +967,7 @@ if(modeAnimation){
 		}
 		return -1;
 	}
-	private void updateCanvas(){
+	private  void updateCanvas(){
 		CanvasUtils.clear(canvas);
 		if(modeAnimation){
 			updateCanvasOnAnimation();
@@ -1036,6 +1057,7 @@ if(modeAnimation){
 			CanvasUtils.draw(canvas,data.getCornerPoint(),true,color);
 		}
 		painter.paintBone();//bone-last
+		
 	}
 
 	public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvasY,int imageX,int imageY,double angle){
@@ -1102,6 +1124,8 @@ if(modeAnimation){
 		
 		if(imageDataSelectionOnCanvas!=null){
 			drawingDataObjects.setSelected(imageDataSelectionOnCanvas, true);
+		}else{
+			//
 		}
 
 		//TODO create data-editor
@@ -1112,7 +1136,7 @@ if(modeAnimation){
 		}
 		*/
 		
-		updateCanvas();
+		//updateCanvas();//if call update ,duplicate called from selection-changed-listener
 	}
 	
 	protected void onModeEditDrag(int vectorX, int vectorY) {

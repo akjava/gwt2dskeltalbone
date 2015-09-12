@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.akjava.gwt.lib.client.CanvasUtils;
 import com.akjava.gwt.lib.client.ImageElementUtils;
+import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.lib.client.ValueUtils;
 import com.akjava.gwt.lib.client.game.PointXY;
 import com.akjava.lib.common.graphics.Rect;
@@ -17,6 +18,24 @@ public class ImageDrawingData {
 private ImageElement imageElement;
 private boolean flipVertical;
 private boolean flipHorizontal;
+private boolean visible=true;
+private String imageName;
+public String getImageName() {
+	return imageName;
+}
+
+public void setImageName(String imageName) {
+	this.imageName = imageName;
+}
+
+public boolean isVisible() {
+	return visible;
+}
+
+public void setVisible(boolean visible) {
+	this.visible = visible;
+}
+
 public boolean isFlipVertical() {
 	return flipVertical;
 }
@@ -33,18 +52,23 @@ public void setFlipHorizontal(boolean flipHorizontal) {
 	this.flipHorizontal = flipHorizontal;
 }
 
-public ImageDrawingData(String name,ImageElement imageElement) {
+/**
+ * 
+ * @param id must be uniq,create from time or control image-file-name
+ * @param imageElement
+ */
+public ImageDrawingData(String id,ImageElement imageElement) {
 	super();
 	this.imageElement = imageElement;
-	this.name=name;
+	this.id=id;
 }
-private String name;
-public String getName() {
-	return name;
+private String id;
+public String getId() {
+	return id;
 }
 
-public void setName(String name) {
-	this.name = name;
+public void setId(String id) {
+	this.id = id;
 }
 private double alpha=1;
 private int x;
@@ -62,10 +86,10 @@ public void setBoneName(String boneName) {
 
 public String toString(){
 	List<String> values=new ArrayList<String>();
-	if(name==null){
+	if(id==null){
 	values.add("");	
 	}else{
-	values.add(name);
+	values.add(id);
 	}
 	
 	values.add(String.valueOf(x));
@@ -88,7 +112,7 @@ public static ImageDrawingData createFromCsv(String csv){
 		return data;
 	}
 	String values[]=csv.split(",");
-	data.setName(values[0]);
+	data.setId(values[0]);
 	if(values.length>1){
 		data.setX(ValuesUtils.toInt(values[1], 0));
 	}
@@ -189,6 +213,10 @@ public   Canvas getWorkingCanvas(){
 	return workingCanvas;
 }
 public void draw(Canvas canvas){
+	if(imageElement==null){
+		LogUtils.log(id+" no image-element");
+		return;
+	}
 //ThreePointImageCustomAnimation.drawImageAt(canvas, imageElement, x, y, imageElement.getWidth()/2, imageElement.getHeight()/2, angle,scaleX,scaleY);
 if(flipHorizontal || flipVertical){
 	Canvas flipped=ImageElementUtils.flip(imageElement, flipHorizontal, flipVertical, getWorkingCanvas());
@@ -204,6 +232,7 @@ if(flipHorizontal || flipVertical){
  */
 private Canvas canvas;
 public Canvas convertToCanvas(){
+	
 	if(canvas==null){
 		canvas=Canvas.createIfSupported();
 	}

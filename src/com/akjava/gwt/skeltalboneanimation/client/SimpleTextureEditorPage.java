@@ -8,6 +8,9 @@ import com.akjava.gwt.html5.client.file.File;
 import com.akjava.gwt.html5.client.file.FileUploadForm;
 import com.akjava.gwt.html5.client.file.FileUtils;
 import com.akjava.gwt.html5.client.file.FileUtils.DataURLListener;
+import com.akjava.gwt.jszip.client.JSZip;
+import com.akjava.gwt.jszip.client.JSZipUtils;
+import com.akjava.gwt.jszip.client.JSZipUtils.ZipListener;
 import com.akjava.gwt.lib.client.CanvasUtils;
 import com.akjava.gwt.lib.client.GWTHTMLUtils;
 import com.akjava.gwt.lib.client.ImageElementUtils;
@@ -17,6 +20,7 @@ import com.akjava.gwt.lib.client.experimental.CanvasMoveListener;
 import com.akjava.gwt.lib.client.experimental.RectCanvasUtils;
 import com.akjava.gwt.lib.client.widget.cell.EasyCellTableObjects;
 import com.akjava.gwt.lib.client.widget.cell.SimpleCellTable;
+import com.akjava.gwt.skeltalboneanimation.client.SimpleBoneEditorPage.FlushTextBox;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AbstractBonePainter;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationControlRange;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationFrame;
@@ -28,8 +32,10 @@ import com.akjava.gwt.skeltalboneanimation.client.bones.CanvasBoneSettings;
 import com.akjava.gwt.skeltalboneanimation.client.bones.SkeletalAnimation;
 import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
 import com.akjava.gwt.skeltalboneanimation.client.converters.BoneAndAnimationConverter;
+import com.akjava.gwt.skeltalboneanimation.client.converters.TextureDataConverter;
 import com.akjava.lib.common.graphics.Rect;
 import com.akjava.lib.common.utils.CSVUtils;
+import com.google.common.collect.Lists;
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.CanvasElement;
@@ -82,7 +88,9 @@ private ImageDrawingData value;
 private ValueListBox<String> boneNameList;
 private CheckBox flipHorizontalCheck;
 private CheckBox flipVerticalCheck;
+private CheckBox visibleCheck;
 private Label xLabel,yLabel,scaleLabel,angleLabel;
+private FlushTextBox<ImageDrawingData> idEditor;
 	public ImageDrawingDataEditor(){
 		//move controler
 		HorizontalPanel movePanel=new HorizontalPanel();
@@ -132,6 +140,21 @@ private Label xLabel,yLabel,scaleLabel,angleLabel;
 		}));
 		add(movePanel);
 		
+		HorizontalPanel visiblePanel=new HorizontalPanel();
+		visiblePanel.setVerticalAlignment(ALIGN_MIDDLE);
+		add(visiblePanel);
+		visibleCheck=new CheckBox("show");
+		visiblePanel.add(visibleCheck);
+		visibleCheck.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
+
+			@Override
+			public void onValueChange(ValueChangeEvent<Boolean> event) {
+				flush();
+			}
+		});
+		
+		visiblePanel.add(new Label("Bone:"));
+		
 		boneNameList = new ValueListBox<String>(new Renderer<String>() {
 
 			@Override
@@ -147,7 +170,7 @@ private Label xLabel,yLabel,scaleLabel,angleLabel;
 				
 			}
 		});
-		add(boneNameList);
+		visiblePanel.add(boneNameList);
 		boneNameList.addValueChangeHandler(new ValueChangeHandler<String>() {
 			@Override
 			public void onValueChange(ValueChangeEvent<String> event) {
@@ -198,6 +221,13 @@ private Label xLabel,yLabel,scaleLabel,angleLabel;
 		status.add(new Label("Scale:"));
 		scaleLabel=new Label();
 		status.add(scaleLabel);
+		
+		HorizontalPanel namePanel=new HorizontalPanel();
+		add(namePanel);
+		namePanel.add(new Label("Id:"));
+		idEditor = new FlushTextBox<ImageDrawingData>(this);
+		idEditor.setWidth("160px");
+		namePanel.add(idEditor);
 	}
 	public void setBoneNames(List<String> names){
 		if(names.size()>0){
@@ -216,10 +246,22 @@ private Label xLabel,yLabel,scaleLabel,angleLabel;
 			if(value==null){
 				return;
 			}
+			
+			if(isExistDrawingDataName(value.getId(),idEditor.getValue())){
+				Window.alert(idEditor.getValue()+" is already exist.can't update");
+				idEditor.setValue(value.getId());//reback for notify
+				return;
+			}
+			value.setId(idEditor.getValue());
+			
 			value.setBoneName(boneNameList.getValue());
 			
 			value.setFlipHorizontal(flipHorizontalCheck.getValue());
 			value.setFlipVertical(flipVerticalCheck.getValue());
+			
+			value.setVisible(visibleCheck.getValue());
+			
+			
 			
 			onImageDrawingDataFlush();
 		}
@@ -233,8 +275,11 @@ private Label xLabel,yLabel,scaleLabel,angleLabel;
 		public void setValue(ImageDrawingData value) {
 			this.value=value;
 			if(value==null){
+				//LogUtils.log("setValue:null");
+				this.setVisible(false);
 				return;
 			}
+			this.setVisible(true);
 			boneNameList.setValue(value.getBoneName());
 			
 			flipHorizontalCheck.setValue(value.isFlipHorizontal());
@@ -244,7 +289,9 @@ private Label xLabel,yLabel,scaleLabel,angleLabel;
 			yLabel.setText(String.valueOf(value.getY()));
 			angleLabel.setText(String.valueOf(value.getAngle()));
 			scaleLabel.setText(String.valueOf(value.getScaleX()));
-			
+		
+			visibleCheck.setValue(value.isVisible());
+			idEditor.setValue(value.getId());
 		}
 }
 
@@ -280,41 +327,21 @@ private Label xLabel,yLabel,scaleLabel,angleLabel;
 			});
 		    northPanel.add(showBoneCheck);
 		    
-		    northPanel.add(new Button("Clear All",new ClickHandler() {
-				@Override
-				public void onClick(ClickEvent event) {
-					doCreateNewData();
-				}
-			}));
-
-		    northPanel.add(new Button("Add Before",new ClickHandler() {
-				@Override
-				public void onClick(ClickEvent event) {
-					doAddBeforeData();
-				}
-			}));
-		    northPanel.add(new Button("Add After",new ClickHandler() {
-				@Override
-				public void onClick(ClickEvent event) {
-					doAddAfterData();
-				}
-			}));
-		    northPanel.add(new Button("Remove",new ClickHandler() {
-				
-				@Override
-				public void onClick(ClickEvent event) {
-					doRemoveData();
-				}
-			}));
+		
 		    northPanel.add(new Label("Load:"));
-		    FileUploadForm load=FileUtils.createSingleTextFileUploadForm(new DataURLListener() {
+		    FileUploadForm load=JSZipUtils.createZipFileUploadForm(new ZipListener() {
 				
 				@Override
-				public void uploaded(File file, String text) {
-					doLoadData(text);
+				public void onLoad(String name, JSZip zip) {
+					doLoadData(name,zip);
 				}
-			}, true);
-		    load.setAccept(FileUploadForm.ACCEPT_TXT);
+				
+				@Override
+				public void onFaild(int states, String statesText) {
+					LogUtils.log("faild:"+states+","+statesText);
+				}
+			});
+		   
 		    
 		    northPanel.add(load);
 		    northPanel.add(new Button("Save",new ClickHandler() {
@@ -359,13 +386,37 @@ private Label xLabel,yLabel,scaleLabel,angleLabel;
 		
 	}
 	public void onImageDrawingDataFlush() {
+		drawingDataObjects.update();
 		updateCanvas();//anyway update
 	}
 	
 	private void createWestPanel(DockLayoutPanel root) {
 		int size=250;
 		VerticalPanel panel=new VerticalPanel();
-		panel.add(new Label("image-datas"));
+		panel.setSpacing(2);
+		
+		panel.add(new Label("drawing-mage-datas"));
+		
+		
+		HorizontalPanel removePanel=new HorizontalPanel();
+		
+		removePanel.add(new Button("Clear All",new ClickHandler() {
+					@Override
+					public void onClick(ClickEvent event) {
+						doCreateNewData();
+					}
+				}));
+
+		removePanel.add(new Button("Remove",new ClickHandler() {
+					
+					@Override
+					public void onClick(ClickEvent event) {
+						doRemoveData();
+					}
+				}));
+		panel.add(removePanel);
+		
+		
 		HorizontalPanel buttons=new HorizontalPanel();
 		panel.add(buttons);
 		FileUploadForm upload=FileUtils.createSingleFileUploadForm(new DataURLListener() {
@@ -390,7 +441,7 @@ private Label xLabel,yLabel,scaleLabel,angleLabel;
 					
 					@Override
 					public String getValue(ImageDrawingData object) {
-						return object.getName();
+						return object.getId();
 					}
 				};
 				table.addColumn(nameColumn);
@@ -420,10 +471,39 @@ private Label xLabel,yLabel,scaleLabel,angleLabel;
 		root.addWest(panel, 250);
 	}
 	
+	private String getUniqDrawingName(String name){
+		List<String> exist=Lists.newArrayList();
+		for(ImageDrawingData data:drawingDataObjects.getDatas()){
+			exist.add(data.getId());
+		}
+		int index=1;
+		if(!exist.contains(name)){
+			return name;
+		}
+		do{
+		name=name+"-"+index;
+		index++;
+		}while(exist.contains(name));
+		
+		return name;
+	}
+	
+	private boolean isExistDrawingDataName(String oldName,String name){
+		if(oldName.equals(name)){
+			return false;
+		}
+		List<String> exist=Lists.newArrayList();
+		for(ImageDrawingData data:drawingDataObjects.getDatas()){
+			exist.add(data.getId());
+		}
+		return exist.contains(name);
+	}
+	
 
 //private List<ImageDrawingData> imageDrawingDatas=new ArrayList<ImageDrawingData>();
 	private void uploadImage(String name,ImageElement element,int index) {
-		ImageDrawingData data=new ImageDrawingData(name,element);
+		ImageDrawingData data=new ImageDrawingData(getUniqDrawingName(name),element);
+		data.setImageName(name);
 		int maxObjectSize=200;
 		int imgw=data.getImageElement().getWidth();
 		int imgh=data.getImageElement().getHeight();
@@ -577,27 +657,39 @@ private Label xLabel,yLabel,scaleLabel,angleLabel;
 		if(!confirm){
 			return;
 		}
-		//TODO
+		drawingDataObjects.clearAllItems();
+		driver.edit(null);
+		updateCanvas();
 	}
 
-	protected void doLoadData(String lines) {
-		//how to zip convert?
-		//TODO
+	protected void doLoadData(String name,JSZip zip) {
+		
+		TextureDataConverter converter=new TextureDataConverter();
+		
+		List<ImageDrawingData> datas=converter.convert(zip);
+		
+		drawingDataObjects.setDatas(datas);
+		drawingDataObjects.update();
+		driver.edit(null);
+		updateCanvas();
 	}
 	protected void doSaveData() {
-		//TODO
+		TextureDataConverter converter=new TextureDataConverter();
+		JSZip jszip=converter.reverse().convert(drawingDataObjects.getDatas());
 	
+		downloadLinks.add(JSZipUtils.createDownloadAnchor(jszip, "2dbone-textures.zip", "download", true));
 	}
-	protected void doAddAfterData() {
-		//TODO
-		updateCanvas();
-	}	
-	protected void doAddBeforeData() {
-		//TODO
-		updateCanvas();
-	}
+
 	protected void doRemoveData() {
-		//TODO
+		ImageDrawingData selection=drawingDataObjects.getSelection();
+		drawingDataObjects.removeItem(selection);
+		for(ImageDrawingData data:drawingDataObjects.getFirst().asSet()){
+			//remove and select first
+			drawingDataObjects.setSelected(data, true);
+		}
+		
+		driver.edit(null);//can do it?
+		
 		updateCanvas();
 	}
 	
@@ -783,8 +875,17 @@ if(modeAnimation){
 		
 		List<ImageDrawingData> imageDrawingDatas=drawingDataObjects.getDatas();
 		for(int i=0;i<imageDrawingDatas.size();i++){
-			String boneName=imageDrawingDatas.get(i).getBoneName();
+			ImageDrawingData data=imageDrawingDatas.get(i);
+			String boneName=data.getBoneName();
+			
+		
+			
 			int boneIndex=findIndex(movedBonePosition,boneName);
+			
+			if(boneIndex==-1){
+				//noindex
+				continue;
+			}
 			
 			int boneX=(int)emptyBonePosition.get(boneIndex).getX();
 			int boneY=(int)emptyBonePosition.get(boneIndex).getY();
@@ -797,7 +898,10 @@ if(modeAnimation){
 			//LogUtils.log(boneX+","+boneY+","+movedX+","+movedY);
 			double angle=movedBonePosition.get(boneIndex).getAngle();
 			
-			ImageDrawingData data=imageDrawingDatas.get(i);
+			
+			if(!data.isVisible()){
+				continue;
+			}
 			Canvas converted=convertedDatas.get(i);
 			
 			int diffX=(boneX+offsetX)-(data.getX()-converted.getCoordinateSpaceWidth()/2);
@@ -822,7 +926,9 @@ if(modeAnimation){
 	private void updateCanvasOnEdit() {
 
 		for(ImageDrawingData data:drawingDataObjects.getDatas()){
-			data.draw(canvas);
+			if(data.isVisible()){
+				data.draw(canvas);
+			}
 			String color="#0f0";
 			if(data==drawingDataObjects.getSelection()){
 				color="#f00";
@@ -861,9 +967,12 @@ if(modeAnimation){
 		settings.setBone(rootBone);
 		
 		//update all bone-relative-name to root-bone
+		
+		/*
 		for(ImageDrawingData data:drawingDataObjects.getDatas()){
 			data.setBoneName(rootBone.getName());
 		}
+		*/
 	}
 
 

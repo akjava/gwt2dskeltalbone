@@ -315,17 +315,7 @@ private FlushTextBox<ImageDrawingData> idEditor;
 		    HorizontalPanel northPanel=new HorizontalPanel();
 		    northPanel.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
 		    
-		    showBoneCheck = new CheckBox("show Bone");
-		    showBoneCheck.setValue(true);
-		    showBoneCheck.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
-
-				@Override
-				public void onValueChange(ValueChangeEvent<Boolean> event) {
-					updateCanvas();
-				}
-		    	
-			});
-		    northPanel.add(showBoneCheck);
+		 
 		    
 		
 		    northPanel.add(new Label("Load:"));
@@ -351,6 +341,19 @@ private FlushTextBox<ImageDrawingData> idEditor;
 					doSaveData();
 				}
 			}));
+		    
+		    showBoneCheck = new CheckBox("show Bone");
+		    showBoneCheck.setValue(true);
+		    showBoneCheck.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
+
+				@Override
+				public void onValueChange(ValueChangeEvent<Boolean> event) {
+					updateCanvas();
+				}
+		    	
+			});
+		    northPanel.add(showBoneCheck);
+		    
 		    root.addNorth(northPanel, 32);
 		    downloadLinks = new HorizontalPanel();
 		    downloadLinks.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
@@ -467,10 +470,90 @@ private FlushTextBox<ImageDrawingData> idEditor;
 		
 		panel.add(drawingDataEditor);
 		
+		panel.add(new Label("Copy"));
+		
+		HorizontalPanel copyButtons=new HorizontalPanel();
+		panel.add(copyButtons);
+		
+		Button copyBt=new Button("same",new ClickHandler() {
+			
+			@Override
+			public void onClick(ClickEvent event) {
+				doDupricate();
+			}
+		});
+		copyButtons.add(copyBt);
+		Button copyHBt=new Button("horizontal",new ClickHandler() {
+			
+			@Override
+			public void onClick(ClickEvent event) {
+				doCopyHorizontal();
+			}
+		});
+		copyButtons.add(copyHBt);
+		Button copyVBt=new Button("vertical",new ClickHandler() {
+			
+			@Override
+			public void onClick(ClickEvent event) {
+				doCopyVertical();
+			}
+		});
+		copyButtons.add(copyVBt);
 		
 		root.addWest(panel, 250);
 	}
 	
+	protected void doCopyHorizontal() {
+		ImageDrawingData selection=drawingDataObjects.getSelection();
+		if(selection==null){
+			return;
+		}
+		//TODO support chose base bone
+		int index=0;
+		int centerX=bonePositionControler.getRawInitialData().get(index).getX()+bonePositionControler.getSettings().getOffsetX();
+		
+		ImageDrawingData newData=selection.copy();
+		newData.setId(getUniqDrawingName(newData.getId()));
+		
+		
+		newData.setX(calcurateFlip(centerX,selection.getX()));
+		
+		newData.setFlipHorizontal(!selection.isFlipHorizontal());
+		newData.setAngle(360-selection.getAngle());
+		
+		addDrawingData(newData);
+	}
+	protected void doCopyVertical() {
+		ImageDrawingData selection=drawingDataObjects.getSelection();
+		if(selection==null){
+			return;
+		}
+		//TODO support chose base bone
+		int index=0;
+		int centerY=bonePositionControler.getRawInitialData().get(index).getY()+bonePositionControler.getSettings().getOffsetY();
+		
+		ImageDrawingData newData=selection.copy();
+		newData.setId(getUniqDrawingName(newData.getId()));
+		
+		
+		newData.setY(calcurateFlip(centerY,selection.getY()));
+		
+		newData.setFlipVertical(!selection.isFlipHorizontal());
+		newData.setAngle(360-selection.getAngle());
+		
+		addDrawingData(newData);
+	}
+	
+	public int calcurateFlip(int center,int position){
+		int diff=position-center;
+		return center-diff;
+	}
+	
+	
+	protected void doDupricate() {
+		// TODO Auto-generated method stub
+		
+	}
 	private String getUniqDrawingName(String name){
 		List<String> exist=Lists.newArrayList();
 		for(ImageDrawingData data:drawingDataObjects.getDatas()){
@@ -523,7 +606,13 @@ private FlushTextBox<ImageDrawingData> idEditor;
 		
 		
 		
+		
+		addDrawingData(data);
+	}
+	
+	private void addDrawingData(ImageDrawingData data){
 		//set-editor & update list
+		
 		drawingDataObjects.addItem(data);
 		animationModeToggle.setValue(false, true);//for convert image
 		

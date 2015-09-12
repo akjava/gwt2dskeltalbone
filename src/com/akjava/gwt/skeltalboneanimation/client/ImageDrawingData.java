@@ -3,6 +3,8 @@ package com.akjava.gwt.skeltalboneanimation.client;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import com.akjava.gwt.lib.client.CanvasUtils;
 import com.akjava.gwt.lib.client.ImageElementUtils;
 import com.akjava.gwt.lib.client.LogUtils;
@@ -327,6 +329,27 @@ public boolean collision(int screenX,int screenY){
 		Rect r=new Rect(x-iws/2,y-ihs/2,iws,ihs);
 		return r.contains((int)turnedCordinates[0]+x, (int)turnedCordinates[1]+y);
 	}
+}
+
+/**
+ * watch out id is same as original ,must change by self
+ * @return
+ */
+public ImageDrawingData copy(){
+	ImageDrawingData data=new ImageDrawingData(getId(),getImageElement());
+	
+	data.setBoneName(getBoneName());
+	data.setX(x);
+	data.setY(y);
+	data.setAngle(angle);
+	data.setScaleX(scaleX);
+	data.setScaleY(scaleY);
+	data.setAlpha(alpha);
+	
+	data.setFlipHorizontal(flipHorizontal);
+	data.setFlipVertical(flipVertical);
+	data.setVisible(visible);
+	return data;
 }
 
 public Rect calculateBounds(){

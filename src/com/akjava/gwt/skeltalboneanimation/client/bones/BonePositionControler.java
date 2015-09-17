@@ -46,9 +46,22 @@ public class BonePositionControler {
 	private List<BoneWithXYAngle> rawInitialData;
 	private List<BoneWithXYAngle> rawAnimationedData;
 
-	private int boneSize=10;
+	private int boneSize=20;
 
 	
+	
+
+
+	public int getBoneSize() {
+		return boneSize;
+	}
+
+
+	public void setBoneSize(int boneSize) {
+		this.boneSize = boneSize;
+	}
+
+
 	private int findIndex(List<BoneWithXYAngle> list,String name){
 		for(int i=0;i<list.size();i++){
 			BoneWithXYAngle data=list.get(i);
@@ -213,7 +226,7 @@ public class BonePositionControler {
 		}
 		
 		for(BoneWithXYAngle data:datas){
-			Rect rect=Rect.fromCenterPoint(data.getX(), data.getY(), boneSize, boneSize);
+			Rect rect=Rect.fromCenterPoint(data.getX(), data.getY(), boneSize/2, boneSize/2);
 		//	LogUtils.log(rect+","+screenX+2+"x"+screenY);
 			if(rect.contains(screenX, screenY)){
 				return data.getBone();

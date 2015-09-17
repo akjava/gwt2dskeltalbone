@@ -78,7 +78,10 @@ public class BoneControlRange extends VerticalPanel{
 				}else{
 					inputRange. getRange().setVisible(true);
 				}
-				inputRange.setValue(MoreObjects.firstNonNull(rangeMap.get(bone.getName()), 0));
+				inputRange.setValue(MoreObjects.firstNonNull(rangeMap.get(bone.getName()), 0),false);
+				if(listener!=null){
+					listener.changed(getSelection(),(int)inputRange.getValue(), 0, 0);//TODO support move
+				}
 			}
 		});
 		

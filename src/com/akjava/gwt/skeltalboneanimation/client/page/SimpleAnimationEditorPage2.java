@@ -278,6 +278,7 @@ private BoneControlRange boneControlerRange;
 		if(bone==null){
 			return;
 		}
+		boneSelectionOnCanvas=bone;
 		//LogUtils.log("update:"+bone.getName());
 		currentSelectionFrame.getBoneFrame(bone.getName()).setAngle(angle);
 		bonePositionControler.updateAnimationData(currentSelectionFrame);
@@ -293,6 +294,7 @@ private BoneControlRange boneControlerRange;
 		boneControlerRange.setListener(new BoneControlListener() {
 			@Override
 			public void changed(TwoDimensionBone bone, int angle, int moveX, int moveY) {
+				
 				onBoneAngleRangeChanged(bone,angle);
 			}
 		});
@@ -429,7 +431,8 @@ private BoneControlRange boneControlerRange;
 			
 			@Override
 			public void paintBone(String name, String parent,int startX, int startY, int endX, int endY, double angle) {
-				Rect rect=Rect.fromCenterPoint(endX,endY,10,10);
+				int boneSize=bonePositionControler.getBoneSize();
+				Rect rect=Rect.fromCenterPoint(endX,endY,boneSize/2,boneSize/2);
 				
 				String color;
 				if(parent!=null){
@@ -447,20 +450,28 @@ private BoneControlRange boneControlerRange;
 				
 				
 				if(getSelectionName()!=null && name.equals(getSelectionName())){
-					rect.expand(2, 2);
-					//canvas.getContext2d().setStrokeStyle("#0f0");
+					rect=rect.expand(8, 8);//need expandSelf
+					canvas.getContext2d().setStrokeStyle(selectionColor);
 					
-					RectCanvasUtils.stroke(rect,canvas,selectionColor);
+					RectCanvasUtils.strokeCircle(rect,canvas,true);
 				}
 				//
 				
 				canvas.getContext2d().setStrokeStyle("#000");
+				
+				//for bold selection line
+				if(name.equals(getSelectionName())){
+					canvas.getContext2d().setStrokeStyle("#0f0");
+				}
+				
 				if(parent!=null){
 					CanvasUtils.drawLine(canvas, startX, startY,endX,endY);
 				}
 				
+				/* indicate angle but not good
 				double[] turned=BoneUtils.turnedAngle(-10,0, angle);
 				CanvasUtils.drawLine(canvas, endX, endY,endX+turned[0],endY+turned[1]);
+				*/
 			}
 
 			@Override
@@ -627,6 +638,7 @@ private BoneControlRange boneControlerRange;
 		//LogUtils.log(boneSelectionOnCanvas);
 		if(boneSelectionOnCanvas!=null){
 			boneControlerRange.setSelection(boneSelectionOnCanvas);
+			//when range value is same,not change listener called.TODO improve smart way
 		}
 	}
 
@@ -635,6 +647,7 @@ private BoneControlRange boneControlerRange;
 
 
 	private void updateCanvas() {
+		LogUtils.log("update-canvas");
 		CanvasUtils.clear(canvas);
 		//painter.paintBone(currentSelectionFrame);
 		//TODO paint textures

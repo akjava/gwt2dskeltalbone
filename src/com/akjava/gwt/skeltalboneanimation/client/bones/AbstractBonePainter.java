@@ -9,7 +9,7 @@ import com.akjava.gwt.lib.client.LogUtils;
 public abstract class AbstractBonePainter implements BonePainter{
 	public static final AnimationFrame EMPTY_FRAME=new AnimationFrame();
 	private Map<String,double[]> cache=new HashMap<String, double[]>();
-	private BonePositionControler positionControler;
+	protected BonePositionControler positionControler;
 	
 	public AbstractBonePainter(BonePositionControler positionControler){
 		this.positionControler=positionControler;

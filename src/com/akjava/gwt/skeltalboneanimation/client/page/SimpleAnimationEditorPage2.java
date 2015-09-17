@@ -58,7 +58,7 @@ import com.google.gwt.user.client.ui.Widget;
 /*
  * select image files and move,turn,scale it.
  */
-public class SimpleAnimationEditorPage2 extends VerticalPanel{
+public class SimpleAnimationEditorPage2 extends VerticalPanel implements HasSelectionName{
 	
 	 
 	
@@ -85,7 +85,36 @@ private BoneControlRange boneControlerRange;
 		
 	
 		    HorizontalPanel upper=new HorizontalPanel();
+		    
 		    upper.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
+		    
+		    //load & save
+		    upper.add(new Label("Load:"));
+		    FileUploadForm load=FileUtils.createSingleTextFileUploadForm(new DataURLListener() {
+				
+				@Override
+				public void uploaded(File file, String text) {
+					doLoadData(text);
+				}
+			}, true);
+		    load.setAccept(FileUploadForm.ACCEPT_TXT);
+		    
+		    upper.add(load);
+		    upper.add(new Button("Save",new ClickHandler() {
+				
+				@Override
+				public void onClick(ClickEvent event) {
+					doSaveData();
+				}
+			}));
+		    root.addNorth(upper, 32);
+		    downloadLinks = new HorizontalPanel();
+		    downloadLinks.setWidth("80px");
+		    downloadLinks.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
+		    upper.add(downloadLinks);
+		    
+		    
+		    
 		    upper.add(new Button("Clear All",new ClickHandler() {
 				@Override
 				public void onClick(ClickEvent event) {
@@ -112,28 +141,7 @@ private BoneControlRange boneControlerRange;
 					doRemoveData();
 				}
 			}));
-		    upper.add(new Label("Load:"));
-		    FileUploadForm load=FileUtils.createSingleTextFileUploadForm(new DataURLListener() {
-				
-				@Override
-				public void uploaded(File file, String text) {
-					doLoadData(text);
-				}
-			}, true);
-		    load.setAccept(FileUploadForm.ACCEPT_TXT);
 		    
-		    upper.add(load);
-		    upper.add(new Button("Save",new ClickHandler() {
-				
-				@Override
-				public void onClick(ClickEvent event) {
-					doSaveData();
-				}
-			}));
-		    root.addNorth(upper, 32);
-		    downloadLinks = new HorizontalPanel();
-		    downloadLinks.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
-		    upper.add(downloadLinks);
 		    
 		    
 		   
@@ -219,7 +227,7 @@ private BoneControlRange boneControlerRange;
 			});
 		panel.add(load);
 		
-		showBoneCheck = new CheckBox("show bone");
+		showBoneCheck = new CheckBox("show/edit bone");
 		showBoneCheck.setValue(true);
 		showBoneCheck.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
 
@@ -409,7 +417,7 @@ private BoneControlRange boneControlerRange;
 	
 	private AbstractBonePainter painter;
 
-	private String getSelectionName(){
+	public String getSelectionName(){
 		//range always select
 		return boneControlerRange.getSelection().getName();
 	}
@@ -495,6 +503,9 @@ private BoneControlRange boneControlerRange;
 	
 	
 	protected void onCanvasWheeled(int deltaY) {
+		if(!isEnableEdit()){
+			return;
+		}
 		//bone angle change by wheel
 		TwoDimensionBone bone=boneControlerRange.getSelection();
 		if(bone==null){
@@ -516,7 +527,14 @@ private BoneControlRange boneControlerRange;
 	}
 
 
+	private boolean isEnableEdit(){
+		return showBoneCheck.getValue();//TODO use boolean for spped-up
+	}
+	
 	protected void onCanvasDragged(int vectorX, int vectorY) {
+		if(!isEnableEdit()){
+			return;
+		}
 		if(boneSelectionOnCanvas!=null){
 			
 			if(canvasControler.isRightMouse() || !canvasControler.isRightMouse()){//temporaly every mouse move support
@@ -632,6 +650,9 @@ private BoneControlRange boneControlerRange;
 
 	
 	protected void onCanvasTouchStart(int sx, int sy) {
+		if(!isEnableEdit()){
+			return;
+		}
 		//for drag move selection
 		boneSelectionOnCanvas=bonePositionControler.collisionAnimationedData(sx, sy);
 		
@@ -647,13 +668,16 @@ private BoneControlRange boneControlerRange;
 
 
 	private void updateCanvas() {
-		LogUtils.log("update-canvas");
+		//LogUtils.log("update-canvas");
 		CanvasUtils.clear(canvas);
 		//painter.paintBone(currentSelectionFrame);
 		//TODO paint textures
 		
 		updateCanvasOnAnimation();
-		
+		if(!showBoneCheck.getValue()){
+			return;
+		}
+		//TODO merge into above
 		if(!bonePositionControler.isAvaiable()){
 			return;
 		}

@@ -1,6 +1,7 @@
 package com.akjava.gwt.skeltalboneanimation.client.page;
 
 import com.akjava.gwt.lib.client.CanvasUtils;
+import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.lib.client.experimental.RectCanvasUtils;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AbstractBonePainter;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BonePositionControler;
@@ -30,7 +31,7 @@ private HasSelectionName hasSelectionName;
 
 	@Override
 	public void paintBone(String name, String parent, int startX, int startY, int endX, int endY, double angle) {
-
+		
 		int boneSize=positionControler.getBoneSize();
 		Rect rect=Rect.fromCenterPoint(endX,endY,boneSize/2,boneSize/2);
 		
@@ -40,7 +41,7 @@ private HasSelectionName hasSelectionName;
 		}else{
 			color="#00f";//root bone;
 		}
-		
+		//LogUtils.log("paint:"+name+","+rect.toKanmaString());
 		canvas.getContext2d().setFillStyle(color);//TODO method
 		RectCanvasUtils.fillCircle(rect, canvas, true);
 		

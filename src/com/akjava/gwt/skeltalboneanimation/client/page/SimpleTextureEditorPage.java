@@ -1,4 +1,4 @@
-package com.akjava.gwt.skeltalboneanimation.client;
+package com.akjava.gwt.skeltalboneanimation.client.page;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -21,7 +21,8 @@ import com.akjava.gwt.lib.client.experimental.CanvasMoveListener;
 import com.akjava.gwt.lib.client.experimental.RectCanvasUtils;
 import com.akjava.gwt.lib.client.widget.cell.EasyCellTableObjects;
 import com.akjava.gwt.lib.client.widget.cell.SimpleCellTable;
-import com.akjava.gwt.skeltalboneanimation.client.SimpleBoneEditorPage.FlushTextBox;
+import com.akjava.gwt.skeltalboneanimation.client.BoneUtils;
+import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingData;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AbstractBonePainter;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationControlRange;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationFrame;
@@ -34,6 +35,7 @@ import com.akjava.gwt.skeltalboneanimation.client.bones.SkeletalAnimation;
 import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
 import com.akjava.gwt.skeltalboneanimation.client.converters.BoneAndAnimationConverter;
 import com.akjava.gwt.skeltalboneanimation.client.converters.TextureDataConverter;
+import com.akjava.gwt.skeltalboneanimation.client.page.SimpleBoneEditorPage.FlushTextBox;
 import com.akjava.gwt.skeltalboneanimation.client.ui.LabeledInputRangeWidget;
 import com.akjava.lib.common.graphics.Rect;
 import com.akjava.lib.common.utils.CSVUtils;
@@ -246,6 +248,29 @@ private LabeledInputRangeWidget alphaRange;
 		add(rangePanel);
 		//rangePanel.add(new Label("alpha:"));
 		rangePanel.add(alphaRange);
+		
+		HorizontalPanel imagePanel=new HorizontalPanel();
+		imagePanel.setVerticalAlignment(ALIGN_MIDDLE);
+		add(imagePanel);
+		imagePanel.add(new Label("Image:"));
+		final CheckBox fitScale=new CheckBox("fit scale");
+		imagePanel.add(fitScale);
+		FileUploadForm imageUpload=FileUtils.createSingleFileUploadForm(new DataURLListener() {
+			@Override
+			public void uploaded(File file, String text) {
+				ImageElement imageElement=ImageElementUtils.create(text);
+				double ratio=(double)value.getImageElement().getWidth()/imageElement.getWidth();
+				double newScale=value.getScaleX()*ratio;
+				value.setImageElement(imageElement);
+				//TODO support scale range
+				if(fitScale.getValue()){
+				value.setScaleX(newScale);
+				value.setScaleY(newScale);
+				}
+				flush();
+			}
+		});
+		add(imageUpload);
 	}
 	public void setBoneNames(List<String> names){
 		if(names.size()>0){

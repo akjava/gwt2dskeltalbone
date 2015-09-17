@@ -1,4 +1,4 @@
-package com.akjava.gwt.skeltalboneanimation.client;
+package com.akjava.gwt.skeltalboneanimation.client.page;
 
 import java.util.List;
 
@@ -13,6 +13,7 @@ import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.lib.client.experimental.CanvasDragMoveControler;
 import com.akjava.gwt.lib.client.experimental.CanvasMoveListener;
 import com.akjava.gwt.lib.client.experimental.RectCanvasUtils;
+import com.akjava.gwt.skeltalboneanimation.client.BoneUtils;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AbstractBonePainter;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationControlRange;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationFrame;
@@ -134,8 +135,8 @@ private BoneControlRange boneControlerRange;
 			bonePositionControler.updateBoth(currentSelectionFrame);
 			
 		add(createZeroColumnButtons(animations));    
-		add(createFirstColumnButtons());
-		add(createSecondColumnButtons());
+		add(createBoneEditColumnButtons());
+		add(createBoneLoadColumnButtons());
 		
 		    
 		    
@@ -167,7 +168,7 @@ private BoneControlRange boneControlerRange;
 		
 		return panel;
 	}
-	private Widget createSecondColumnButtons() {
+	private Widget createBoneLoadColumnButtons() {
 		HorizontalPanel panel=new HorizontalPanel();
 		panel.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
 		panel.add(new Label("[Bones Data] "));
@@ -231,7 +232,7 @@ private BoneControlRange boneControlerRange;
 		updateCanvas();
 	}
 	
-	private Widget createFirstColumnButtons() {
+	private Widget createBoneEditColumnButtons() {
 		HorizontalPanel panel=new HorizontalPanel();
 		panel.setVerticalAlignment(ALIGN_MIDDLE);
 		panel.add(new Label("Bone:"));
@@ -293,17 +294,19 @@ private BoneControlRange boneControlerRange;
 	}
 	protected void doAddAfterData() {
 		AnimationFrame frame=animationControler.getSelection();
-		animationControler.insertAfter(frame.copy());
+		AnimationFrame copy=frame.copy();
+		animationControler.insertAfter(copy);
 		animationControler.syncDatas();
-		animationControler.setSelection(frame,false);//update later
+		animationControler.setSelection(copy,false);//update later
 		onAnimationRangeChanged(animationControler.getSelectionIndex());
 		updateCanvas();
 	}	
 	protected void doAddBeforeData() {
 		AnimationFrame frame=animationControler.getSelection();
-		animationControler.insertBefore(frame.copy());
+		AnimationFrame copy=frame.copy();
+		animationControler.insertBefore(copy);
 		animationControler.syncDatas();
-		animationControler.setSelection(frame,false);//update later
+		animationControler.setSelection(copy,false);//update later
 		onAnimationRangeChanged(animationControler.getSelectionIndex());
 		updateCanvas();
 	}
@@ -469,6 +472,7 @@ private BoneControlRange boneControlerRange;
 		//LogUtils.log(boneSelectionOnCanvas);
 		if(boneSelectionOnCanvas!=null){
 			boneControlerRange.setSelection(boneSelectionOnCanvas);
+			updateCanvas();//if range value same never called
 		}
 	}
 
@@ -483,6 +487,8 @@ private BoneControlRange boneControlerRange;
 		
 		
 	}
+	
+	
 
 	/*
 	 * for drag move selection,possible null

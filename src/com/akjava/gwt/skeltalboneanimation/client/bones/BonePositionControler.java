@@ -48,6 +48,34 @@ public class BonePositionControler {
 
 	private int boneSize=10;
 
+	
+	private int findIndex(List<BoneWithXYAngle> list,String name){
+		for(int i=0;i<list.size();i++){
+			BoneWithXYAngle data=list.get(i);
+			if(data.getBone().getName().equals(name)){
+				return i;
+			}
+		}
+		return -1;
+	}
+	
+	public BoneWithXYAngle getAnimationedDataByName(String name){
+		int index=findIndex(rawAnimationedData, name);
+		if(index==-1){
+			return null;
+		}
+		return rawAnimationedData.get(index);
+	}
+	
+	public BoneWithXYAngle getInitialDataByName(String name){
+		int index=findIndex(rawInitialData, name);
+		if(index==-1){
+			return null;
+		}
+		return rawInitialData.get(index);
+	}
+	
+	
 	public List<BoneWithXYAngle> getRawInitialData() {
 		return rawInitialData;
 	}
@@ -101,6 +129,11 @@ public class BonePositionControler {
 		}
 		return boneWiths;
 	}
+	
+	public boolean isAvaiable(){
+		return rawInitialData!=null && rawAnimationedData!=null;
+	}
+	
 	public void updateInitialData(){
 		 rawInitialData = calculatorBonesFinalPositionAndAngle(settings.getBone(),AbstractBonePainter.EMPTY_FRAME);
 		 
@@ -180,7 +213,7 @@ public class BonePositionControler {
 		}
 		
 		for(BoneWithXYAngle data:datas){
-			Rect rect=Rect.fromCenterPoint(data.getX(), data.getY(), boneSize/2, boneSize/2);
+			Rect rect=Rect.fromCenterPoint(data.getX(), data.getY(), boneSize, boneSize);
 		//	LogUtils.log(rect+","+screenX+2+"x"+screenY);
 			if(rect.contains(screenX, screenY)){
 				return data.getBone();

@@ -1,5 +1,9 @@
 package com.akjava.gwt.skeltalboneanimation.client;
 
+import com.akjava.gwt.skeltalboneanimation.client.page.SimpleAnimationEditorPage;
+import com.akjava.gwt.skeltalboneanimation.client.page.SimpleAnimationEditorPage2;
+import com.akjava.gwt.skeltalboneanimation.client.page.SimpleBoneEditorPage;
+import com.akjava.gwt.skeltalboneanimation.client.page.SimpleTextureEditorPage;
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.user.client.ui.DockLayoutPanel;
@@ -44,6 +48,12 @@ public class GWT2DSkeltalBoneAnimation implements EntryPoint {
 		SimpleTextureEditorPage texturePage=new SimpleTextureEditorPage(textureDock);
 		textureDock.add(texturePage);
 		
-		tab.selectTab(2);
+		//advanced
+		DockLayoutPanel animationDock2=new DockLayoutPanel(Unit.PX);
+		tab.add(animationDock2,"Animation2");
+		SimpleAnimationEditorPage2 animationPage2=new SimpleAnimationEditorPage2(animationDock2);
+		animationDock2.add(animationPage2);
+		
+		tab.selectTab(3);
 	}
 }

@@ -13,6 +13,9 @@ import com.google.common.collect.FluentIterable;
 
 public class BoneUtils {
 
+	/*
+	 * not contain bone itself
+	 */
 	public static List<TwoDimensionBone> getParents(TwoDimensionBone bone){
 		List<TwoDimensionBone> parents=new ArrayList<TwoDimensionBone>();
 		while(bone.getParent()!=null){

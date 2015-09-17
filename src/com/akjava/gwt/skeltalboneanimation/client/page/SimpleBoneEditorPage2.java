@@ -241,7 +241,14 @@ private final SingleSelectionModel<TwoDimensionBone> selectionModel = new Single
 				
 				@Override
 				public void onClick(ClickEvent event) {
-					doRemoveBone();
+					doRemoveBone(false);
+				}
+			}));
+		    upper.add(new Button("Remove with children",new ClickHandler() {
+				
+				@Override
+				public void onClick(ClickEvent event) {
+					doRemoveBone(true);
 				}
 			}));
 		    upper.add(new Label("Load:"));
@@ -361,13 +368,25 @@ settings.setBone(newRoot);
 		selectionModel.setSelected(newBone, true);
 		
 	}
-	protected void doRemoveBone() {
+	protected void doRemoveBone(boolean removeChildren) {
 		//cellTree.
 		final TwoDimensionBone selection=selectionModel.getSelectedObject();
 		if(selection==null || selection==getRootBone()){
 			return;
 		}
+		
 		selection.getParent().getChildrens().remove(selection);
+		
+		if(!removeChildren){
+			TwoDimensionBone newParent=selection.getParent();
+			double offX=selection.getX();
+			double offY=selection.getY();
+			for(TwoDimensionBone bone:selection.getChildrens()){
+				bone.setX(bone.getX()+offX);
+				bone.setY(bone.getY()+offY);
+				newParent.addBone(bone);
+			}
+		}
 		
 		refreshTree(selection);
 		updateBoneDatas();

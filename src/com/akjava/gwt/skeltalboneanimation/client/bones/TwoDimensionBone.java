@@ -32,6 +32,12 @@ public void setParent(TwoDimensionBone parent) {
 public List<TwoDimensionBone> getChildren() {
 	return children;
 }
+public List<TwoDimensionBone> getChildrenAll() {
+	List<TwoDimensionBone> allbone= BoneUtils.getAllBone(this);
+	allbone.remove(this);
+	return allbone;
+}
+
 public void setChildrens(List<TwoDimensionBone> childrens) {
 	this.children = childrens;
 }

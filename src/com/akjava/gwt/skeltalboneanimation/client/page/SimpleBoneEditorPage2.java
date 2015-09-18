@@ -635,6 +635,13 @@ settings.setBone(newRoot);
 			bone.setX(bone.getX()+vectorX);
 			bone.setY(bone.getY()+vectorY);
 			
+			if(canvasControler.isShiftKeyDown()){
+				for(TwoDimensionBone child:bone.getChildren()){
+					child.setX(child.getX()-vectorX);
+					child.setY(child.getY()-vectorY);
+				}
+			}
+			
 			
 			driver.edit(bone);//data is update on editor,but not flash when same
 			updateBoneDatas();
@@ -647,6 +654,9 @@ settings.setBone(newRoot);
 				}else{
 					backgroundData.incrementX(vectorX);
 					backgroundData.incrementY(vectorY);
+					
+					
+					
 				}
 				backgroundData.updateBounds();
 				

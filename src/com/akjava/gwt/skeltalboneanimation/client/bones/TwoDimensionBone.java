@@ -3,6 +3,10 @@ package com.akjava.gwt.skeltalboneanimation.client.bones;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.akjava.gwt.lib.client.game.PointD;
+import com.akjava.gwt.lib.client.game.PointXY;
+import com.akjava.gwt.skeltalboneanimation.client.BoneUtils;
+
 public class TwoDimensionBone {
 private double x;
 private double y;
@@ -52,6 +56,17 @@ public void setName(String name) {
 public boolean isRoot(){
 	return parent==null;
 }
+
+public PointD getAbsolutePosition(){
+	double x=this.x;
+	double y=this.y;
+	for(TwoDimensionBone parent:BoneUtils.getParents(this)){
+		x+=parent.getX();
+		y+=parent.getY();
+	}
+	return new PointD(x,y);
+}
+
 public TwoDimensionBone addBone(TwoDimensionBone twoDimensionBone) {
 
 	childrens.add(twoDimensionBone);

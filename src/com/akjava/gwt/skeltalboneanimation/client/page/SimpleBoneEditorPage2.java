@@ -1,5 +1,6 @@
 package com.akjava.gwt.skeltalboneanimation.client.page;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,9 +12,11 @@ import com.akjava.gwt.html5.client.file.FileUtils;
 import com.akjava.gwt.html5.client.file.FileUtils.DataURLListener;
 import com.akjava.gwt.lib.client.CanvasUtils;
 import com.akjava.gwt.lib.client.GWTHTMLUtils;
+import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.lib.client.experimental.CanvasDragMoveControler;
 import com.akjava.gwt.lib.client.experimental.CanvasMoveListener;
 import com.akjava.gwt.lib.client.experimental.RectCanvasUtils;
+import com.akjava.gwt.lib.client.game.PointD;
 import com.akjava.gwt.skeltalboneanimation.client.BoneTextCell;
 import com.akjava.gwt.skeltalboneanimation.client.BoneUtils;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AbstractBonePainter;
@@ -41,6 +44,7 @@ import com.google.gwt.event.dom.client.MouseWheelEvent;
 import com.google.gwt.event.dom.client.MouseWheelHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
+import com.google.gwt.text.shared.Renderer;
 import com.google.gwt.user.cellview.client.CellTree;
 import com.google.gwt.user.cellview.client.TreeNode;
 import com.google.gwt.user.client.Window;
@@ -50,6 +54,7 @@ import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.IntegerBox;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.TextBox;
+import com.google.gwt.user.client.ui.ValueListBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.view.client.ListDataProvider;
 import com.google.gwt.view.client.SelectionChangeEvent;
@@ -99,7 +104,7 @@ private FlushIntegerBox<TwoDimensionBone> xBox,yBox;
 
 
 private TwoDimensionBone value;
-
+private ValueListBox<TwoDimensionBone> parentEditor;
 private void onEditorFlush(){
 	//LogUtils.log("flush by self:"+value.getName());
 	List<TwoDimensionBone> bones=BoneUtils.getAllBone(getRootBone());
@@ -117,8 +122,30 @@ private void onEditorFlush(){
 	}else{
 		value.setName(newName);
 	}
-	
-	
+	//update parent
+	TwoDimensionBone newParent=parentEditor.getValue();
+	if(newParent!=null){
+	//need move
+	if(!newParent.getChildrens().contains(value)){
+		
+		PointD absoluteValuePosition=value.getAbsolutePosition();
+		TwoDimensionBone oldParent=value.getParent();
+		value.getParent().getChildrens().remove(value);
+		
+		PointD absoluteParentPosition=newParent.getAbsolutePosition();
+		
+		double newX=absoluteValuePosition.getX()-absoluteParentPosition.getX();
+		double newY=absoluteValuePosition.getY()-absoluteParentPosition.getY();
+		value.setX(newX);
+		value.setY(newY);
+		
+		xBox.setValue((int)newX);
+		yBox.setValue((int)newY);
+		
+		newParent.addBone(value);
+		refreshTree(oldParent);
+	}
+	}
 	
 	refreshTree(value);
 	
@@ -138,11 +165,59 @@ private void onEditorFlush(){
 			panel.add(new Label("X:"));
 			xBox=new FlushIntegerBox<TwoDimensionBone>(this);
 			panel.add(xBox);
+			xBox.setWidth("80px");
 			
 			panel.add(new Label("Y:"));
 			yBox=new FlushIntegerBox<TwoDimensionBone>(this);
 			panel.add(yBox);
+			yBox.setWidth("80px");
+			
+			panel.add(new Label("Parent:"));
+			//TODO class
+			parentEditor=new ValueListBox<TwoDimensionBone>(new Renderer<TwoDimensionBone>() {
+
+				@Override
+				public String render(TwoDimensionBone object) {
+					if(object!=null){
+						return object.getName();
+					}
+					return null;
+				}
+
+				@Override
+				public void render(TwoDimensionBone object, Appendable appendable) throws IOException {
+					// TODO Auto-generated method stub
+					
+				}
+			});
+			parentEditor.addValueChangeHandler(new ValueChangeHandler<TwoDimensionBone>() {
+
+				@Override
+				public void onValueChange(ValueChangeEvent<TwoDimensionBone> event) {
+					onEditorFlush();
+				}
+				
+			});
+			panel.add(parentEditor);
 		}
+		
+		
+		public void updateParentEditor(){
+			if(value==null){
+				return;
+			}
+			List<TwoDimensionBone> bones=BoneUtils.getAllBone(getRootBone());
+			List<TwoDimensionBone> filters=Lists.newArrayList(bones);
+			filters.removeAll(BoneUtils.getAllBone(value));
+			parentEditor.setAcceptableValues(filters);
+			
+			//root can't modify
+			parentEditor.setVisible(value!=getRootBone());
+		}
+		
+		
+		
+		
 @Override
 			public void setDelegate(EditorDelegate<TwoDimensionBone> delegate) {
 				// TODO Auto-generated method stub
@@ -177,6 +252,11 @@ private void onEditorFlush(){
 					xBox.setEnabled(true);
 					yBox.setEnabled(true);
 				}
+				
+				parentEditor.setValue(value.getParent());//not fire
+				
+				updateParentEditor();
+				
 			}
 	}
 	

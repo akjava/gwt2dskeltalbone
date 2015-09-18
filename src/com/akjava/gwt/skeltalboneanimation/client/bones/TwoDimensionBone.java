@@ -22,18 +22,18 @@ public TwoDimensionBone(String name,double x, double y){
 }
 private String name;
 private TwoDimensionBone parent;
-private List<TwoDimensionBone> childrens=new ArrayList<TwoDimensionBone>();
+private List<TwoDimensionBone> children=new ArrayList<TwoDimensionBone>();
 public TwoDimensionBone getParent() {
 	return parent;
 }
 public void setParent(TwoDimensionBone parent) {
 	this.parent = parent;
 }
-public List<TwoDimensionBone> getChildrens() {
-	return childrens;
+public List<TwoDimensionBone> getChildren() {
+	return children;
 }
 public void setChildrens(List<TwoDimensionBone> childrens) {
-	this.childrens = childrens;
+	this.children = childrens;
 }
 public double getX() {
 	return x;
@@ -57,6 +57,17 @@ public boolean isRoot(){
 	return parent==null;
 }
 
+public TwoDimensionBone copy(boolean copyChildren){
+	TwoDimensionBone copyBone=new TwoDimensionBone(name, x, y,parent);
+	if(copyChildren){
+		for(TwoDimensionBone child:children){
+			TwoDimensionBone copyChild=child.copy(true);
+			copyBone.addBone(copyChild);
+		}
+	}
+	return copyBone;
+}
+
 public PointD getAbsolutePosition(){
 	double x=this.x;
 	double y=this.y;
@@ -69,7 +80,7 @@ public PointD getAbsolutePosition(){
 
 public TwoDimensionBone addBone(TwoDimensionBone twoDimensionBone) {
 
-	childrens.add(twoDimensionBone);
+	children.add(twoDimensionBone);
 	twoDimensionBone.setParent(this);
 	return twoDimensionBone;
 }

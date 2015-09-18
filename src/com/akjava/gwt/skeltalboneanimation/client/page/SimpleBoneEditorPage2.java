@@ -12,28 +12,27 @@ import com.akjava.gwt.html5.client.file.FileUtils;
 import com.akjava.gwt.html5.client.file.FileUtils.DataURLListener;
 import com.akjava.gwt.lib.client.CanvasUtils;
 import com.akjava.gwt.lib.client.GWTHTMLUtils;
-import com.akjava.gwt.lib.client.LogUtils;
+import com.akjava.gwt.lib.client.ImageElementUtils;
 import com.akjava.gwt.lib.client.experimental.CanvasDragMoveControler;
 import com.akjava.gwt.lib.client.experimental.CanvasMoveListener;
-import com.akjava.gwt.lib.client.experimental.RectCanvasUtils;
 import com.akjava.gwt.lib.client.game.PointD;
 import com.akjava.gwt.skeltalboneanimation.client.BoneTextCell;
 import com.akjava.gwt.skeltalboneanimation.client.BoneUtils;
-import com.akjava.gwt.skeltalboneanimation.client.bones.AbstractBonePainter;
+import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingData;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationFrame;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneControlRange;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BonePositionControler;
+import com.akjava.gwt.skeltalboneanimation.client.bones.CanvasBonePainter;
 import com.akjava.gwt.skeltalboneanimation.client.bones.CanvasBoneSettings;
 import com.akjava.gwt.skeltalboneanimation.client.bones.SkeletalAnimation;
 import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
 import com.akjava.gwt.skeltalboneanimation.client.converters.BoneConverter;
-import com.akjava.lib.common.graphics.Rect;
 import com.akjava.lib.common.utils.CSVUtils;
 import com.google.common.base.Joiner;
-import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.dom.client.ImageElement;
 import com.google.gwt.editor.client.Editor;
 import com.google.gwt.editor.client.EditorDelegate;
 import com.google.gwt.editor.client.SimpleBeanEditorDriver;
@@ -48,7 +47,9 @@ import com.google.gwt.text.shared.Renderer;
 import com.google.gwt.user.cellview.client.CellTree;
 import com.google.gwt.user.cellview.client.TreeNode;
 import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.ui.Anchor;
 import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.DockLayoutPanel;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.IntegerBox;
@@ -56,6 +57,7 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.ValueListBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
+import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.view.client.ListDataProvider;
 import com.google.gwt.view.client.SelectionChangeEvent;
 import com.google.gwt.view.client.SelectionChangeEvent.Handler;
@@ -126,11 +128,11 @@ private void onEditorFlush(){
 	TwoDimensionBone newParent=parentEditor.getValue();
 	if(newParent!=null){
 	//need move
-	if(!newParent.getChildrens().contains(value)){
+	if(!newParent.getChildren().contains(value)){
 		
 		PointD absoluteValuePosition=value.getAbsolutePosition();
 		TwoDimensionBone oldParent=value.getParent();
-		value.getParent().getChildrens().remove(value);
+		value.getParent().getChildren().remove(value);
 		
 		PointD absoluteParentPosition=newParent.getAbsolutePosition();
 		
@@ -352,11 +354,12 @@ private final SingleSelectionModel<TwoDimensionBone> selectionModel = new Single
 		    root.addNorth(upper, 32);
 		    downloadLinks = new HorizontalPanel();
 		    upper.add(downloadLinks);
-		    /*
-		//create widget
-		add(createFirstColumnButtons());
-		*/
+		    
+		add(createBackgroundButtons());	
+		add(createCopyColumnButtons());
 		
+		
+		    
 		updateBoneDatas();//editor call
 		
 		TwoDimensionBoneEditor editor=new TwoDimensionBoneEditor();    
@@ -445,9 +448,9 @@ settings.setBone(newRoot);
 		refreshTree(selection);
 		updateBoneDatas();
 		
-		selectionModel.setSelected(newBone, true);
-		
+		selectionModel.setSelected(newBone, true);	
 	}
+	
 	protected void doRemoveBone(boolean removeChildren) {
 		//cellTree.
 		final TwoDimensionBone selection=selectionModel.getSelectedObject();
@@ -455,13 +458,13 @@ settings.setBone(newRoot);
 			return;
 		}
 		
-		selection.getParent().getChildrens().remove(selection);
+		selection.getParent().getChildren().remove(selection);
 		
 		if(!removeChildren){
 			TwoDimensionBone newParent=selection.getParent();
 			double offX=selection.getX();
 			double offY=selection.getY();
-			for(TwoDimensionBone bone:selection.getChildrens()){
+			for(TwoDimensionBone bone:selection.getChildren()){
 				bone.setX(bone.getX()+offX);
 				bone.setY(bone.getY()+offY);
 				newParent.addBone(bone);
@@ -509,7 +512,7 @@ settings.setBone(newRoot);
 				});
 	}
 	
-	private AbstractBonePainter painter;
+	private CanvasBonePainter painter;
 	private void createBoneControls(TwoDimensionBone rootBone,final Canvas canvas){
 		settings=new CanvasBoneSettings(canvas, rootBone);
 		
@@ -556,7 +559,7 @@ settings.setBone(newRoot);
 	    	if(bone==null){//must be root
 	    		dataProvider.setList(Lists.newArrayList(getRootBone()));
 	    	}else{
-	    		dataProvider.setList(bone.getChildrens());
+	    		dataProvider.setList(bone.getChildren());
 	    	}
 	    	//dataProvider.refresh();
 	    	//cellTree.
@@ -583,7 +586,7 @@ settings.setBone(newRoot);
 	      // Create some data in a data provider. Use the parent value as a prefix for the next level.
 	      ListDataProvider<TwoDimensionBone> dataProvider = new ListDataProvider<TwoDimensionBone>();
 	      TwoDimensionBone bone=(TwoDimensionBone)value;
-	      dataProvider.setList(bone.getChildrens());
+	      dataProvider.setList(bone.getChildren());
 	      /*
 	      for(TwoDimensionBone child:bone.getChildrens()){
 	    	  dataProvider.getList().add(child);
@@ -601,19 +604,29 @@ settings.setBone(newRoot);
 	    	 return false;
 	     }
 	     TwoDimensionBone bone=(TwoDimensionBone)value;
-	     return bone.getChildrens().size()==0;
+	     return bone.getChildren().size()==0;
 	    }
 	  }
 	
-	protected void onCanvasWheeled(int deltaY) {
-		// TODO Auto-generated method stub
-		
+	protected void onCanvasWheeled(int v) {
+		if(backgroundEditCheck.getValue() && backgroundSelected && backgroundData!=null){
+			int zoom=(int) (100*backgroundData.getScaleX());
+			zoom+=v/3*5;
+			if(zoom<5){
+				zoom=5;
+			}
+			
+			backgroundData.setScaleX((double)zoom/100);
+			backgroundData.setScaleY((double)zoom/100);
+			backgroundData.updateBounds();
+		}
+		updateCanvas();
 	}
 
 
 	protected void onCanvasDragged(int vectorX, int vectorY) {
-		if(canvasSelection!=null){
-			TwoDimensionBone bone=canvasSelection;
+		if(boneSelectedOnCanvas!=null){
+			TwoDimensionBone bone=boneSelectedOnCanvas;
 			
 			if(bone==getRootBone()){
 				return;//rootBone is fixed,so far.
@@ -625,11 +638,25 @@ settings.setBone(newRoot);
 			
 			driver.edit(bone);//data is update on editor,but not flash when same
 			updateBoneDatas();
+		}else{//background
+			if(backgroundEditCheck.getValue() &&  backgroundSelected && backgroundData!=null){
+				
+				
+				if(canvasControler.isRightMouse()){
+					backgroundData.incrementAngle(vectorX);
+				}else{
+					backgroundData.incrementX(vectorX);
+					backgroundData.incrementY(vectorY);
+				}
+				backgroundData.updateBounds();
+				
+				updateCanvas();
+			}
 		}
 	}
 
-
-	private TwoDimensionBone canvasSelection;
+	private boolean backgroundSelected;
+	private TwoDimensionBone boneSelectedOnCanvas;
 	protected void onCanvasTouchStart(int sx, int sy) {
 		TwoDimensionBone newSelection=null;
 		if(selectionModel.getSelectedObject()!=null){
@@ -644,29 +671,199 @@ settings.setBone(newRoot);
 			newSelection=bonePositionControler.collisionInitialData(sx,sy);
 		}
 		
+		
+		
 		if(newSelection!=null){
-			canvasSelection=newSelection;
+			backgroundSelected=false;
+			boneSelectedOnCanvas=newSelection;
 			selectionModel.setSelected(newSelection, true);//select by click
 		}else{
-			canvasSelection=null;
+			
+			
+			if(backgroundEditCheck.getValue() && backgroundData!=null && backgroundData.collision(sx, sy)){
+				backgroundSelected=true;
+				
+			}else{
+				backgroundSelected=false;
+			}
+			
+			
+			boneSelectedOnCanvas=null;
 			updateCanvas();
 		}
 	}
 
+	private String getUniqBoneName(List<String> exist,String name){
+		
+		int index=1;
+		if(!exist.contains(name)){
+			return name;
+		}
+		do{
+		name=name+"-"+index;
+		index++;
+		}while(exist.contains(name));
+		
+		return name;
+	}
 
-	private HorizontalPanel createFirstColumnButtons(){
+	private HorizontalPanel createCopyColumnButtons(){
 		HorizontalPanel buttons=new HorizontalPanel();
+		buttons.setVerticalAlignment(ALIGN_MIDDLE);
+		buttons.add(new Label("Copy"));
+		
+		Button horizontal=new Button("horizontal",new ClickHandler() {
+			
+			@Override
+			public void onClick(ClickEvent event) {
+				TwoDimensionBone selection=selectionModel.getSelectedObject();
+				if(selection==null || selection==getRootBone()){
+					return;
+				}
+				
+				
+				List<String> exist=BoneUtils.getAllBoneName(getRootBone());
+				TwoDimensionBone newBone=selection.copy(true);
+				
+				for(TwoDimensionBone bone:BoneUtils.getAllBone(newBone)){
+					bone.setX(bone.getX()*-1);
+					
+					//name
+					String name=bone.getName();
+					if(name.indexOf("right")!=-1 && name.indexOf("left")==-1){
+						name=name.replace("right", "left");
+					}else if(name.indexOf("left")!=-1 && name.indexOf("right")==-1){
+						name=name.replace("left", "right");
+					}
+					//TODO Right & RIGHT
+					name=getUniqBoneName(exist,name);
+					bone.setName(name);
+					exist.add(name);
+				}
+				
+				selection.getParent().addBone(newBone);
+				updateBoneDatas();
+				
+			}
+		});
+		buttons.add(horizontal);
+		
+		//TODO copy & vertical
 		
 		return buttons;
 	}
 
+	
+	private ImageDrawingData backgroundData;
+	private CheckBox transparentEditCheck;
+	private Widget createBackgroundButtons() {
+		HorizontalPanel panel=new HorizontalPanel();
+		panel.setVerticalAlignment(ALIGN_MIDDLE);
+		panel.add(new Label("Background:"));
+		FileUploadForm upload=FileUtils.createSingleFileUploadForm(new DataURLListener() {
+			
+			@Override
+			public void uploaded(File file, String text) {
+				ImageElement element=ImageElementUtils.create(text);
+				backgroundData=new ImageDrawingData("",element);
+				int canvasW=canvas.getCoordinateSpaceWidth();
+				int canvasH=canvas.getCoordinateSpaceHeight();
+				int imageW=element.getWidth();
+				int imageH=element.getHeight();
+				
+				backgroundData.setX(bonePositionControler.getSettings().getOffsetX());
+				backgroundData.setY(bonePositionControler.getSettings().getOffsetY());
+				
+				//backgroundEditCheck.setValue(false);
+				updateCanvas();
+			}
+		});
+		panel.add(upload);
+		Button reset=new Button("Clear",new ClickHandler() {
+			
+			@Override
+			public void onClick(ClickEvent event) {
+				backgroundData=null;
+				updateCanvas();
+			}
+		});
+		panel.add(reset);
+		backgroundEditCheck = new CheckBox("Edit");
+		panel.add(backgroundEditCheck);
+		
+		transparentEditCheck = new CheckBox("Transparent-Bone");
+		panel.add(transparentEditCheck);
+		transparentEditCheck.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
+
+			@Override
+			public void onValueChange(ValueChangeEvent<Boolean> event) {
+				updateCanvas();
+			}
+		});
+		
+		final HorizontalPanel downloadLinks=new HorizontalPanel();
+		
+		Button extractImageBt=new Button("Extract BG",new ClickHandler() {
+			
+			@Override
+			public void onClick(ClickEvent event) {
+				
+				Canvas extractCanvas=CanvasUtils.copyToSizeOnly(canvas,null);
+				backgroundData.draw(extractCanvas);
+				String dataUrl=extractCanvas.toDataUrl();
+				Anchor a=HTML5Download.get().generateBase64DownloadLink(dataUrl, "image/png", "bone-bg.png", "background", true);
+				downloadLinks.add(a);
+			}
+		});
+		panel.add(extractImageBt);
+		
+		Button extractBoneBt=new Button("Extract Bone",new ClickHandler() {
+			
+			@Override
+			public void onClick(ClickEvent event) {
+				
+				Canvas extractCanvas=CanvasUtils.copyToSizeOnly(canvas,null);
+				
+				painter.setCanvas(extractCanvas);
+				painter.paintBone();
+				painter.setCanvas(canvas);
+				
+				String dataUrl=extractCanvas.toDataUrl();
+				Anchor a=HTML5Download.get().generateBase64DownloadLink(dataUrl, "image/png", "bone-bone.png", "bone", true);
+				downloadLinks.add(a);
+			}
+		});
+		panel.add(extractBoneBt);
+		panel.add(downloadLinks);
+		
+		return panel;
+	}
+	
 
 	private void updateCanvas() {
 		CanvasUtils.clear(canvas);
+		if(backgroundData!=null){
+			
+			
+			backgroundData.draw(canvas);
+			String border="#000";
+			if(backgroundSelected){
+				border="#0f0";
+			}
+			backgroundData.drawBorder(canvas,border);
+			
+		}
+		if(transparentEditCheck.getValue()){
+			canvas.getContext2d().setGlobalAlpha(0.1);
+		}else{
+			canvas.getContext2d().setGlobalAlpha(1);
+		}
+		
 		painter.paintBone();
+		canvas.getContext2d().setGlobalAlpha(1);
 	}
 
-	TwoDimensionBone boneSelection;
+	//TwoDimensionBone boneSelection;
 	
 	
 	
@@ -685,6 +882,7 @@ settings.setBone(newRoot);
 	private CellTree cellTree;
 	private CustomTreeModel treeModel;
 	private HorizontalPanel downloadLinks;
+	private CheckBox backgroundEditCheck;
 	@Override
 	public String getSelectionName() {
 		return selectionModel.getSelectedObject()!=null?selectionModel.getSelectedObject().getName():null;

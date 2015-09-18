@@ -111,7 +111,7 @@ public class ThreePointAnimation extends VerticalPanel{
 			calculator.setY(calculator.getY()+boneFrame.getY());
 			calculator.setAngle(boneFrame.getAngle());
 		}
-		for(TwoDimensionBone child:bone.getChildrens()){
+		for(TwoDimensionBone child:bone.getChildren()){
 			makeBoneCalculator(list, child, frame, calculator);
 		}
 		

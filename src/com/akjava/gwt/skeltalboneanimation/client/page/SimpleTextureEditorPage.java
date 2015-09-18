@@ -422,11 +422,11 @@ private LabeledInputRangeWidget alphaRange;
 			animations.add(BoneUtils.createEmptyAnimationFrame(getRootBone()));
 			bonePositionControler.updateBoth(currentSelectionFrame);
 		
-			
+		
 		add(createAnimationLoadButtons());
 		add(createAnimationFrameControlButtons(animations));    
 		
-		add(createSecondColumnButtons());
+		
 		
 		    
 		add(canvas);
@@ -435,6 +435,7 @@ private LabeledInputRangeWidget alphaRange;
 		
 		
 	}
+
 	public void onImageDrawingDataFlush() {
 		drawingDataObjects.update();
 		updateCanvas();//anyway update
@@ -733,11 +734,7 @@ private LabeledInputRangeWidget alphaRange;
 		return panel;
 	}
 	private boolean modeAnimation;
-	private Widget createSecondColumnButtons() {
-		HorizontalPanel panel=new HorizontalPanel();
-		
-		return panel;
-	}
+	
 	
 	private void setNewBoneAndAnimation(TwoDimensionBone newRoot,SkeletalAnimation animations){
 		setRootBone(newRoot);

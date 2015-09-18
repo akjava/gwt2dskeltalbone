@@ -1,15 +1,14 @@
 package com.akjava.gwt.skeltalboneanimation.client.page;
 
 import com.akjava.gwt.lib.client.CanvasUtils;
-import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.lib.client.experimental.RectCanvasUtils;
-import com.akjava.gwt.skeltalboneanimation.client.bones.AbstractBonePainter;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BonePositionControler;
+import com.akjava.gwt.skeltalboneanimation.client.bones.CanvasBonePainter;
 import com.akjava.lib.common.graphics.Rect;
 import com.google.gwt.canvas.client.Canvas;
 
-public class CircleLineBonePainter extends AbstractBonePainter{
-private Canvas canvas;
+public class CircleLineBonePainter extends CanvasBonePainter{
+
 private HasSelectionName hasSelectionName;
 	public CircleLineBonePainter(Canvas canvas,HasSelectionName hasSelectionName,BonePositionControler positionControler) {
 		super(positionControler);
@@ -58,14 +57,20 @@ private HasSelectionName hasSelectionName;
 		}
 		//
 		
-		canvas.getContext2d().setStrokeStyle("#000");
+		String lineColor="#fff";
 		
 		//for bold selection line
 		if(name.equals(hasSelectionName.getSelectionName())){
-			canvas.getContext2d().setStrokeStyle("#0f0");
+			lineColor="#0f0";
 		}
 		
 		if(parent!=null){
+			canvas.getContext2d().setLineWidth(5);
+			canvas.getContext2d().setStrokeStyle("#000");
+			CanvasUtils.drawLine(canvas, startX, startY,endX,endY);
+			
+			canvas.getContext2d().setLineWidth(1);
+			canvas.getContext2d().setStrokeStyle(lineColor);
 			CanvasUtils.drawLine(canvas, startX, startY,endX,endY);
 		}
 	}

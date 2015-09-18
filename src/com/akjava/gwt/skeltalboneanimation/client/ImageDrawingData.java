@@ -214,6 +214,11 @@ public   Canvas getWorkingCanvas(){
 	}
 	return workingCanvas;
 }
+
+public void drawBorder(Canvas canvas,String color){
+	CanvasUtils.draw(canvas,this.getCornerPoint(),true,color);
+}
+
 public void draw(Canvas canvas){
 	if(imageElement==null){
 		LogUtils.log(id+" no image-element");
@@ -232,27 +237,27 @@ if(flipHorizontal || flipVertical){
  * why need canvas?
  * re-calcuate scale or turn-angle is hard to do
  */
-private Canvas canvas;
+private Canvas convertedCanvas;
 public Canvas convertToCanvas(){
 	
-	if(canvas==null){
-		canvas=Canvas.createIfSupported();
+	if(convertedCanvas==null){
+		convertedCanvas=Canvas.createIfSupported();
 	}
 	
 	Rect bounds=getBounds();
 	
-	CanvasUtils.setSize(canvas, bounds.getWidth(), bounds.getHeight());
+	CanvasUtils.setSize(convertedCanvas, bounds.getWidth(), bounds.getHeight());
 	
 	//draw(canvas);
 	if(flipHorizontal || flipVertical){
 		Canvas flipped=ImageElementUtils.flip(imageElement, flipHorizontal, flipVertical, getWorkingCanvas());
-		CanvasUtils.drawCenter(canvas, flipped.getCanvasElement(),0,0,scaleX,scaleY,angle,alpha);
+		CanvasUtils.drawCenter(convertedCanvas, flipped.getCanvasElement(),0,0,scaleX,scaleY,angle,alpha);
 		}else{
-		CanvasUtils.drawCenter(canvas, imageElement,0,0,scaleX,scaleY,angle,alpha);}
+		CanvasUtils.drawCenter(convertedCanvas, imageElement,0,0,scaleX,scaleY,angle,alpha);}
 	
 
 	
-	return canvas;
+	return convertedCanvas;
 }
 
 public void incrementAngle(int vectorX) {

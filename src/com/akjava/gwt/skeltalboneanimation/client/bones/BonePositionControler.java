@@ -122,7 +122,7 @@ public class BonePositionControler {
 			calculator.setY(calculator.getY()+boneFrame.getY());
 			calculator.setAngle(boneFrame.getAngle());
 		}
-		for(TwoDimensionBone child:bone.getChildrens()){
+		for(TwoDimensionBone child:bone.getChildren()){
 			makeBoneAnimationData(list, child, frame, calculator);
 		}
 	}

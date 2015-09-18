@@ -50,7 +50,7 @@ public class BoneUtils {
 	}
 	private static void getAllBone(List<TwoDimensionBone> list,TwoDimensionBone bone){
 		list.add(bone);
-		for(TwoDimensionBone children:bone.getChildrens()){
+		for(TwoDimensionBone children:bone.getChildren()){
 			getAllBone(list,children);
 		}
 		

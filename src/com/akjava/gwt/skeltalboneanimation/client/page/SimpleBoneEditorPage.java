@@ -366,7 +366,7 @@ settings.setBone(newRoot);
 		if(selection==null || selection==getRootBone()){
 			return;
 		}
-		selection.getParent().getChildrens().remove(selection);
+		selection.getParent().getChildren().remove(selection);
 		
 		refreshTree(selection);
 		updateBoneDatas();
@@ -507,7 +507,7 @@ settings.setBone(newRoot);
 	    	if(bone==null){//must be root
 	    		dataProvider.setList(Lists.newArrayList(getRootBone()));
 	    	}else{
-	    		dataProvider.setList(bone.getChildrens());
+	    		dataProvider.setList(bone.getChildren());
 	    	}
 	    	//dataProvider.refresh();
 	    	//cellTree.
@@ -534,7 +534,7 @@ settings.setBone(newRoot);
 	      // Create some data in a data provider. Use the parent value as a prefix for the next level.
 	      ListDataProvider<TwoDimensionBone> dataProvider = new ListDataProvider<TwoDimensionBone>();
 	      TwoDimensionBone bone=(TwoDimensionBone)value;
-	      dataProvider.setList(bone.getChildrens());
+	      dataProvider.setList(bone.getChildren());
 	      /*
 	      for(TwoDimensionBone child:bone.getChildrens()){
 	    	  dataProvider.getList().add(child);
@@ -552,7 +552,7 @@ settings.setBone(newRoot);
 	    	 return false;
 	     }
 	     TwoDimensionBone bone=(TwoDimensionBone)value;
-	     return bone.getChildrens().size()==0;
+	     return bone.getChildren().size()==0;
 	    }
 	  }
 	

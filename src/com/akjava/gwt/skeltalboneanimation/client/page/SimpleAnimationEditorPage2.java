@@ -247,7 +247,7 @@ private BoneControlRange boneControlerRange;
 		TextureDataConverter converter=new TextureDataConverter();
 		
 		textureDatas = converter.convert(zip);
-		
+		convertedDatas=null;;
 		
 		updateCanvas();
 	}

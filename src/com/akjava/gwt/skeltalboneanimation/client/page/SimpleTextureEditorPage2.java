@@ -4,11 +4,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.akjava.gwt.html5.client.download.HTML5Download;
 import com.akjava.gwt.html5.client.file.File;
 import com.akjava.gwt.html5.client.file.FileUploadForm;
 import com.akjava.gwt.html5.client.file.FileUtils;
 import com.akjava.gwt.html5.client.file.FileUtils.DataURLListener;
-import com.akjava.gwt.html5.client.input.Range;
 import com.akjava.gwt.jszip.client.JSZip;
 import com.akjava.gwt.jszip.client.JSZipUtils;
 import com.akjava.gwt.jszip.client.JSZipUtils.ZipListener;
@@ -22,6 +22,7 @@ import com.akjava.gwt.lib.client.experimental.RectCanvasUtils;
 import com.akjava.gwt.lib.client.experimental.ReplaceEachOther;
 import com.akjava.gwt.lib.client.widget.cell.EasyCellTableObjects;
 import com.akjava.gwt.lib.client.widget.cell.SimpleCellTable;
+import com.akjava.gwt.skeltalboneanimation.client.Background;
 import com.akjava.gwt.skeltalboneanimation.client.BoneUtils;
 import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingData;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AbstractBonePainter;
@@ -61,6 +62,7 @@ import com.google.gwt.text.shared.Renderer;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.TextColumn;
 import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.ui.Anchor;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.DockLayoutPanel;
@@ -274,6 +276,19 @@ private LabeledInputRangeWidget alphaRange;
 		});
 		add(imageUpload);
 	}
+	
+	public void updateValues(){
+		if(value==null){
+			return;
+		}
+		xLabel.setText(String.valueOf(value.getX()));
+		yLabel.setText(String.valueOf(value.getY()));
+		angleLabel.setText(String.valueOf(value.getAngle()));
+		scaleLabel.setText(String.valueOf(value.getScaleX()));
+	
+		alphaRange.setValue(value.getAlpha(),false);
+	}
+	
 	public void setBoneNames(List<String> names){
 		if(names.size()>0){
 		boneNameList.setValue(names.get(0));
@@ -424,7 +439,7 @@ private LabeledInputRangeWidget alphaRange;
 			animations.add(BoneUtils.createEmptyAnimationFrame(getRootBone()));
 			bonePositionControler.updateBoth(currentSelectionFrame);
 		
-		
+		add(createBackgroundButtons());
 		add(createAnimationLoadButtons());
 		add(createAnimationFrameControlButtons(animations));    
 		
@@ -470,6 +485,15 @@ private LabeledInputRangeWidget alphaRange;
 		panel.add(removePanel);
 		
 		
+		HorizontalPanel option1=new HorizontalPanel();
+		option1.setVerticalAlignment(ALIGN_MIDDLE);
+		option1.add(new Label("Add:"));
+		
+		uploadImageAutoScaleCheck = new CheckBox("auto-scale");
+		uploadImageAutoScaleCheck.setValue(true);
+		option1.add(uploadImageAutoScaleCheck);
+		panel.add(option1);
+		
 		HorizontalPanel buttons=new HorizontalPanel();
 		panel.add(buttons);
 		FileUploadForm upload=FileUtils.createSingleFileUploadForm(new DataURLListener() {
@@ -483,6 +507,9 @@ private LabeledInputRangeWidget alphaRange;
 		});
 		upload.setAccept(FileUploadForm.ACCEPT_IMAGE);//only png support transparent
 		buttons.add(upload);
+		
+	
+		
 		
 		ScrollPanel scroll=new ScrollPanel();
 		scroll.setSize(size+"px","400px");
@@ -694,8 +721,13 @@ private LabeledInputRangeWidget alphaRange;
 		int imgh=data.getImageElement().getHeight();
 		int max=imgw>imgh?imgw:imgh;
 		
-		if(max>maxObjectSize){
+		if(max>maxObjectSize && uploadImageAutoScaleCheck.getValue()){
 			double ratio=(double)maxObjectSize/max;
+			
+			//TODO change better way
+			int tmp=(int) (ratio*100);
+			ratio=(double)tmp/100;
+			
 			data.setScaleX(ratio);
 			data.setScaleY(ratio);
 		}
@@ -738,6 +770,7 @@ private LabeledInputRangeWidget alphaRange;
 	private Widget createAnimationFrameControlButtons(SkeletalAnimation animations) {
 		
 		HorizontalPanel panel=new HorizontalPanel();
+		panel.setHeight("32px");
 		panel.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
 		
 		animationModeToggle = new ToggleButton("animation-mode");
@@ -785,7 +818,11 @@ private LabeledInputRangeWidget alphaRange;
 		setRootBone(newRoot);
 		
 		if(animations==null || animations.getFrames().size()==0){
-			LogUtils.log("animation null or empty");
+			LogUtils.log("animation null or empty.create dummy");
+			//usually select bone-only this happen,create dammy empty frame
+			if(animations.getFrames().isEmpty()){
+				animations.getFrames().add(BoneUtils.createEmptyAnimationFrame(newRoot));
+			}
 		}
 		
 		animationControler.setAnimation(animations);
@@ -836,6 +873,9 @@ private LabeledInputRangeWidget alphaRange;
 		for(AnimationFrame frame:data.getAnimation().getFrames()){
 			frame.insertEmptyFrames(bones);
 		}
+		
+		
+		
 		
 		setNewBoneAndAnimation(data.getBone(), data.getAnimation());
 	}
@@ -911,10 +951,12 @@ private LabeledInputRangeWidget alphaRange;
 				canvas.addMouseWheelHandler(new MouseWheelHandler() {
 					@Override
 					public void onMouseWheel(MouseWheelEvent event) {
+						shiftDowned=event.isShiftKeyDown();
 						onCanvasWheeled(event.getDeltaY());
 					}
 				});
 	}
+	private boolean shiftDowned;
 	
 	private AbstractBonePainter painter;
 
@@ -991,8 +1033,94 @@ private LabeledInputRangeWidget alphaRange;
 
 		
 	}
-	
-	
+	private Background background=new Background();
+	private Widget createBackgroundButtons() {
+		HorizontalPanel panel=new HorizontalPanel();
+		panel.setVerticalAlignment(ALIGN_MIDDLE);
+		panel.add(new Label("Background:"));
+		final CheckBox backgroundVisibleCheck = new CheckBox("Show");
+		FileUploadForm upload=FileUtils.createSingleFileUploadForm(new DataURLListener() {
+			
+			@Override
+			public void uploaded(File file, String text) {
+				ImageElement element=ImageElementUtils.create(text);
+				
+				background.setBackground(file.getFileName(), element);
+				
+				
+				background.getBackgroundData().setX(bonePositionControler.getSettings().getOffsetX());
+				background.getBackgroundData().setY(bonePositionControler.getSettings().getOffsetY());
+				
+				backgroundVisibleCheck.setValue(true);
+				background.setVisible(true);
+				
+				//backgroundEditCheck.setValue(false);
+				updateCanvas();
+			}
+		});
+		panel.add(upload);
+		Button reset=new Button("Clear",new ClickHandler() {
+			
+			@Override
+			public void onClick(ClickEvent event) {
+				background.clear();
+				updateCanvas();
+			}
+		});
+		panel.add(reset);
+		
+		
+		panel.add(backgroundVisibleCheck);
+		backgroundVisibleCheck.setValue(true);
+		backgroundVisibleCheck.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
+			@Override
+			public void onValueChange(ValueChangeEvent<Boolean> event) {
+				background.setVisible(event.getValue());
+				updateCanvas();
+			}
+		});
+		
+		CheckBox backgroundEditCheck = new CheckBox("Edit");
+		panel.add(backgroundEditCheck);
+		backgroundEditCheck.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
+			@Override
+			public void onValueChange(ValueChangeEvent<Boolean> event) {
+				background.setEnableEdit(event.getValue());
+			}
+		});
+		
+		
+		
+		final HorizontalPanel downloadLinks=new HorizontalPanel();
+		
+		
+		
+		Button extractBoneBt=new Button("Extract Textures",new ClickHandler() {
+			
+			@Override
+			public void onClick(ClickEvent event) {
+				
+				Canvas extractCanvas=CanvasUtils.copyToSizeOnly(canvas,null);
+				
+				for(ImageDrawingData data:drawingDataObjects.getDatas()){
+					if(data.isVisible()){
+						data.draw(extractCanvas);
+					}
+					String color="#0f0";
+					
+					CanvasUtils.draw(extractCanvas,data.getCornerPoint(),true,color);
+				}
+				
+				String dataUrl=extractCanvas.toDataUrl();
+				Anchor a=HTML5Download.get().generateBase64DownloadLink(dataUrl, "image/png", "bone-texture.png", "texture", true);
+				downloadLinks.add(a);
+			}
+		});
+		panel.add(extractBoneBt);
+		panel.add(downloadLinks);
+		
+		return panel;
+	}
 	
 	protected void onCanvasWheeled(int deltaY) {
 if(modeAnimation){
@@ -1036,6 +1164,21 @@ if(modeAnimation){
 	}
 	private  void updateCanvas(){
 		CanvasUtils.clear(canvas);
+		if(background.hasBackgroundData() && background.isVisible()){
+			
+			
+			background.getBackgroundData().draw(canvas);
+			String border="#000";
+			/*
+			if(backgroundSelected){
+				border="#0f0";
+			}
+			backgroundData.drawBorder(canvas,border);
+			*/
+			
+		}
+		
+		
 		if(modeAnimation){
 			updateCanvasOnAnimation();
 		}else{
@@ -1219,15 +1362,24 @@ if(modeAnimation){
 			imageDataSelectionOnCanvas.updateBounds();
 			
 			updateCanvas();
+			drawingDataEditor.updateValues();
 		}
 	}
 	ImageDrawingData imageDataSelectionOnCanvas;
 	private ImageDrawingDataEditor drawingDataEditor;
+	private CheckBox uploadImageAutoScaleCheck;
 	protected void onModeEditWheel(int v) {
 		
 		if(imageDataSelectionOnCanvas!=null){
 			int zoom=(int) (100*imageDataSelectionOnCanvas.getScaleX());
-			zoom+=v/3*5;
+			
+			int vector=1;
+			if(v<0){
+				vector=-1;
+			}
+			
+			int add=shiftDowned?1:5;
+			zoom+=vector*add;
 			if(zoom<5){
 				zoom=5;
 			}
@@ -1237,6 +1389,7 @@ if(modeAnimation){
 			imageDataSelectionOnCanvas.updateBounds();
 		}
 		updateCanvas();
+		drawingDataEditor.updateValues();
 	}
 
 }

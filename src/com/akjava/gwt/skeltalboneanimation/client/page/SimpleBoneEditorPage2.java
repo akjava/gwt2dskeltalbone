@@ -864,7 +864,7 @@ settings.setBone(newRoot);
 			
 		}
 		if(transparentEditCheck.getValue()){
-			canvas.getContext2d().setGlobalAlpha(0.1);
+			canvas.getContext2d().setGlobalAlpha(0.3);
 		}else{
 			canvas.getContext2d().setGlobalAlpha(1);
 		}

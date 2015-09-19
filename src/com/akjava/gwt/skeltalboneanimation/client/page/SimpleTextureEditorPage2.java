@@ -666,7 +666,41 @@ private LabeledInputRangeWidget alphaRange;
 			return name;
 		}
 		do{
-		name=name+"-"+index;
+			
+			name=FileNames.getRemovedLastNumbers(name);
+			if(!name.endsWith("-")){
+				name+="-";
+			}
+			name+=index;
+			
+		index++;
+		}while(exist.contains(name));
+		
+		return name;
+	}
+	
+	private boolean isExistImageName(String fileName){
+		List<String> exist=Lists.newArrayList();
+		for(ImageDrawingData data:drawingDataObjects.getDatas()){
+			exist.add(data.getImageName());
+		}
+		
+		return exist.contains(fileName);
+	}
+	private String getUniqFileName(String fileName){
+		List<String> exist=Lists.newArrayList();
+		for(ImageDrawingData data:drawingDataObjects.getDatas()){
+			exist.add(data.getImageName());
+		}
+		String name=fileName;
+		int index=1;
+		if(!exist.contains(name)){
+			return name;
+		}
+		do{
+			String extension=FileNames.getExtension(fileName);
+			String removedExtension=FileNames.getRemovedExtensionName(name);
+		name=removedExtension+"-"+index+"."+extension;
 		index++;
 		}while(exist.contains(name));
 		
@@ -709,13 +743,33 @@ private LabeledInputRangeWidget alphaRange;
 		
 		return boneName;
 	}
+	
+	private String fixFileName(String name,ImageElement base64Element){
+		if(!isExistImageName(name)){
+			return name;
+		}
+		ImageDrawingData data=findImageDrawingDataByImageName(name);
+		if(data.getImageElement().getSrc().equals(base64Element.getSrc())){
+			return name;
+		}
+		return getUniqFileName(name);
+	}
+	private ImageDrawingData findImageDrawingDataByImageName(String name){
+		for(ImageDrawingData data:drawingDataObjects.getDatas()){
+			if(data.getImageName().equals(name)){
+				return data;
+			}
+		}
+		return null;
+	}
+	
 //private List<ImageDrawingData> imageDrawingDatas=new ArrayList<ImageDrawingData>();
 	private void uploadImage(String name,ImageElement element,int index) {
 		String idName=FileNames.getRemovedExtensionName(name);
 		//name=FileNames.getRemovedLastNumbers(name);
 		
 		ImageDrawingData data=new ImageDrawingData(getUniqDrawingName(idName),element);
-		data.setImageName(name);
+		data.setImageName(fixFileName(name,element));
 		int maxObjectSize=200;
 		int imgw=data.getImageElement().getWidth();
 		int imgh=data.getImageElement().getHeight();
@@ -1350,7 +1404,7 @@ if(modeAnimation){
 	}
 	
 	protected void onModeEditDrag(int vectorX, int vectorY) {
-		if(imageDataSelectionOnCanvas!=null){
+		if(imageDataSelectionOnCanvas!=null && imageDataSelectionOnCanvas.isVisible()){
 			
 			
 			if(canvasControler.isRightMouse()){
@@ -1370,7 +1424,7 @@ if(modeAnimation){
 	private CheckBox uploadImageAutoScaleCheck;
 	protected void onModeEditWheel(int v) {
 		
-		if(imageDataSelectionOnCanvas!=null){
+		if(imageDataSelectionOnCanvas!=null && imageDataSelectionOnCanvas.isVisible()){
 			int zoom=(int) (100*imageDataSelectionOnCanvas.getScaleX());
 			
 			int vector=1;

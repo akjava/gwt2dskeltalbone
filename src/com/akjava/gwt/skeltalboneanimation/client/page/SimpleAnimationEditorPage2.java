@@ -782,6 +782,10 @@ private void updateCanvasOnAnimation() {
 		List<ImageDrawingData> imageDrawingDatas=textureDatas;
 		for(int i=0;i<imageDrawingDatas.size();i++){
 			ImageDrawingData data=imageDrawingDatas.get(i);
+			if(!data.isVisible()){
+				continue;
+			}
+			LogUtils.log(data.getId()+","+data.isVisible());
 			String boneName=data.getBoneName();
 			
 		

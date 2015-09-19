@@ -26,9 +26,9 @@ public class ImageDrawingDataConverter extends Converter<ImageDrawingData,String
 		values.add(String.valueOf(data.getAngle()));
 		values.add(String.valueOf(data.getAlpha()));
 		
-		values.add(data.isFlipHorizontal()?"true":"");//[9]
-		values.add(data.isFlipVertical()?"true":"");
-		values.add(data.isVisible()?"true":"");
+		values.add(data.isFlipHorizontal()?"true":"false");//[9]
+		values.add(data.isFlipVertical()?"true":"false");
+		values.add(data.isVisible()?"true":"false");
 		
 		return Joiner.on(",").join(values);
 	}

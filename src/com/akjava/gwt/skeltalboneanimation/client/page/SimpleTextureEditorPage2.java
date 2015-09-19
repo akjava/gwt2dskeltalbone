@@ -19,6 +19,7 @@ import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.lib.client.experimental.CanvasDragMoveControler;
 import com.akjava.gwt.lib.client.experimental.CanvasMoveListener;
 import com.akjava.gwt.lib.client.experimental.RectCanvasUtils;
+import com.akjava.gwt.lib.client.experimental.ReplaceEachOther;
 import com.akjava.gwt.lib.client.widget.cell.EasyCellTableObjects;
 import com.akjava.gwt.lib.client.widget.cell.SimpleCellTable;
 import com.akjava.gwt.skeltalboneanimation.client.BoneUtils;
@@ -570,6 +571,16 @@ private LabeledInputRangeWidget alphaRange;
 		newData.setFlipHorizontal(!selection.isFlipHorizontal());
 		newData.setAngle(360-selection.getAngle());
 		
+		
+		//auto match belonging
+		String newBoneName=new ReplaceEachOther("left", "right").replaceEachCommonCase(newData.getBoneName());
+		
+		String matchName=findMatchBoneName(newBoneName);
+		if(matchName.equals(getRootBone().getName())){//possible not correct match
+			matchName=newData.getBoneName();
+		}
+		newData.setBoneName(newBoneName);
+		
 		addDrawingData(newData);
 	}
 	protected void doCopyVertical() {
@@ -590,6 +601,15 @@ private LabeledInputRangeWidget alphaRange;
 		newData.setFlipVertical(!selection.isFlipVertical());
 		newData.setAngle(360-selection.getAngle());
 		
+		//auto match belonging
+				String newBoneName=new ReplaceEachOther("up", "down").replaceEachCommonCase(newData.getBoneName());
+				
+				String matchName=findMatchBoneName(newBoneName);
+				if(matchName.equals(getRootBone().getName())){//possible not correct match
+					matchName=newData.getBoneName();
+				}
+				newData.setBoneName(newBoneName);
+				
 		addDrawingData(newData);
 	}
 	

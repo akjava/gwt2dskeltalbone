@@ -33,6 +33,9 @@ import com.akjava.gwt.skeltalboneanimation.client.page.AbstractPage;
 import com.akjava.gwt.skeltalboneanimation.client.page.CircleLineBonePainter;
 import com.akjava.gwt.skeltalboneanimation.client.page.HasSelectionName;
 import com.akjava.lib.common.graphics.Rect;
+import com.google.common.base.Objects;
+import com.google.common.base.Optional;
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.canvas.dom.client.Context2d;
@@ -96,8 +99,7 @@ public class ClipImagePage extends AbstractPage implements HasSelectionName {
 		});
 		panel.add(removeBt);
 		
-		downloadLinks = new HorizontalPanel();
-		panel.add(downloadLinks);
+		
 		
 		return panel;
 	}
@@ -119,10 +121,13 @@ public class ClipImagePage extends AbstractPage implements HasSelectionName {
 		}
 	}
 	protected void doAdd() {
-		TwoDimensionBone bone=manager.getUploadedFileManager().getBone();
 		
 		ClipData data=new ClipData();
-		data.setBone(bone.getName());
+		
+		for(TwoDimensionBone bone:getRootBone().asSet()){
+			
+			data.setBone(bone.getName());
+		}
 		
 		cellObjects.addItem(data);
 		
@@ -240,7 +245,7 @@ public class ClipImagePage extends AbstractPage implements HasSelectionName {
 			TextColumn<ClipData> nameColumn=new TextColumn<ClipData>() {
 				@Override
 				public String getValue(ClipData object) {
-					return object.getBone()==null?"NONE":object.getBone();
+					return Strings.isNullOrEmpty(object.getBone())?"NONE":object.getBone();
 				}
 			};
 			table.addColumn(nameColumn);
@@ -308,8 +313,12 @@ public class ClipImagePage extends AbstractPage implements HasSelectionName {
 				
 				TextureDataConverter converter=new TextureDataConverter();
 				JSZip jszip=converter.reverse().convert(textureData);
+				
+				//addition clip-data
+				new ClipImageDataConverter().convertToJsZip(jszip, generateSaveData());
+				
 				downloadLinks.clear();
-				downloadLinks.add(JSZipUtils.createDownloadAnchor(jszip, "2dbone-textures.zip", "download", true));
+				downloadLinks.add(JSZipUtils.createDownloadAnchor(jszip, "2dbone-clips-textures.zip", "download", true));
 				
 			}
 		});
@@ -414,8 +423,9 @@ public class ClipImagePage extends AbstractPage implements HasSelectionName {
 	}
 
 
-	public TwoDimensionBone getRootBone(){
-		return manager.getUploadedFileManager().getBone();
+	public Optional<TwoDimensionBone> getRootBone(){
+		
+		return Optional.fromNullable(settings.getBone());
 	}
 
 
@@ -714,7 +724,12 @@ public class ClipImagePage extends AbstractPage implements HasSelectionName {
 		if(name==null){
 			return null;
 		}
-		return BoneUtils.findBoneByName(BoneUtils.getAllBone(getRootBone()), name);
+		
+		for(TwoDimensionBone bone:getRootBone().asSet()){
+			return BoneUtils.findBoneByName(BoneUtils.getAllBone(bone), name);
+		}
+		
+		return null;
 	}
 	
 	private Widget createClipButtons(){
@@ -723,7 +738,7 @@ public class ClipImagePage extends AbstractPage implements HasSelectionName {
 	
 	    northPanel.add(new Label("Clips:"));
 	    
-	    northPanel.add(new Label("Load:"));
+	    northPanel.add(new Label("Load:(Clips,Bone,Background)"));
 	    FileUploadForm load=JSZipUtils.createZipFileUploadForm(new ZipListener() {
 			
 			@Override
@@ -749,26 +764,44 @@ public class ClipImagePage extends AbstractPage implements HasSelectionName {
 				doSaveData();
 			}
 		}));
+	    
+	    downloadLinks = new HorizontalPanel();
+	    northPanel.add(downloadLinks);
+		
 	    return northPanel;
 	}
 	protected void doSaveData() {
+		
+		JSZip zip=new ClipImageDataConverter().reverse().convert(generateSaveData());
+		downloadLinks.clear();
+		downloadLinks.add(JSZipUtils.createDownloadAnchor(zip, "2dbone-clips.zip", "download", true));
+	}
+	private ClipImageData generateSaveData(){
 		ClipImageData data=new ClipImageData();
+		
+		//background
 		data.setImageDrawingData(background.getBackgroundData());
+		
+		//bone
+		for(TwoDimensionBone bone:getRootBone().asSet()){
+			data.setBone(bone);
+		}
+		
+		//clips
 		for(ClipData clip:cellObjects.getDatas()){
 			data.getClips().add(clip);
 		}
-		JSZip zip=new ClipImageDataConverter().reverse().convert(data);
-		downloadLinks.clear();
-		downloadLinks.add(JSZipUtils.createDownloadAnchor(zip, "2dbone-clips.zip", "download", true));
+		return data;
 	}
 
 
 	protected void doLoadData(String name, JSZip zip) {
 		ClipImageData data=new ClipImageDataConverter().convert(zip);
 		if(data.getImageDrawingData()!=null){
-			LogUtils.log(data.getImageDrawingData()+","+data.getImageDrawingData().getImageElement());
 			//maybe this set background
-			manager.getUploadedFileManager().setBackgroundData(data.getImageDrawingData());
+			manager.getFileManagerBar().setBackground(name,data.getImageDrawingData());
+		}else{
+			LogUtils.log("clip-data has no background");
 		}
 		cellObjects.clearAllItems();
 		for(ClipData clip:data.getClips()){
@@ -778,6 +811,10 @@ public class ClipImagePage extends AbstractPage implements HasSelectionName {
 		
 		for(ClipData clip:cellObjects.getFirst().asSet()){
 			cellObjects.setSelected(clip, true);
+		}
+		
+		if(data.getBone()!=null){
+			manager.getFileManagerBar().setBone(name,data.getBone());
 		}
 		
 		updateCanvas();

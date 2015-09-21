@@ -42,7 +42,7 @@ public void paintBone(){
 		TwoDimensionBone rootBone=positionControler.getSettings().getBone();
 		
 		if(rootBone==null){
-			LogUtils.log("paintBone:no-root-bone");
+			//LogUtils.log("paintBone:no-root-bone");
 			return;
 		}
 		

@@ -6,6 +6,7 @@ import com.akjava.gwt.html5.client.file.FileUtils;
 import com.akjava.gwt.html5.client.file.FileUtils.DataURLListener;
 import com.akjava.gwt.lib.client.ImageElementUtils;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneAndAnimationData;
+import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
 import com.akjava.gwt.skeltalboneanimation.client.converters.BoneAndAnimationConverter;
 import com.akjava.lib.common.utils.CSVUtils;
 import com.google.gwt.user.client.ui.HorizontalPanel;
@@ -17,17 +18,20 @@ public class FileManagerBar extends VerticalPanel{
 	private Label boneNameLabel;
     private UploadedFileManager uploadedFileManager;
 	private Label backgroundNameLabel;
-	public FileManagerBar(UploadedFileManager uploadedFileManager){
-		this.uploadedFileManager=uploadedFileManager;
+	public FileManagerBar(MainManager manager){
+		manager.setFileManagerBar(this);
+		
+		this.uploadedFileManager=manager.getUploadedFileManager();
 		
 		HorizontalPanel panel=new HorizontalPanel();
 		panel.setVerticalAlignment(ALIGN_MIDDLE);
 		this.add(panel);
 		
-		panel.add(createLabel("Bone/Animation:"));
+		panel.add(createLabel("Bone"));
 		boneNameLabel = createLabel("");
 		panel.add(boneNameLabel);
 		
+		/*
 		FileUploadForm boneUpload=FileUtils.createSingleTextFileUploadForm(new DataURLListener() {
 			@Override
 			public void uploaded(File file, String text) {
@@ -37,7 +41,7 @@ public class FileManagerBar extends VerticalPanel{
 		}, true);
 		boneUpload.setAccept(FileUploadForm.ACCEPT_TXT);
 		panel.add(boneUpload);
-		
+		*/
 		
 		panel.add(createLabel("Background:"));
 		backgroundNameLabel = createLabel("");
@@ -55,22 +59,37 @@ public class FileManagerBar extends VerticalPanel{
 		
 	}
 	public void setBoneAndAnimationText(String fileName,String text){
-		boneNameLabel.setText(fileName);
+	
 		BoneAndAnimationData data=new BoneAndAnimationConverter().reverse().convert(CSVUtils.splitLinesWithGuava(text));
-		uploadedFileManager.setBone(data.getBone());
+		setBone(fileName,data.getBone());
 	}
+	
+	public void setBone(String fileName,TwoDimensionBone bone){
+		boneNameLabel.setText(fileName);
+		uploadedFileManager.setBone(bone);
+	}
+	
+	
+	
 	public void setBackground(String fileName,String dataUrl){
-		backgroundNameLabel.setText(fileName);
 		ImageDrawingData data=new ImageDrawingData(fileName, ImageElementUtils.create(dataUrl));
 		data.setImageName(fileName);
 		//temporay center on canvas
 		data.setX(400);
 		data.setY(400);
 		
+		setBackground(fileName,data);
+		
+		
+	}
+	
+	public void setBackground(String fileName,ImageDrawingData data){
+		backgroundNameLabel.setText(fileName);
 		uploadedFileManager.setBackgroundData(data);
 		
 		
 	}
+	
 	public Label createLabel(String title){
 		Label label=new Label(title);
 		label.setWidth("110px");

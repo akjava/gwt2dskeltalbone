@@ -20,9 +20,19 @@ public MainManager(TabLayoutPanel tab) {
 			MainManager.this.getPageAt(event.getSelectedItem()).onSelection();
 		}
 	});
+
 }
 
 private UploadedFileManager uploadedFileManager=new UploadedFileManager();
+private FileManagerBar fileManagerBar;
+
+public FileManagerBar getFileManagerBar() {
+	return fileManagerBar;
+}
+
+public void setFileManagerBar(FileManagerBar fileManagerBar) {
+	this.fileManagerBar = fileManagerBar;
+}
 
 public UploadedFileManager getUploadedFileManager() {
 	return uploadedFileManager;

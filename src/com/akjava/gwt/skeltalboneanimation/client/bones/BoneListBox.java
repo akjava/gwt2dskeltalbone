@@ -15,7 +15,7 @@ public class BoneListBox extends ValueListBox<TwoDimensionBone>{
 				if(object!=null){
 					return object.getName();
 				}
-				return null;
+				return "[null or not exist in list]";
 			}
 
 			@Override

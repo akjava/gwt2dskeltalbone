@@ -9,6 +9,7 @@ import com.akjava.gwt.lib.client.ImageElementUtils;
 import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.lib.client.experimental.ImageBuilder;
 import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingData;
+import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
 import com.akjava.gwt.skeltalboneanimation.client.page.clippage.ClipData;
 import com.akjava.gwt.skeltalboneanimation.client.page.clippage.ClipImageData;
 import com.akjava.lib.common.io.FileType;
@@ -26,7 +27,7 @@ public class ClipImageDataConverter extends Converter<JSZip,ClipImageData>{
 		JSFile clipFile=zip.getFile("clips.txt");
 		if(clipFile!=null){
 			String text=clipFile.asText();
-			if(text.isEmpty()){
+			if(!text.isEmpty()){
 			List<ClipData> datas=Lists.newArrayList(
 					new ClipDataConverter().reverse().convertAll(CSVUtils.splitLinesWithGuava(text))
 					);
@@ -47,6 +48,8 @@ public class ClipImageDataConverter extends Converter<JSZip,ClipImageData>{
 				FileType type=FileType.getFileTypeByExtension(extension);
 				String dataUrl=Base64Utils.toDataUrl(type.getMimeType(),bgImage.asUint8Array());
 				background.setImageElement(ImageElementUtils.create(dataUrl));
+				
+				clipImageData.setImageDrawingData(background);
 			}else{
 				LogUtils.log("background.txt has "+background.getImageName()+" but not exist in zip");
 			}
@@ -58,12 +61,23 @@ public class ClipImageDataConverter extends Converter<JSZip,ClipImageData>{
 			LogUtils.log("background.txt not contain");
 		}
 		
+		clipImageData.setBone(getBone(zip));
+		
 		return clipImageData;
 	}
 
 	@Override
 	protected JSZip doBackward(ClipImageData data) {
 		return convertToJsZip(JSZip.newJSZip(), data);
+	}
+	
+	public static TwoDimensionBone getBone(JSZip zip){
+		JSFile jsFile=zip.getFile("bone.txt");
+		if(jsFile!=null){
+			String text=jsFile.asText();
+			return new BoneConverter().reverse().convert(CSVUtils.splitLinesWithGuava(text));
+		}
+		return null;
 	}
 
 	public JSZip convertToJsZip(JSZip baseZip,ClipImageData data){
@@ -73,7 +87,7 @@ public class ClipImageDataConverter extends Converter<JSZip,ClipImageData>{
 		baseZip.file("clips.txt", indexText);
 		
 		ImageDrawingData imData=data.getImageDrawingData();
-		
+		if(imData!=null){
 		String fileName=imData.getImageName();
 		if(fileName!=null){
 		String extension="png";
@@ -102,8 +116,11 @@ public class ClipImageDataConverter extends Converter<JSZip,ClipImageData>{
 		String bg=new ImageDrawingDataConverter().convert(data.getImageDrawingData());
 		baseZip.file("background.txt", bg);
 		
+		}
 		
-		
+		if(data.getBone()!=null){
+			baseZip.file("bone.txt", Joiner.on("\r\n").join(new BoneConverter().convert(data.getBone())));
+			}
 		
 		
 		}

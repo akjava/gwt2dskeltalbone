@@ -54,9 +54,10 @@ public class GWT2DSkeltalBoneAnimation implements EntryPoint {
 		
 		final MainManager manager=new MainManager(tab);
 		
-		FileManagerBar bar=new FileManagerBar(manager.getUploadedFileManager());
-		
+		FileManagerBar bar=new FileManagerBar(manager);
 		root.addNorth(bar, 32);
+		
+		
 		
 		tab.add(new ClipImagePage(manager),"Clip");
 		

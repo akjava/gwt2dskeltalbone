@@ -17,9 +17,12 @@ import com.akjava.gwt.html5.client.file.FileUtils.DataArrayListener;
 import com.akjava.gwt.html5.client.file.FileUtils.DataURLListener;
 import com.akjava.gwt.jszip.client.JSFile;
 import com.akjava.gwt.jszip.client.JSZip;
+import com.akjava.gwt.jszip.client.JSZipUtils;
+import com.akjava.gwt.jszip.client.JSZipUtils.ZipListener;
 import com.akjava.gwt.lib.client.CanvasUtils;
 import com.akjava.gwt.lib.client.GWTHTMLUtils;
 import com.akjava.gwt.lib.client.ImageElementUtils;
+import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.lib.client.experimental.CanvasDragMoveControler;
 import com.akjava.gwt.lib.client.experimental.CanvasMoveListener;
 import com.akjava.gwt.lib.client.game.PointD;
@@ -106,6 +109,42 @@ public class SimpleBoneEditorPage2 extends VerticalPanel implements HasSelection
 		 }
 	 }
 	 
+		private Widget createClipButtons(){
+			HorizontalPanel northPanel=new HorizontalPanel();
+		    northPanel.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
+		
+		    northPanel.add(new Label("Bones:"));
+		    
+		    northPanel.add(new Label("Load:(Bone,clear animation)"));
+		    FileUploadForm load=FileUtils.createSingleTextFileUploadForm(new DataURLListener() {
+				
+				@Override
+				public void uploaded(File file, String text) {
+					doLoadBone(text);
+				}
+			}, true);
+		    load.setAccept(FileUploadForm.ACCEPT_TXT);
+		    northPanel.add(load);
+		    
+		   
+		    
+		   
+		    
+		    northPanel.add(load);
+		    northPanel.add(new Button("Save",new ClickHandler() {
+				
+				@Override
+				public void onClick(ClickEvent event) {
+					doSaveBone();
+				}
+			}));
+		    
+		    downloadLinks = new HorizontalPanel();
+		    northPanel.add(downloadLinks);
+			
+		    return northPanel;
+		}
+		
 
 	public class TwoDimensionBoneEditor extends VerticalPanel implements Editor<TwoDimensionBone>,ValueAwareEditor<TwoDimensionBone>{
 
@@ -310,6 +349,11 @@ private final SingleSelectionModel<TwoDimensionBone> selectionModel = new Single
 					driver.edit(selectionModel.getSelectedObject());
 				}
 			});
+		    
+		    
+		    add(createClipButtons());
+		    
+		    
 		    HorizontalPanel upper=new HorizontalPanel();
 		    upper.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
 		    upper.add(new Button("Clear All",new ClickHandler() {
@@ -354,6 +398,7 @@ private final SingleSelectionModel<TwoDimensionBone> selectionModel = new Single
 		    upper.add(load);
 		    */
 		    
+		    /*
 		    FileUploadForm load2=FileUtils.createSingleFileUploadForm(new DataArrayListener() {
 				@Override
 				public void uploaded(File file, Uint8Array array) {
@@ -393,6 +438,8 @@ private final SingleSelectionModel<TwoDimensionBone> selectionModel = new Single
 					doSaveBone();
 				}
 			}));
+		    */
+		    
 		    root.addNorth(upper, 32);
 		    downloadLinks = new HorizontalPanel();
 		    upper.add(downloadLinks);

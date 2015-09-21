@@ -6,10 +6,17 @@ import java.util.List;
 import java.util.Map;
 
 import com.akjava.gwt.html5.client.download.HTML5Download;
+import com.akjava.gwt.html5.client.file.Blob;
 import com.akjava.gwt.html5.client.file.File;
+import com.akjava.gwt.html5.client.file.FileHandler;
+import com.akjava.gwt.html5.client.file.FileReader;
 import com.akjava.gwt.html5.client.file.FileUploadForm;
 import com.akjava.gwt.html5.client.file.FileUtils;
+import com.akjava.gwt.html5.client.file.Uint8Array;
+import com.akjava.gwt.html5.client.file.FileUtils.DataArrayListener;
 import com.akjava.gwt.html5.client.file.FileUtils.DataURLListener;
+import com.akjava.gwt.jszip.client.JSFile;
+import com.akjava.gwt.jszip.client.JSZip;
 import com.akjava.gwt.lib.client.CanvasUtils;
 import com.akjava.gwt.lib.client.GWTHTMLUtils;
 import com.akjava.gwt.lib.client.ImageElementUtils;
@@ -28,6 +35,7 @@ import com.akjava.gwt.skeltalboneanimation.client.bones.SkeletalAnimation;
 import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
 import com.akjava.gwt.skeltalboneanimation.client.converters.BoneConverter;
 import com.akjava.lib.common.utils.CSVUtils;
+import com.akjava.lib.common.utils.FileNames;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.gwt.canvas.client.Canvas;
@@ -334,6 +342,7 @@ private final SingleSelectionModel<TwoDimensionBone> selectionModel = new Single
 				}
 			}));
 		    upper.add(new Label("Load:"));
+		    /*
 		    FileUploadForm load=FileUtils.createSingleTextFileUploadForm(new DataURLListener() {
 				
 				@Override
@@ -342,8 +351,41 @@ private final SingleSelectionModel<TwoDimensionBone> selectionModel = new Single
 				}
 			}, true);
 		    load.setAccept(FileUploadForm.ACCEPT_TXT);
-		    
 		    upper.add(load);
+		    */
+		    
+		    FileUploadForm load2=FileUtils.createSingleFileUploadForm(new DataArrayListener() {
+				@Override
+				public void uploaded(File file, Uint8Array array) {
+					String extension=FileNames.getExtension(file.getFileName()).toLowerCase();
+					if(extension.equals("zip")){
+						JSZip zip=JSZip.loadFromArray(array);
+						JSFile jsFile=zip.getFile("bone.txt");
+						if(jsFile!=null){
+							String text=jsFile.asText();
+							doLoadBone(text);
+						}else{
+							Window.alert("not contain bone.txt");
+						}
+					}else{
+						Blob blob=Blob.createBlob(array, "plain/text");
+						final FileReader reader=FileReader.createFileReader();
+						reader.setOnLoad(new FileHandler() {
+							
+							@Override
+							public void onLoad() {
+								String text=reader.getResultAsString();
+								doLoadBone(text);
+							}
+						});
+						reader.readAsText((File)blob.cast(), "uff8");
+					}
+				}
+			});
+		    upper.add(load2);
+		    load2.setAccept(FileUploadForm.ACCEPT_TXT,FileUploadForm.ACCEPT_ZIP);
+		    
+		    //
 		    upper.add(new Button("Save",new ClickHandler() {
 				
 				@Override

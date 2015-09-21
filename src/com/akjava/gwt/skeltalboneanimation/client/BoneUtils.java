@@ -58,7 +58,9 @@ public class BoneUtils {
 	
 	public static List<TwoDimensionBone> getAllBone(TwoDimensionBone bone){
 		List<TwoDimensionBone> list=new ArrayList<TwoDimensionBone>();
-		getAllBone(list,bone);
+		if(bone!=null){
+			getAllBone(list,bone);
+		}
 		return list;
 	}
 	public static List<String> getAllBoneName(TwoDimensionBone root){

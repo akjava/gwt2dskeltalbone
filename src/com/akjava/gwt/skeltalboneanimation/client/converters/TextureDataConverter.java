@@ -12,17 +12,20 @@ import com.akjava.gwt.lib.client.ImageElementUtils;
 import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.lib.client.experimental.ImageBuilder;
 import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingData;
+import com.akjava.gwt.skeltalboneanimation.client.TextureData;
+import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
 import com.akjava.lib.common.io.FileType;
 import com.akjava.lib.common.utils.CSVUtils;
 import com.akjava.lib.common.utils.FileNames;
 import com.google.common.base.Converter;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import com.google.gwt.user.client.Window;
 
-public class TextureDataConverter extends Converter<JSZip,List<ImageDrawingData>>{
+public class TextureDataConverter extends Converter<JSZip,TextureData>{
 
 	@Override
-	protected List<ImageDrawingData> doForward(JSZip zip) {
+	protected TextureData doForward(JSZip zip) {
 		checkNotNull(zip);
 		JSFile indexFile=zip.getFile("index.txt");
 		if(indexFile==null){
@@ -53,21 +56,36 @@ public class TextureDataConverter extends Converter<JSZip,List<ImageDrawingData>
 			data.setImageElement(ImageElementUtils.create(dataUrl));
 		}
 		
-		return datas;
+		TextureData data=new TextureData();
+		data.setImageDrawingDatas(datas);
+		
+		data.setBone(getBone(zip));
+		
+		return data;
 	}
+	
+	public static TwoDimensionBone getBone(JSZip zip){
+		JSFile jsFile=zip.getFile("bone.txt");
+		if(jsFile!=null){
+			String text=jsFile.asText();
+			return new BoneConverter().reverse().convert(CSVUtils.splitLinesWithGuava(text));
+		}
+		return null;
+	}
+	
 
 	@Override
-	protected JSZip doBackward(List<ImageDrawingData> datas) {
+	protected JSZip doBackward(TextureData textureData) {
 		final JSZip zip=JSZip.newJSZip();
 		
-		Iterable<String> lines=new ImageDrawingDataConverter().convertAll(datas);
+		Iterable<String> lines=new ImageDrawingDataConverter().convertAll(textureData.getImageDrawingDatas());
 		
 		String indexText=Joiner.on("\r\n").join(lines);
 		zip.file("index.txt", indexText);
 		
 		List<String> zipped=new ArrayList<String>();
 		
-		for(ImageDrawingData data:datas){
+		for(ImageDrawingData data:textureData.getImageDrawingDatas()){
 			if(data.getImageElement()==null){
 				LogUtils.log(data.getId()+" has no image element");
 				continue;
@@ -78,6 +96,11 @@ public class TextureDataConverter extends Converter<JSZip,List<ImageDrawingData>
 			}
 			String dataUrl=ImageBuilder.from(data.getImageElement()).onFileName(fileName).toDataUrl();
 			zip.base64UrlFile(fileName, dataUrl);
+		}
+		
+		//bone
+		if(textureData.getBone()!=null){
+		zip.file("bone.txt", Joiner.on("\r\n").join(new BoneConverter().convert(textureData.getBone())));
 		}
 		
 		return zip;

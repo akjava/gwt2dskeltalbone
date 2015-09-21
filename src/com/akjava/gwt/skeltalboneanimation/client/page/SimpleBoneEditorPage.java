@@ -59,6 +59,12 @@ import com.google.gwt.view.client.TreeViewModel;
 
 /*
  * select image files and move,turn,scale it.
+ * 
+ */
+/**
+ * @deprecated
+ * @author aki
+ *
  */
 public class SimpleBoneEditorPage extends VerticalPanel{
 	 interface Driver extends SimpleBeanEditorDriver< TwoDimensionBone,  TwoDimensionBoneEditor> {}

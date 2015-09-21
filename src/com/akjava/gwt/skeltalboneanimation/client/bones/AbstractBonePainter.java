@@ -40,6 +40,12 @@ public void paintBone(){
 		int offsetX=0;
 		int offsetY=0;
 		TwoDimensionBone rootBone=positionControler.getSettings().getBone();
+		
+		if(rootBone==null){
+			LogUtils.log("paintBone:no-root-bone");
+			return;
+		}
+		
 		if(useOffset){
 			offsetX=positionControler.getSettings().getOffsetX();
 			offsetY=positionControler.getSettings().getOffsetY();

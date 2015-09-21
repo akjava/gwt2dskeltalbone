@@ -19,6 +19,7 @@ import com.akjava.gwt.lib.client.experimental.CanvasMoveListener;
 import com.akjava.gwt.lib.client.experimental.RectCanvasUtils;
 import com.akjava.gwt.skeltalboneanimation.client.BoneUtils;
 import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingData;
+import com.akjava.gwt.skeltalboneanimation.client.TextureData;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AbstractBonePainter;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationControlRange;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationFrame;
@@ -204,7 +205,24 @@ private BoneControlRange boneControlerRange;
 		    load.setAccept(FileUploadForm.ACCEPT_TXT);
 		panel.add(load);
 		
-		
+		Button fromTexture=new Button("from texture-zip-bone",new ClickHandler() {
+			
+			@Override
+			public void onClick(ClickEvent event) {
+				if(textureData==null){
+					Window.alert("texture.zip not loaded yet");
+					return;
+				}
+				
+				TwoDimensionBone bone=textureData.getBone();
+				if(bone==null){
+					Window.alert("this zip not contain bone.txt data");
+				}else{
+					setNewRootBone(bone);
+				}
+			}
+		});
+		panel.add(fromTexture);
 		return panel;
 	}
 	
@@ -242,11 +260,12 @@ private BoneControlRange boneControlerRange;
 		
 		return panel;
 	}
+	private TextureData textureData;
 	protected void doLoadTexture(String name,JSZip zip) {
 		
 		TextureDataConverter converter=new TextureDataConverter();
 		
-		textureDatas = converter.convert(zip);
+		textureData = converter.convert(zip);
 		convertedDatas=null;;
 		
 		updateCanvas();
@@ -752,9 +771,12 @@ private BoneControlRange boneControlerRange;
 	
 private List<Canvas> convertedDatas;
 private void initializeConvetedCanvas(){
+	if(textureData==null){
+		return;
+	}
 	if(convertedDatas==null){
 		convertedDatas=new ArrayList<Canvas>();
-		for(ImageDrawingData data:textureDatas){
+		for(ImageDrawingData data:textureData.getImageDrawingDatas()){
 			convertedDatas.add(data.convertToCanvas());
 		}
 	}
@@ -764,7 +786,7 @@ private void updateCanvasOnAnimation() {
 		
 		
 		//switch mode
-		if(textureDatas!=null){
+		if(textureData!=null){
 		bonePositionControler.updateBoth(currentSelectionFrame);//TODO update on value changed only
 		//TODO add show bone check
 		//TODO make class,it's hard to understand
@@ -779,7 +801,7 @@ private void updateCanvasOnAnimation() {
 		int offsetX=bonePositionControler.getSettings().getOffsetX();
 		int offsetY=bonePositionControler.getSettings().getOffsetY();
 		
-		List<ImageDrawingData> imageDrawingDatas=textureDatas;
+		List<ImageDrawingData> imageDrawingDatas=textureData.getImageDrawingDatas();
 		for(int i=0;i<imageDrawingDatas.size();i++){
 			ImageDrawingData data=imageDrawingDatas.get(i);
 			if(!data.isVisible()){
@@ -871,7 +893,7 @@ public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvas
 	private HorizontalPanel downloadLinks;
 	
 	private AnimationControlRange animationControler;
-	private List<ImageDrawingData> textureDatas;
+	//private List<ImageDrawingData> imageDrawingDatas;
 	private CheckBox showBoneCheck;
 
 

@@ -23,6 +23,7 @@ import com.akjava.gwt.lib.client.widget.cell.EasyCellTableObjects;
 import com.akjava.gwt.lib.client.widget.cell.SimpleCellTable;
 import com.akjava.gwt.skeltalboneanimation.client.BoneUtils;
 import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingData;
+import com.akjava.gwt.skeltalboneanimation.client.TextureData;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AbstractBonePainter;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationControlRange;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationFrame;
@@ -73,6 +74,11 @@ import com.google.gwt.user.client.ui.Widget;
 
 /*
  * select image files and move,turn,scale it.
+ */
+/**
+ * @deprecated
+ * @author aki
+ *
  */
 public class SimpleTextureEditorPage extends VerticalPanel{
 	
@@ -808,7 +814,7 @@ private LabeledInputRangeWidget alphaRange;
 		
 		TextureDataConverter converter=new TextureDataConverter();
 		
-		List<ImageDrawingData> datas=converter.convert(zip);
+		List<ImageDrawingData> datas=converter.convert(zip).getImageDrawingDatas();
 		
 		drawingDataObjects.setDatas(datas);
 		drawingDataObjects.update();
@@ -818,7 +824,9 @@ private LabeledInputRangeWidget alphaRange;
 	protected void doSaveData() {
 		
 		TextureDataConverter converter=new TextureDataConverter();
-		JSZip jszip=converter.reverse().convert(drawingDataObjects.getDatas());
+		TextureData data=new TextureData();
+		data.setImageDrawingDatas(drawingDataObjects.getDatas());
+		JSZip jszip=converter.reverse().convert(data);
 		downloadLinks.clear();
 		downloadLinks.add(JSZipUtils.createDownloadAnchor(jszip, "2dbone-textures.zip", "download", true));
 	}

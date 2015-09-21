@@ -8,7 +8,9 @@ import com.akjava.gwt.html5.client.download.HTML5Download;
 import com.akjava.gwt.html5.client.file.File;
 import com.akjava.gwt.html5.client.file.FileUploadForm;
 import com.akjava.gwt.html5.client.file.FileUtils;
+import com.akjava.gwt.html5.client.file.FileUtils.DataArrayListener;
 import com.akjava.gwt.html5.client.file.FileUtils.DataURLListener;
+import com.akjava.gwt.html5.client.file.Uint8Array;
 import com.akjava.gwt.jszip.client.JSZip;
 import com.akjava.gwt.jszip.client.JSZipUtils;
 import com.akjava.gwt.jszip.client.JSZipUtils.ZipListener;
@@ -25,6 +27,7 @@ import com.akjava.gwt.lib.client.widget.cell.SimpleCellTable;
 import com.akjava.gwt.skeltalboneanimation.client.Background;
 import com.akjava.gwt.skeltalboneanimation.client.BoneUtils;
 import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingData;
+import com.akjava.gwt.skeltalboneanimation.client.TextureData;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AbstractBonePainter;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationControlRange;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationFrame;
@@ -266,6 +269,12 @@ private LabeledInputRangeWidget alphaRange;
 				double ratio=(double)value.getImageElement().getWidth()/imageElement.getWidth();
 				double newScale=value.getScaleX()*ratio;
 				value.setImageElement(imageElement);
+				
+				
+				//change-image-name 
+				
+				value.setImageName(fixFileName(file.getFileName(),imageElement));
+				
 				//TODO support scale range
 				if(fitScale.getValue()){
 				value.setScaleX(newScale);
@@ -395,6 +404,9 @@ private LabeledInputRangeWidget alphaRange;
 					LogUtils.log("faild:"+states+","+statesText);
 				}
 			});
+		    
+		   
+		    
 		   
 		    
 		    northPanel.add(load);
@@ -917,10 +929,34 @@ private LabeledInputRangeWidget alphaRange;
 		
 		panel.add(load);
 		
+		Button fromTexture=new Button("from texture-zip-bone",new ClickHandler() {
+			
+			@Override
+			public void onClick(ClickEvent event) {
+				TwoDimensionBone bone=textureData.getBone();
+				if(bone==null){
+					Window.alert("this zip not contain bone.txt data");
+				}else{
+					AnimationFrame frame=BoneUtils.createEmptyAnimationFrame(bone);
+					BoneAndAnimationData data=new BoneAndAnimationData();
+					data.setBone(bone);
+					SkeletalAnimation animation=new SkeletalAnimation();
+					animation.add(frame);
+					data.setAnimation(animation);
+					doLoadAnimation(data);
+				}
+			}
+		});
+		panel.add(fromTexture);
+		
 		return panel;
 	}
 	private void doLoadAnimation(String lines){
 		BoneAndAnimationData data=new BoneAndAnimationConverter().reverse().convert(CSVUtils.splitLinesWithGuava(lines));
+		
+		doLoadAnimation(data);
+	}
+	private void doLoadAnimation(BoneAndAnimationData data){
 		
 		List<TwoDimensionBone> bones=BoneUtils.getAllBone(data.getBone());
 		
@@ -943,11 +979,12 @@ private LabeledInputRangeWidget alphaRange;
 		updateCanvas();
 	}
 
+	private TextureData textureData;
 	protected void doLoadData(String name,JSZip zip) {
 		
 		TextureDataConverter converter=new TextureDataConverter();
-		
-		List<ImageDrawingData> datas=converter.convert(zip);
+		textureData=converter.convert(zip);
+		List<ImageDrawingData> datas=textureData.getImageDrawingDatas();
 		
 		drawingDataObjects.setDatas(datas);
 		drawingDataObjects.update();
@@ -957,7 +994,11 @@ private LabeledInputRangeWidget alphaRange;
 	protected void doSaveData() {
 		
 		TextureDataConverter converter=new TextureDataConverter();
-		JSZip jszip=converter.reverse().convert(drawingDataObjects.getDatas());
+		TextureData data=new TextureData();
+		data.setImageDrawingDatas(drawingDataObjects.getDatas());
+		data.setBone(getRootBone());
+		
+		JSZip jszip=converter.reverse().convert(data);
 		downloadLinks.clear();
 		downloadLinks.add(JSZipUtils.createDownloadAnchor(jszip, "2dbone-textures.zip", "download", true));
 	}
@@ -1139,7 +1180,7 @@ private LabeledInputRangeWidget alphaRange;
 		backgroundEditCheck.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
 			@Override
 			public void onValueChange(ValueChangeEvent<Boolean> event) {
-				background.setEnableEdit(event.getValue());
+				background.setEditable(event.getValue());
 			}
 		});
 		

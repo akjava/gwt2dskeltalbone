@@ -50,6 +50,11 @@ import com.google.gwt.user.client.ui.Widget;
 /*
  * select image files and move,turn,scale it.
  */
+/**
+ * @deprecated
+ * @author aki
+ *
+ */
 public class SimpleAnimationEditorPage extends VerticalPanel{
 	
 	 

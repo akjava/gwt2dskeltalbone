@@ -1,11 +1,9 @@
 package com.akjava.gwt.skeltalboneanimation.client;
 
-import com.akjava.gwt.skeltalboneanimation.client.page.SimpleAnimationEditorPage;
 import com.akjava.gwt.skeltalboneanimation.client.page.SimpleAnimationEditorPage2;
-import com.akjava.gwt.skeltalboneanimation.client.page.SimpleBoneEditorPage;
 import com.akjava.gwt.skeltalboneanimation.client.page.SimpleBoneEditorPage2;
-import com.akjava.gwt.skeltalboneanimation.client.page.SimpleTextureEditorPage;
 import com.akjava.gwt.skeltalboneanimation.client.page.SimpleTextureEditorPage2;
+import com.akjava.gwt.skeltalboneanimation.client.page.clippage.ClipImagePage;
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.user.client.ui.DockLayoutPanel;
@@ -21,9 +19,11 @@ public class GWT2DSkeltalBoneAnimation implements EntryPoint {
 	 * This is the entry point method.
 	 */
 	public void onModuleLoad() {
-		TabLayoutPanel tab=new TabLayoutPanel(24, Unit.PX);
 		
-		RootLayoutPanel.get().add(tab);
+		DockLayoutPanel root=new DockLayoutPanel(Unit.PX);
+		
+		RootLayoutPanel.get().add(root);
+		TabLayoutPanel tab=new TabLayoutPanel(24, Unit.PX);
 		
 		
 		//TurnAngleAnimation animation=new TurnAngleAnimation();
@@ -35,6 +35,7 @@ public class GWT2DSkeltalBoneAnimation implements EntryPoint {
 		//FileAndMoveAnimation animation=new FileAndMoveAnimation();
 		//FileAndMoveAndBoneAnimation animation=new FileAndMoveAndBoneAnimation();
 		
+		/*
 		DockLayoutPanel boneDock=new DockLayoutPanel(Unit.PX);
 		tab.add(boneDock,"Bone");
 		SimpleBoneEditorPage bonePage=new SimpleBoneEditorPage(boneDock);
@@ -49,7 +50,19 @@ public class GWT2DSkeltalBoneAnimation implements EntryPoint {
 		tab.add(textureDock,"Texture");
 		SimpleTextureEditorPage texturePage=new SimpleTextureEditorPage(textureDock);
 		textureDock.add(texturePage);
+		*/
 		
+		final MainManager manager=new MainManager(tab);
+		
+		FileManagerBar bar=new FileManagerBar(manager.getUploadedFileManager());
+		
+		root.addNorth(bar, 32);
+		
+		tab.add(new ClipImagePage(manager),"Clip");
+		
+		//add everything inside
+		
+		root.add(tab);
 		//advanced
 		DockLayoutPanel boneDock2=new DockLayoutPanel(Unit.PX);
 		tab.add(boneDock2,"Bone2");
@@ -66,6 +79,6 @@ public class GWT2DSkeltalBoneAnimation implements EntryPoint {
 		SimpleTextureEditorPage2 texturePage2=new SimpleTextureEditorPage2(textureDock2);
 		textureDock2.add(texturePage2);
 		
-		tab.selectTab(5);
+		tab.selectTab(0);
 	}
 }

@@ -17,23 +17,19 @@ import com.akjava.gwt.lib.client.widget.cell.EasyCellTableObjects;
 import com.akjava.gwt.lib.client.widget.cell.SimpleCellTable;
 import com.akjava.gwt.skeltalboneanimation.client.Background;
 import com.akjava.gwt.skeltalboneanimation.client.BoneUtils;
+import com.akjava.gwt.skeltalboneanimation.client.BoxPoints;
 import com.akjava.gwt.skeltalboneanimation.client.DrawingDataControler;
 import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingData;
 import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingDataControler;
 import com.akjava.gwt.skeltalboneanimation.client.MainManager;
 import com.akjava.gwt.skeltalboneanimation.client.TextureData;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneListBox;
-import com.akjava.gwt.skeltalboneanimation.client.bones.BonePositionControler;
-import com.akjava.gwt.skeltalboneanimation.client.bones.CanvasBonePainter;
-import com.akjava.gwt.skeltalboneanimation.client.bones.CanvasBoneSettings;
 import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
 import com.akjava.gwt.skeltalboneanimation.client.converters.ClipImageDataConverter;
 import com.akjava.gwt.skeltalboneanimation.client.converters.TextureDataConverter;
 import com.akjava.gwt.skeltalboneanimation.client.page.AbstractPage;
-import com.akjava.gwt.skeltalboneanimation.client.page.CircleLineBonePainter;
-import com.akjava.gwt.skeltalboneanimation.client.page.HasSelectionName;
+import com.akjava.gwt.skeltalboneanimation.client.page.bone.BoneControler;
 import com.akjava.lib.common.graphics.Rect;
-import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -53,6 +49,7 @@ import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.TextColumn;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Anchor;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.CheckBox;
@@ -63,7 +60,7 @@ import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 
-public class ClipImagePage extends AbstractPage implements HasSelectionName {
+public class ClipImagePage extends AbstractPage {
 	 interface Driver extends SimpleBeanEditorDriver< ClipData,  ClipDataEditor> {}
 	
 	 //dont initialize here
@@ -79,8 +76,25 @@ public class ClipImagePage extends AbstractPage implements HasSelectionName {
 	}
 	
 	
-	public Panel createClipImagePanel(){
+	public Panel createClipControlPanel(){
+		VerticalPanel root=new VerticalPanel();
+		
+		HorizontalPanel panel1=new HorizontalPanel();
+		root.add(panel1);
+		
+		Button createFromBoneBt=new Button("Create data from bone",new ClickHandler() {
+			
+			@Override
+			public void onClick(ClickEvent event) {
+				doCreateClipDataFromBone();
+			}
+		});
+		panel1.add(createFromBoneBt);
+		
+		
 		HorizontalPanel panel=new HorizontalPanel();
+		root.add(panel);
+		
 		Button addBt=new Button("Add",new ClickHandler() {
 			
 			@Override
@@ -99,13 +113,76 @@ public class ClipImagePage extends AbstractPage implements HasSelectionName {
 		});
 		panel.add(removeBt);
 		
+Button removeAllBt=new Button("Remove All",new ClickHandler() {
+			
+			@Override
+			public void onClick(ClickEvent event) {
+				doRemoveAll();
+			}
+
+			
+		});
+		panel.add(removeAllBt);
 		
+		HorizontalPanel buttons2=new HorizontalPanel();
+		root.add(buttons2);
+		CheckBox drawBoundsCheck=new CheckBox("draw bounds");
+		drawBoundsCheck.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
+
+			@Override
+			public void onValueChange(ValueChangeEvent<Boolean> event) {
+				drawBounds=event.getValue();
+				updateCanvas();
+			}
+			
+		});
+		buttons2.add(drawBoundsCheck);
 		
-		return panel;
+		CheckBox drawSelectionOnlyCheck=new CheckBox("draw selection-only");
+		drawSelectionOnlyCheck.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
+
+			@Override
+			public void onValueChange(ValueChangeEvent<Boolean> event) {
+				drawSelectionOnly=event.getValue();
+				updateCanvas();
+			}
+			
+		});
+		buttons2.add(drawSelectionOnlyCheck);
+		return root;
+	}
+	private boolean drawBounds;
+	private boolean drawSelectionOnly;
+	private void doRemoveAll() {
+		if(!Window.confirm("remove all clip-image-data.are you sure?")){
+			return;
+		}
+		cellObjects.clearAllItems();
+		updateCanvas();
+	}
+	
+	
+	protected void doCreateClipDataFromBone() {
+		for(TwoDimensionBone rootBone:getRootBone().asSet()){
+			List<TwoDimensionBone> bones=BoneUtils.getAllBone(rootBone);
+			for(TwoDimensionBone bone:bones){
+				if(bone.getParent()!=null && !bone.isLocked()){
+					PointXY selfPoint=boneControler.getBoneInitialPosition(bone).get();
+					PointXY parentPoint=boneControler.getBoneInitialPosition(bone.getParent()).get();
+					if(selfPoint!=null && parentPoint!=null){
+						BoxPoints box=new BoxPoints(selfPoint,parentPoint,20);
+						ClipData clip=new ClipData();
+						clip.setPoints(box.getPoints());
+						clip.setBone(bone.getName());
+						cellObjects.addItem(clip);
+					}
+				}
+			}
+			//BoneUtils.
+		}
 	}
 
-	
-	
+
 	protected void doRemove() {
 		if(isClipDataSelected()){
 			cellObjects.removeItem(getSelection());
@@ -145,9 +222,11 @@ public class ClipImagePage extends AbstractPage implements HasSelectionName {
 		return getSelection()!=null;
 	}
 	
-	private CanvasBonePainter painter;
-	private CanvasBoneSettings settings;
-	private BonePositionControler bonePositionControler;
+	//private CanvasBonePainter painter;
+	//private CanvasBoneSettings settings;
+	//private BonePositionControler bonePositionControler;
+	
+	private BoneControler boneControler;
 	protected Widget createCenterPanel() {
 		/**
 		 * don't insert above,should canvas initialize first.
@@ -160,13 +239,13 @@ public class ClipImagePage extends AbstractPage implements HasSelectionName {
 		initializeCanvas();
 		panel.add(canvas);
 		
+		boneControler =new BoneControler(canvas){
+			@Override
+			public String getSelectionName() {
+				return getSelection()!=null?getSelection().getBone():null;
+			}
+		};
 		
-		settings=new CanvasBoneSettings(canvas, null);
-		
-		bonePositionControler=new BonePositionControler(settings);
-		bonePositionControler.setCollisionOrderDesc(true);//root is last select-target
-		
-		painter = new CircleLineBonePainter(canvas, this, bonePositionControler);
 		
 		
 		
@@ -210,7 +289,8 @@ public class ClipImagePage extends AbstractPage implements HasSelectionName {
 		VerticalPanel panel=new VerticalPanel();
 		panel.add(new Label("Clips"));
 		
-		panel.add(createClipImagePanel());
+		
+		panel.add(createClipControlPanel());
 		
 		VerticalPanel editorPanel=new VerticalPanel();
 		
@@ -308,7 +388,7 @@ public class ClipImagePage extends AbstractPage implements HasSelectionName {
 					data.setImageName(data.getId()+".png");
 				}
 				TextureData textureData=new TextureData();
-				textureData.setBone(settings.getBone());
+				textureData.setBone(boneControler.getBone());
 				textureData.setImageDrawingDatas(datas);
 				
 				TextureDataConverter converter=new TextureDataConverter();
@@ -398,7 +478,7 @@ public class ClipImagePage extends AbstractPage implements HasSelectionName {
 		*/
 		
 		editor.setBones(bones);
-		settings.setBone(bone);
+		boneControler.setBone(bone);
 		updateCanvas();
 	}
 
@@ -425,7 +505,7 @@ public class ClipImagePage extends AbstractPage implements HasSelectionName {
 
 	public Optional<TwoDimensionBone> getRootBone(){
 		
-		return Optional.fromNullable(settings.getBone());
+		return Optional.fromNullable(boneControler.getBone());
 	}
 
 
@@ -447,12 +527,61 @@ public class ClipImagePage extends AbstractPage implements HasSelectionName {
 		
 		
 		ClipData selection=getSelection();
+		
+		
+		
+		
+		
+		
 		for(ClipData data:cellObjects.getDatas()){
-			String color="#044";
+			
+			//draw selection first
+			if(data==selection){
+				int dotSize=10;
+				
+				for(PointXY pt:data.getPoints()){
+					String rectColor="#0a0";
+					if(pt==data.getPoints().get(data.getPoints().size()-1)){
+						rectColor="#0f0";
+					}
+					Rect rect=Rect.fromCenterPoint(pt.getX(), pt.getY(), dotSize/2, dotSize/2);
+					RectCanvasUtils.fill(rect, canvas, rectColor);
+					
+					if(pt==selectionPt){
+						rect.expandSelf(8, 8);
+						RectCanvasUtils.stroke(rect, canvas, "#000");
+						
+						
+						//draw insert
+						int index=data.getPoints().indexOf(selectionPt);
+						if(index!=-1 && index<data.getPoints().size()){
+							int at=index+1;
+							
+							if(index == data.getPoints().size()-1){
+								at=0;
+							}
+							
+							int x=selectionPt.x + data.getPoints().get(at).x;
+							int y=selectionPt.y + data.getPoints().get(at).y;
+							PointXY insertPt=new PointXY(x/2, y/2);
+							
+							Rect insertRect=Rect.fromCenterPoint(insertPt.getX(), insertPt.getY(), dotSize/2, dotSize/2);
+							RectCanvasUtils.stroke(insertRect, canvas, "#888");
+						}
+						
+					}
+					
+				}
+			}
+			
+			
+			
+			String color="#888";
 			if(data==selection){
 				color="#00f";
 			}
 			canvas.getContext2d().setStrokeStyle(color);
+			if(data==selection || !drawSelectionOnly){
 			for(int i=0;i<data.getPoints().size()-1;i++){
 				int x1=data.getPoints().get(i).getX();
 				int y1=data.getPoints().get(i).getY();
@@ -476,40 +605,26 @@ public class ClipImagePage extends AbstractPage implements HasSelectionName {
 			
 				CanvasUtils.drawPoint(canvas, x1, y1);
 			}
+			}
 			
-			if(data.getPoints().size()>2){
+			//stroke bounds
+			if(data==selection || !drawSelectionOnly){
+			if(data.getPoints().size()>2 && drawBounds){
 			Rect boundRect=Rect.fromPoints(data.getPoints());
 			int expand=16;
 			boundRect.expandSelf(expand, expand);
-			RectCanvasUtils.stroke(boundRect, canvas, "#888");
+			RectCanvasUtils.stroke(boundRect, canvas, "#444");
+			}
 			}
 			
-			
-			if(data==selection){
-				int dotSize=10;
-				
-				for(PointXY pt:data.getPoints()){
-					String rectColor="#0c0";
-					if(pt==data.getPoints().get(data.getPoints().size()-1)){
-						rectColor="#00c";
-					}
-					Rect rect=Rect.fromCenterPoint(pt.getX(), pt.getY(), dotSize/2, dotSize/2);
-					RectCanvasUtils.fill(rect, canvas, rectColor);
-					
-					if(pt==selectionPt){
-						rect.expandSelf(8, 8);
-						RectCanvasUtils.stroke(rect, canvas, "#000");
-					}
-					
-				}
-			}
+		
 			
 		}
 		
 		//bone
-		if(visibleBone){ //i believe separate bone-painter
-			painter.paintBone();
-		}
+		
+			boneControler.paintBone();
+		
 	}
 
 
@@ -601,7 +716,7 @@ public class ClipImagePage extends AbstractPage implements HasSelectionName {
 		ClipData value;
 		private BoneListBox boneList;
 		public ClipDataEditor(){
-			add(new Label("Blue dot is last point"));
+			add(new Label("high-Green dot is last point.insert at white box"));
 			
 			HorizontalPanel panel=new HorizontalPanel();
 			panel.setVerticalAlignment(ALIGN_MIDDLE);
@@ -649,9 +764,15 @@ public class ClipImagePage extends AbstractPage implements HasSelectionName {
 				return;
 			}
 			int index=value.getPoints().indexOf(selectionPt);
-			if(index!=-1 && index<value.getPoints().size()-1){
-				int x=selectionPt.x + value.getPoints().get(index+1).x;
-				int y=selectionPt.y + value.getPoints().get(index+1).y;
+			if(index!=-1 && index<value.getPoints().size()){
+				int at=index+1;
+				
+				if(index == value.getPoints().size()-1){
+					at=0;
+				}
+				
+				int x=selectionPt.x + value.getPoints().get(at).x;
+				int y=selectionPt.y + value.getPoints().get(at).y;
 				PointXY pt=new PointXY(x/2, y/2);
 				value.getPoints().add(index+1, pt);
 				selectionPt=pt;
@@ -717,7 +838,7 @@ public class ClipImagePage extends AbstractPage implements HasSelectionName {
 			}
 	}
 	
-	private boolean visibleBone=true;
+	
 	private HorizontalPanel downloadLinks;
 	
 	private TwoDimensionBone findBoneByName(String name){
@@ -757,7 +878,7 @@ public class ClipImagePage extends AbstractPage implements HasSelectionName {
 	   
 	    
 	    northPanel.add(load);
-	    northPanel.add(new Button("Save",new ClickHandler() {
+	    northPanel.add(new Button("Save(not contain texture)",new ClickHandler() {
 			
 			@Override
 			public void onClick(ClickEvent event) {
@@ -833,7 +954,7 @@ public class ClipImagePage extends AbstractPage implements HasSelectionName {
 
 			@Override
 			public void onValueChange(ValueChangeEvent<Boolean> event) {
-				visibleBone=(event.getValue());
+				boneControler.setVisible(event.getValue());
 				updateCanvas();
 			}
 		});
@@ -898,9 +1019,6 @@ public class ClipImagePage extends AbstractPage implements HasSelectionName {
 	}
 
 
-	@Override
-	public String getSelectionName() {
-		return null;
-	}
+	
 	
 }

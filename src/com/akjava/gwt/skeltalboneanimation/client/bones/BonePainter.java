@@ -6,5 +6,5 @@ public interface BonePainter {
 	/*
 	 * if bone is root start & end cordinates are same.
 	 */
-	public  void paintBone(String name,String parentName,int startX,int startY,int endX,int endY,double angle);
+	public  void paintBone(String name,String parentName,int startX,int startY,int endX,int endY,double angle,boolean locked);
 }

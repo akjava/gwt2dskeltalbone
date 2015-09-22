@@ -324,7 +324,7 @@ Button remove=new Button("remove",new ClickHandler() {
 		painter = new AbstractBonePainter(bonePositionControler) {
 			
 			@Override
-			public void paintBone(String name, String parent,int startX, int startY, int endX, int endY, double angle) {
+			public void paintBone(String name, String parent,int startX, int startY, int endX, int endY, double angle,boolean locked) {
 				Rect rect=Rect.fromCenterPoint(endX,endY,10,10);
 				
 				String color;

@@ -80,7 +80,7 @@ public void paintBone(){
 				startY=(int)point[1];
 			}
 			cache.put(bone.getName(), new double[]{endX,endY});
-			paintBone(bone.getName(),parentName,startX+offsetX,startY+offsetY,endX+offsetX,endY+offsetY,data.getAngle());
+			paintBone(bone.getName(),parentName,startX+offsetX,startY+offsetY,endX+offsetX,endY+offsetY,data.getAngle(),bone.isLocked());
 			
 		}
 		endPaint();

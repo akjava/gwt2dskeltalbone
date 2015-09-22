@@ -65,10 +65,13 @@ public boolean isRoot(){
 
 public TwoDimensionBone copy(boolean copyChildren){
 	TwoDimensionBone copyBone=new TwoDimensionBone(name, x, y,parent);
+	copyBone.setLocked(locked);
+	
 	if(copyChildren){
 		for(TwoDimensionBone child:children){
 			TwoDimensionBone copyChild=child.copy(true);
 			copyBone.addBone(copyChild);
+			
 		}
 	}
 	return copyBone;
@@ -90,8 +93,17 @@ public TwoDimensionBone addBone(TwoDimensionBone twoDimensionBone) {
 	twoDimensionBone.setParent(this);
 	return twoDimensionBone;
 }
+
+private boolean locked;
+
+public boolean isLocked() {
+	return locked;
+}
+public void setLocked(boolean locked) {
+	this.locked = locked;
+}
 public String toString(){
 	String parent=getParent()==null?"":getParent().getName();
-	return parent+","+getName()+","+getX()+","+getY();
+	return parent+","+getName()+","+getX()+","+getY()+","+locked;
 }
 }

@@ -31,7 +31,7 @@ public class FileManagerBar extends VerticalPanel{
 		boneNameLabel = createLabel("");
 		panel.add(boneNameLabel);
 		
-		/*
+		//TODO maybe remove
 		FileUploadForm boneUpload=FileUtils.createSingleTextFileUploadForm(new DataURLListener() {
 			@Override
 			public void uploaded(File file, String text) {
@@ -41,7 +41,7 @@ public class FileManagerBar extends VerticalPanel{
 		}, true);
 		boneUpload.setAccept(FileUploadForm.ACCEPT_TXT);
 		panel.add(boneUpload);
-		*/
+		
 		
 		panel.add(createLabel("Background:"));
 		backgroundNameLabel = createLabel("");

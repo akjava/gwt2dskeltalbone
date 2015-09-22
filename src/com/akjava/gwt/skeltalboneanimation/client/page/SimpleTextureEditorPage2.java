@@ -8,9 +8,7 @@ import com.akjava.gwt.html5.client.download.HTML5Download;
 import com.akjava.gwt.html5.client.file.File;
 import com.akjava.gwt.html5.client.file.FileUploadForm;
 import com.akjava.gwt.html5.client.file.FileUtils;
-import com.akjava.gwt.html5.client.file.FileUtils.DataArrayListener;
 import com.akjava.gwt.html5.client.file.FileUtils.DataURLListener;
-import com.akjava.gwt.html5.client.file.Uint8Array;
 import com.akjava.gwt.jszip.client.JSZip;
 import com.akjava.gwt.jszip.client.JSZipUtils;
 import com.akjava.gwt.jszip.client.JSZipUtils.ZipListener;
@@ -20,7 +18,6 @@ import com.akjava.gwt.lib.client.ImageElementUtils;
 import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.lib.client.experimental.CanvasDragMoveControler;
 import com.akjava.gwt.lib.client.experimental.CanvasMoveListener;
-import com.akjava.gwt.lib.client.experimental.RectCanvasUtils;
 import com.akjava.gwt.lib.client.experimental.ReplaceEachOther;
 import com.akjava.gwt.lib.client.widget.cell.EasyCellTableObjects;
 import com.akjava.gwt.lib.client.widget.cell.SimpleCellTable;
@@ -42,7 +39,6 @@ import com.akjava.gwt.skeltalboneanimation.client.converters.BoneAndAnimationCon
 import com.akjava.gwt.skeltalboneanimation.client.converters.TextureDataConverter;
 import com.akjava.gwt.skeltalboneanimation.client.page.SimpleBoneEditorPage.FlushTextBox;
 import com.akjava.gwt.skeltalboneanimation.client.ui.LabeledInputRangeWidget;
-import com.akjava.lib.common.graphics.Rect;
 import com.akjava.lib.common.utils.CSVUtils;
 import com.akjava.lib.common.utils.FileNames;
 import com.akjava.lib.common.utils.ValuesUtils;
@@ -81,7 +77,7 @@ import com.google.gwt.user.client.ui.Widget;
 /*
  * select image files and move,turn,scale it.
  */
-public class SimpleTextureEditorPage2 extends VerticalPanel{
+public class SimpleTextureEditorPage2 extends VerticalPanel implements HasSelectionName{
 	
 	 
 	
@@ -1053,7 +1049,7 @@ private LabeledInputRangeWidget alphaRange;
 	}
 	private boolean shiftDowned;
 	
-	private AbstractBonePainter painter;
+	private CircleLineBonePainter painter;
 
 
 	private void createBoneControls(SkeletalAnimation animations,TwoDimensionBone rootBone,final Canvas canvas){
@@ -1070,59 +1066,7 @@ private LabeledInputRangeWidget alphaRange;
 		
 		
 		
-		painter = new AbstractBonePainter(bonePositionControler) {
-			
-			@Override
-			public void paintBone(String name, String parent,int startX, int startY, int endX, int endY, double angle) {
-				Rect rect=Rect.fromCenterPoint(endX,endY,10,10);
-				
-				String color;
-				if(parent!=null){
-					color="#00f";
-				}else{
-					color="#f00";//root bone;
-				}
-				
-				canvas.getContext2d().setFillStyle(color);//TODO method
-				RectCanvasUtils.fillCircle(rect, canvas, true);
-				
-				if(drawingDataObjects.getSelection()!=null){
-					String boneName=drawingDataObjects.getSelection().getBoneName();
-					if(name.equals(boneName)){
-						//canvas.getContext2d().setStrokeStyle("#f00");
-						RectCanvasUtils.stroke(rect, canvas, "#f00");
-					}
-				}
-				
-				//draw selection
-				String selectionColor="#040";
-				
-				
-				
-				
-				//
-				
-				canvas.getContext2d().setStrokeStyle("#000");
-				if(parent!=null){
-					CanvasUtils.drawLine(canvas, startX, startY,endX,endY);
-				}
-				
-				double[] turned=BoneUtils.turnedAngle(-10,0, angle);
-				CanvasUtils.drawLine(canvas, endX, endY,endX+turned[0],endY+turned[1]);
-			}
-
-			@Override
-			public void startPaint() {
-				// TODO Auto-generated method stub
-				
-			}
-
-			@Override
-			public void endPaint() {
-				// TODO Auto-generated method stub
-				
-			}
-		};
+		painter = new CircleLineBonePainter(canvas, this, bonePositionControler);
 		
 		
 
@@ -1485,6 +1429,12 @@ if(modeAnimation){
 		}
 		updateCanvas();
 		drawingDataEditor.updateValues();
+	}
+
+	@Override
+	public String getSelectionName() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

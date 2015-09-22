@@ -49,6 +49,7 @@ import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.CheckBox;
+import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.DockLayoutPanel;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
@@ -194,12 +195,17 @@ private BoneControlRange boneControlerRange;
 				
 				@Override
 				public void uploaded(File file, String text) {
+					
 					TwoDimensionBone newRoot=new BoneConverter().reverse().convert(CSVUtils.splitLinesWithGuava(text));
+					
+					selectOnLoadBone(newRoot);
+					/*
 					boolean confirm=Window.confirm("load new bone.clear all exist animation.\nare you sure?");
 					if(!confirm){
 						return;
 					}
 					setNewRootBone(newRoot);
+					*/
 				}
 			}, true);
 		    load.setAccept(FileUploadForm.ACCEPT_TXT);
@@ -218,12 +224,60 @@ private BoneControlRange boneControlerRange;
 				if(bone==null){
 					Window.alert("this zip not contain bone.txt data");
 				}else{
-					setNewRootBone(bone);
+					selectOnLoadBone(bone);
+					//setNewRootBone(bone);
 				}
 			}
 		});
 		panel.add(fromTexture);
 		return panel;
+	}
+	
+	private void selectOnLoadBone(final TwoDimensionBone bone){
+		//cancel
+		//clear animation
+		//remain animation
+		final DialogBox dialogBox = new DialogBox();
+		dialogBox.setText("on Load Bone choice");
+		HorizontalPanel p=new HorizontalPanel();
+		dialogBox.add(p);
+		
+		Button clearAnimation=new Button("nwe bone & clear animation",new ClickHandler() {
+			
+			@Override
+			public void onClick(ClickEvent event) {
+				LogUtils.log("clear");
+				dialogBox.hide();
+				setNewRootBone(bone);
+			}
+		});
+		p.add(clearAnimation);
+		
+		Button replaceBone=new Button("replace bone",new ClickHandler() {
+			
+			@Override
+			public void onClick(ClickEvent event) {
+				LogUtils.log("replace");
+				dialogBox.hide();
+				setNewBoneAndAnimation(bone,animationControler.getAnimation());
+			}
+		});
+		p.add(replaceBone);
+		
+		Button cancelBone=new Button("cancel",new ClickHandler() {
+			
+			@Override
+			public void onClick(ClickEvent event) {
+				LogUtils.log("cancel");
+				dialogBox.hide();
+				
+			}
+		});
+		p.add(cancelBone);
+		
+		dialogBox.show();
+		dialogBox.center();
+		
 	}
 	
 	private Widget createTextureColumnButtons() {
@@ -434,7 +488,7 @@ private BoneControlRange boneControlerRange;
 				});
 	}
 	
-	private AbstractBonePainter painter;
+	private CircleLineBonePainter painter;
 
 	public String getSelectionName(){
 		//range always select
@@ -454,65 +508,7 @@ private BoneControlRange boneControlerRange;
 		
 		
 		
-		painter = new AbstractBonePainter(bonePositionControler) {
-			
-			@Override
-			public void paintBone(String name, String parent,int startX, int startY, int endX, int endY, double angle) {
-				int boneSize=bonePositionControler.getBoneSize();
-				Rect rect=Rect.fromCenterPoint(endX,endY,boneSize/2,boneSize/2);
-				
-				String color;
-				if(parent!=null){
-					color="#f00";
-				}else{
-					color="#00f";//root bone;
-				}
-				
-				canvas.getContext2d().setFillStyle(color);//TODO method
-				RectCanvasUtils.fillCircle(rect, canvas, true);
-				
-				//draw selection
-				String selectionColor="#040";
-				
-				
-				
-				if(getSelectionName()!=null && name.equals(getSelectionName())){
-					rect=rect.expand(8, 8);//need expandSelf
-					canvas.getContext2d().setStrokeStyle(selectionColor);
-					
-					RectCanvasUtils.strokeCircle(rect,canvas,true);
-				}
-				//
-				
-				canvas.getContext2d().setStrokeStyle("#000");
-				
-				//for bold selection line
-				if(name.equals(getSelectionName())){
-					canvas.getContext2d().setStrokeStyle("#0f0");
-				}
-				
-				if(parent!=null){
-					CanvasUtils.drawLine(canvas, startX, startY,endX,endY);
-				}
-				
-				/* indicate angle but not good
-				double[] turned=BoneUtils.turnedAngle(-10,0, angle);
-				CanvasUtils.drawLine(canvas, endX, endY,endX+turned[0],endY+turned[1]);
-				*/
-			}
-
-			@Override
-			public void startPaint() {
-				// TODO Auto-generated method stub
-				
-			}
-
-			@Override
-			public void endPaint() {
-				// TODO Auto-generated method stub
-				
-			}
-		};
+		painter = new CircleLineBonePainter(canvas, this, bonePositionControler);
 		
 		
 
@@ -554,7 +550,7 @@ private BoneControlRange boneControlerRange;
 		if(!isEnableEdit()){
 			return;
 		}
-		if(boneSelectionOnCanvas!=null){
+		if(boneSelectionOnCanvas!=null && !boneSelectionOnCanvas.isLocked()){
 			
 			if(canvasControler.isRightMouse() || !canvasControler.isRightMouse()){//temporaly every mouse move support
 				
@@ -593,7 +589,7 @@ private BoneControlRange boneControlerRange;
 					int parentY=parentboneData.getY()+bonePositionControler.getSettings().getOffsetY();
 					
 					
-					int originalAngle=(int) Math.toDegrees(getRadian(parentX, parentY, boneX, boneY));
+					int originalAngle=(int) Math.toDegrees(calculateAngle(parentX, parentY, boneX, boneY));
 					int rangeAngle=(int) boneControlerRange.getInputRange().getValue();
 					
 					
@@ -625,7 +621,7 @@ private BoneControlRange boneControlerRange;
 					}
 					*/
 					
-					int angle=(int) Math.toDegrees(getRadian(parentX, parentY, mouseX, mouseY));
+					int angle=(int) Math.toDegrees(calculateAngle(parentX, parentY, mouseX, mouseY));
 					/*
 					canvas.getContext2d().setStrokeStyle("#0f0");
 					CanvasUtils.drawLine(canvas, parentX, parentY, mouseX, mouseY);
@@ -661,7 +657,7 @@ private BoneControlRange boneControlerRange;
 		}
 	}
 	
-	protected double getRadian(double x, double y, double x2, double y2) {
+	protected double calculateAngle(double x, double y, double x2, double y2) {
 	    double radian = Math.atan2(x-x2,y-y2)*-1;
 	    return radian;
 	}
@@ -702,6 +698,11 @@ private BoneControlRange boneControlerRange;
 		}
 		
 		if(boneSelectionOnCanvas==null || boneSelectionOnCanvas==getRootBone()){
+			return;
+		}
+		
+		//no neeed to turn;
+		if(boneSelectionOnCanvas.isLocked()){
 			return;
 		}
 		

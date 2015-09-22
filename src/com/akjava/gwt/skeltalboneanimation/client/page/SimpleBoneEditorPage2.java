@@ -12,17 +12,14 @@ import com.akjava.gwt.html5.client.file.FileHandler;
 import com.akjava.gwt.html5.client.file.FileReader;
 import com.akjava.gwt.html5.client.file.FileUploadForm;
 import com.akjava.gwt.html5.client.file.FileUtils;
-import com.akjava.gwt.html5.client.file.Uint8Array;
 import com.akjava.gwt.html5.client.file.FileUtils.DataArrayListener;
 import com.akjava.gwt.html5.client.file.FileUtils.DataURLListener;
+import com.akjava.gwt.html5.client.file.Uint8Array;
 import com.akjava.gwt.jszip.client.JSFile;
 import com.akjava.gwt.jszip.client.JSZip;
-import com.akjava.gwt.jszip.client.JSZipUtils;
-import com.akjava.gwt.jszip.client.JSZipUtils.ZipListener;
 import com.akjava.gwt.lib.client.CanvasUtils;
 import com.akjava.gwt.lib.client.GWTHTMLUtils;
 import com.akjava.gwt.lib.client.ImageElementUtils;
-import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.lib.client.experimental.CanvasDragMoveControler;
 import com.akjava.gwt.lib.client.experimental.CanvasMoveListener;
 import com.akjava.gwt.lib.client.game.PointD;
@@ -115,7 +112,8 @@ public class SimpleBoneEditorPage2 extends VerticalPanel implements HasSelection
 		
 		    northPanel.add(new Label("Bones:"));
 		    
-		    northPanel.add(new Label("Load:(Bone,clear animation)"));
+		    northPanel.add(new Label("Load:"));
+		    /*
 		    FileUploadForm load=FileUtils.createSingleTextFileUploadForm(new DataURLListener() {
 				
 				@Override
@@ -125,12 +123,40 @@ public class SimpleBoneEditorPage2 extends VerticalPanel implements HasSelection
 			}, true);
 		    load.setAccept(FileUploadForm.ACCEPT_TXT);
 		    northPanel.add(load);
+		    */
 		    
+		    FileUploadForm load2=FileUtils.createSingleFileUploadForm(new DataArrayListener() {
+				@Override
+				public void uploaded(File file, Uint8Array array) {
+					String extension=FileNames.getExtension(file.getFileName()).toLowerCase();
+					if(extension.equals("zip")){
+						JSZip zip=JSZip.loadFromArray(array);
+						JSFile jsFile=zip.getFile("bone.txt");
+						if(jsFile!=null){
+							String text=jsFile.asText();
+							doLoadBone(text);
+						}else{
+							Window.alert("not contain bone.txt");
+						}
+					}else{
+						Blob blob=Blob.createBlob(array, "plain/text");
+						final FileReader reader=FileReader.createFileReader();
+						reader.setOnLoad(new FileHandler() {
+							
+							@Override
+							public void onLoad() {
+								String text=reader.getResultAsString();
+								doLoadBone(text);
+							}
+						});
+						reader.readAsText((File)blob.cast(), "uff8");
+					}
+				}
+			});
+		    northPanel.add(load2);
+		    load2.setAccept(FileUploadForm.ACCEPT_TXT,FileUploadForm.ACCEPT_ZIP);
 		   
 		    
-		   
-		    
-		    northPanel.add(load);
 		    northPanel.add(new Button("Save",new ClickHandler() {
 				
 				@Override
@@ -151,7 +177,7 @@ public class SimpleBoneEditorPage2 extends VerticalPanel implements HasSelection
 private FlushTextBox<TwoDimensionBone> nameBox;
 private FlushIntegerBox<TwoDimensionBone> xBox,yBox;
 
-
+private CheckBox lockedEditor;
 private TwoDimensionBone value;
 private ValueListBox<TwoDimensionBone> parentEditor;
 private void onEditorFlush(){
@@ -161,6 +187,7 @@ private void onEditorFlush(){
 	if(bones.contains(value)){//when load new data
 	value.setX(xBox.getValue());
 	value.setY(yBox.getValue());
+	value.setLocked(lockedEditor.getValue());
 	
 	String newName=nameBox.getValue();
 	
@@ -187,6 +214,7 @@ private void onEditorFlush(){
 		double newY=absoluteValuePosition.getY()-absoluteParentPosition.getY();
 		value.setX(newX);
 		value.setY(newY);
+		
 		
 		xBox.setValue((int)newX);
 		yBox.setValue((int)newY);
@@ -248,6 +276,17 @@ private void onEditorFlush(){
 				
 			});
 			panel.add(parentEditor);
+			
+			lockedEditor=new CheckBox("locked");
+			panel.add(lockedEditor);
+			lockedEditor.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
+
+				@Override
+				public void onValueChange(ValueChangeEvent<Boolean> event) {
+					onEditorFlush();
+				}
+				
+			});
 		}
 		
 		
@@ -303,8 +342,9 @@ private void onEditorFlush(){
 				}
 				
 				parentEditor.setValue(value.getParent());//not fire
-				
 				updateParentEditor();
+				
+				lockedEditor.setValue(value.isLocked());
 				
 			}
 	}
@@ -601,7 +641,7 @@ settings.setBone(newRoot);
 				});
 	}
 	
-	private CanvasBonePainter painter;
+	private CircleLineBonePainter painter;
 	private void createBoneControls(TwoDimensionBone rootBone,final Canvas canvas){
 		settings=new CanvasBoneSettings(canvas, rootBone);
 		

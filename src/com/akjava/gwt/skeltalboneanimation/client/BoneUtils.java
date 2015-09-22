@@ -160,6 +160,11 @@ public class BoneUtils {
 		return false;
 	}
 	
+	public static double calculateAngle(double x, double y, double x2, double y2) {
+	    double radian = Math.atan2(x-x2,y-y2)*-1;
+	    return radian;
+	}
+	
 	public static class BoneNameFunction implements Function<TwoDimensionBone, String>{
 		@Override
 		public String apply(TwoDimensionBone input) {

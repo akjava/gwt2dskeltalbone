@@ -9,6 +9,7 @@ import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.skeltalboneanimation.client.BoneUtils;
 import com.akjava.gwt.skeltalboneanimation.client.IgnoreStartWithShape;
 import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
+import com.akjava.lib.common.utils.ValuesUtils;
 import com.google.common.base.Converter;
 import com.google.common.base.Functions;
 import com.google.common.collect.Collections2;
@@ -33,8 +34,8 @@ public class BoneConverter extends Converter<TwoDimensionBone, List<String>>{
 		List<String> parentNames=new ArrayList<String>();
 		TwoDimensionBone root=null;
 		for(String line:Collections2.filter(lines, new IgnoreStartWithShape())){
-			String[] values=line.trim().split(",");//must be 4
-			if(values.length!=4){
+			String[] values=line.trim().split(",");//must be 4 or 5
+			if(values.length!=4 && values.length!=5){
 				LogUtils.log("invalid line:"+line);
 				continue;//just ignore
 			}
@@ -45,6 +46,9 @@ public class BoneConverter extends Converter<TwoDimensionBone, List<String>>{
 			boneMap.put(bone.getName(), bone);
 			if(root==null){
 				root=bone;
+			}
+			if(values.length>4){
+				bone.setLocked(ValuesUtils.toBoolean(values[4], false));
 			}
 			
 		}

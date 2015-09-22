@@ -1,5 +1,7 @@
 package com.akjava.gwt.skeltalboneanimation.client.bones;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -63,6 +65,9 @@ public class BonePositionControler {
 
 
 	private int findIndex(List<BoneWithXYAngle> list,String name){
+		checkNotNull(list,"findIndex:list is null");
+		checkNotNull(name,"findIndex:name is null");
+		
 		for(int i=0;i<list.size();i++){
 			BoneWithXYAngle data=list.get(i);
 			if(data.getBone().getName().equals(name)){

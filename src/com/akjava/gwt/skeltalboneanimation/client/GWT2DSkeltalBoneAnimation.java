@@ -3,6 +3,7 @@ package com.akjava.gwt.skeltalboneanimation.client;
 import com.akjava.gwt.skeltalboneanimation.client.page.SimpleAnimationEditorPage2;
 import com.akjava.gwt.skeltalboneanimation.client.page.SimpleBoneEditorPage2;
 import com.akjava.gwt.skeltalboneanimation.client.page.SimpleTextureEditorPage2;
+import com.akjava.gwt.skeltalboneanimation.client.page.bone.BonePage;
 import com.akjava.gwt.skeltalboneanimation.client.page.clippage.ClipImagePage;
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.dom.client.Style.Unit;
@@ -60,6 +61,7 @@ public class GWT2DSkeltalBoneAnimation implements EntryPoint {
 		
 		
 		tab.add(new ClipImagePage(manager),"Clip");
+		tab.add(new BonePage(manager),"Bone");
 		
 		//add everything inside
 		

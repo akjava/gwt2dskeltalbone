@@ -808,7 +808,7 @@ private void updateCanvasOnAnimation() {
 			if(!data.isVisible()){
 				continue;
 			}
-			LogUtils.log(data.getId()+","+data.isVisible());
+			
 			String boneName=data.getBoneName();
 			
 		

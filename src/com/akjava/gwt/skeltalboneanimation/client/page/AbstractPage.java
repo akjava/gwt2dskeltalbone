@@ -22,6 +22,9 @@ protected MainManager manager;
 		super(Unit.PX);
 		this.manager=manager;
 		manager.addPage(this);
+		
+		initialize();
+		
 		this.addWest(createWestPanel(),300);
 		this.add(createCenterPanel());
 		
@@ -100,6 +103,7 @@ protected MainManager manager;
 	
 	protected abstract void onBackgroundChange(ImageDrawingData background);
 	
+	protected abstract void initialize();
 	protected abstract Widget createCenterPanel() ;
 
 	protected abstract Widget createWestPanel();

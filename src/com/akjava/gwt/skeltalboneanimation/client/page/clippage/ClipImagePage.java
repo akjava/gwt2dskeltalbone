@@ -1019,6 +1019,13 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 	}
 
 
+	@Override
+	protected void initialize() {
+		// TODO Auto-generated method stub
+		
+	}
+
+
 	
 	
 }

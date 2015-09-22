@@ -1,6 +1,7 @@
 package com.akjava.gwt.skeltalboneanimation.client.page.clippage;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import com.akjava.gwt.html5.client.download.HTML5Download;
 import com.akjava.gwt.html5.client.file.FileUploadForm;
@@ -10,6 +11,7 @@ import com.akjava.gwt.jszip.client.JSZipUtils.ZipListener;
 import com.akjava.gwt.lib.client.CanvasUtils;
 import com.akjava.gwt.lib.client.ImageElementUtils;
 import com.akjava.gwt.lib.client.LogUtils;
+import com.akjava.gwt.lib.client.experimental.ExecuteButton;
 import com.akjava.gwt.lib.client.experimental.RectCanvasUtils;
 import com.akjava.gwt.lib.client.game.PointD;
 import com.akjava.gwt.lib.client.game.PointXY;
@@ -31,6 +33,7 @@ import com.akjava.gwt.skeltalboneanimation.client.page.AbstractPage;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.BoneControler;
 import com.akjava.lib.common.graphics.Rect;
 import com.google.common.base.Optional;
+import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.gwt.canvas.client.Canvas;
@@ -49,6 +52,7 @@ import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.TextColumn;
+import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Anchor;
 import com.google.gwt.user.client.ui.Button;
@@ -350,13 +354,13 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 	
 	 panel.add(editorPanel);
 	 
-	 panel.add(new Label("export images"));
+	 panel.add(new Label("export selection image"));
 	 
 	 HorizontalPanel h3=new HorizontalPanel();
 	 panel.add(h3);
 	 final HorizontalPanel downloadLinks=new HorizontalPanel();
 	 
-	 Button exportSelection=new Button("selection",new ClickHandler() {
+	 Button exportSelection=new Button("selection only",new ClickHandler() {
 		
 		@Override
 		public void onClick(ClickEvent event) {
@@ -376,38 +380,79 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		}
 	});
 	 h3.add(exportSelection);
-	 Button exportAsTexture=new Button("as texture",new ClickHandler() {
+	 
+	 
+	 panel.add(new Label("Export as texture-data(contain clip-data)"));
+	 
+	 HorizontalPanel h4=new HorizontalPanel();
+	 panel.add(h4);
+	 Button syncAsTexture=new ExecuteButton("sync datas"){
 			
-			@Override
-			public void onClick(ClickEvent event) {
-				List<ImageDrawingData> datas=Lists.newArrayList();
-				for(ClipData clip:cellObjects.getDatas()){
-					ImageDrawingData data=convertToImageDrawingData(clip);
-					datas.add(data);
-					//TODO change uniq id & name.id not empty
-					data.setImageName(data.getId()+".png");
-				}
-				TextureData textureData=new TextureData();
-				textureData.setBone(boneControler.getBone());
-				textureData.setImageDrawingDatas(datas);
-				
-				TextureDataConverter converter=new TextureDataConverter();
-				JSZip jszip=converter.reverse().convert(textureData);
-				
-				//addition clip-data
-				new ClipImageDataConverter().convertToJsZip(jszip, generateSaveData());
-				
-				downloadLinks.clear();
-				downloadLinks.add(JSZipUtils.createDownloadAnchor(jszip, "2dbone-clips-textures.zip", "download", true));
-				
-			}
-		});
-	 h3.add(exportAsTexture);
+		 @Override
+			public void beforeExecute() {
+			 downloadLinks.clear();
+		 }
+		 
+		@Override
+		public void executeOnClick() {
+			final TextureData textureData=toTextureData();
+			manager.getFileManagerBar().setTexture("clip-editor", textureData);
+		}
+		 
+	 };
+	 h4.add(syncAsTexture);
+	 
+	 
+	 Button exportAsTexture=new ExecuteButton("sync & save"){
+		
+		 @Override
+			public void beforeExecute() {
+			 downloadLinks.clear();
+		 }
+		 
+		@Override
+		public void executeOnClick() {
+			Stopwatch watch=Stopwatch.createStarted();
+			final TextureData textureData=toTextureData();
+			TextureDataConverter converter=new TextureDataConverter();
+			JSZip jszip=converter.reverse().convert(textureData);
+			
+			//addition clip-data
+			new ClipImageDataConverter().convertToJsZip(jszip, generateSaveData());
+			
+			
+			downloadLinks.add(JSZipUtils.createDownloadAnchor(jszip, "2dbone-clips-textures.zip", "download", true));
+		
+			manager.getFileManagerBar().setTexture("clip-editor", textureData);
+			double time=watch.elapsed(TimeUnit.MILLISECONDS);
+			LogUtils.log("clip-zip generation-millisecond"+time);
+		}
+		 
+	 };
+	 
+	
+	 h4.add(exportAsTexture);
+	
 	
 	 panel.add(downloadLinks);
 	 
 		return panel;
 	}
+	
+	private TextureData toTextureData(){
+		List<ImageDrawingData> datas=Lists.newArrayList();
+		for(ClipData clip:cellObjects.getDatas()){
+			ImageDrawingData data=convertToImageDrawingData(clip);
+			datas.add(data);
+			//TODO change uniq id & name.id not empty
+			data.setImageName(data.getId()+".png");
+		}
+		TextureData textureData=new TextureData();
+		textureData.setBone(boneControler.getBone());
+		textureData.setImageDrawingDatas(datas);
+		return textureData;
+	}
+	
 
 
 	public ImageDrawingData convertToImageDrawingData(ClipData clip){
@@ -487,7 +532,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 
 
 	@Override
-	protected void onBackgroundChange(ImageDrawingData bg) {
+	protected void onBackgroundChanged(ImageDrawingData bg) {
 		background.setBackgroundData(bg);
 		//not select
 		updateCanvas();
@@ -1019,6 +1064,15 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		// TODO Auto-generated method stub
 		
 	}
+
+
+	@Override
+	protected void onTextureDataChanged(TextureData textureData) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
 
 
 	

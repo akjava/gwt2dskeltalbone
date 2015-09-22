@@ -32,6 +32,7 @@ import com.akjava.gwt.skeltalboneanimation.client.DrawingDataControler;
 import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingData;
 import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingDataControler;
 import com.akjava.gwt.skeltalboneanimation.client.MainManager;
+import com.akjava.gwt.skeltalboneanimation.client.TextureData;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationFrame;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneControlRange;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BonePositionControler;
@@ -597,7 +598,7 @@ settings.setBone(newRoot);
 	}
 
 	@Override
-	protected void onBackgroundChange(ImageDrawingData bg) {
+	protected void onBackgroundChanged(ImageDrawingData bg) {
 		background.setBackgroundData(bg);
 		//not select
 		updateCanvas();
@@ -1001,4 +1002,13 @@ settings.setBone(newRoot);
 		
 		return panel;
 	}
+
+
+	@Override
+	protected void onTextureDataChanged(TextureData textureData) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
 }

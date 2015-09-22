@@ -69,4 +69,36 @@ public void removeBoneChangeListener(BoneChangeListener listener){
 			listener.backgroundChanged(backgroundData);
 		}
 	}
+	
+	
+	private TextureData textureData;
+
+
+	public TextureData getTextureData() {
+		return textureData;
+	}
+
+	public void setTextureData(TextureData textureData) {
+		this.textureData = textureData;
+		modifyTextureData();
+	}
+
+	public void modifyTextureData(){
+		for(TextureDataChangeListener listener:textureDataChangeListeners){
+			listener.textureDataChanged(textureData);
+		}
+	}
+
+	private List<TextureDataChangeListener> textureDataChangeListeners=Lists.newArrayList();
+	public void addTextureDataChangeListener(TextureDataChangeListener listener){
+		textureDataChangeListeners.add(listener);
+	}
+
+	public void removeTextureDataChangeListener(TextureDataChangeListener listener){
+		textureDataChangeListeners.remove(listener);
+	}
+
+		public static interface TextureDataChangeListener{
+			public void textureDataChanged(TextureData textureData);
+		}
 }

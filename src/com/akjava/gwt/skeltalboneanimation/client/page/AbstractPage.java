@@ -2,12 +2,15 @@ package com.akjava.gwt.skeltalboneanimation.client.page;
 
 import com.akjava.gwt.lib.client.CanvasUtils;
 import com.akjava.gwt.lib.client.GWTHTMLUtils;
+import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.lib.client.experimental.CanvasDragMoveControler;
 import com.akjava.gwt.lib.client.experimental.CanvasMoveListener;
 import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingData;
 import com.akjava.gwt.skeltalboneanimation.client.MainManager;
+import com.akjava.gwt.skeltalboneanimation.client.TextureData;
 import com.akjava.gwt.skeltalboneanimation.client.UploadedFileManager.BackgroundChangeListener;
 import com.akjava.gwt.skeltalboneanimation.client.UploadedFileManager.BoneChangeListener;
+import com.akjava.gwt.skeltalboneanimation.client.UploadedFileManager.TextureDataChangeListener;
 import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.dom.client.Style.Unit;
@@ -25,8 +28,18 @@ protected MainManager manager;
 		
 		initialize();
 		
-		this.addWest(createWestPanel(),300);
-		this.add(createCenterPanel());
+		Widget westWidget=createWestPanel();
+		if(westWidget!=null){
+			this.addWest(westWidget,300);
+		}else{
+			LogUtils.log("AbstractPage:west-widget is null");
+		}
+		Widget centerWidget=createCenterPanel();
+		if(centerWidget!=null){
+		this.add(centerWidget);
+		}else{
+			LogUtils.log("AbstractPage:center-widget is null");
+		}
 		
 		manager.getUploadedFileManager().addBackgroundChangeListener(new BackgroundChangeListener() {
 			
@@ -34,7 +47,7 @@ protected MainManager manager;
 			public void backgroundChanged(ImageDrawingData backgroundDat) {
 				
 				if(manager.isSelected(AbstractPage.this)){
-					onBackgroundChange(backgroundDat);
+					onBackgroundChanged(backgroundDat);
 				}else{
 					needBackgroundUpdate=true;
 				}
@@ -54,8 +67,24 @@ protected MainManager manager;
 				}
 			}
 		});
+		
+		manager.getUploadedFileManager().addTextureDataChangeListener(new TextureDataChangeListener() {
+			
+			
+
+			@Override
+			public void textureDataChanged(TextureData textureData) {
+				if(manager.isSelected(AbstractPage.this)){
+					onTextureDataChanged(textureData);
+				}else{
+					needTextureUpdate=true;
+				}
+			}
+		});
 	}
 	
+	
+
 	protected CanvasDragMoveControler canvasControler;
 	public void initializeCanvas(){
 		canvas = CanvasUtils.createCanvas(800, 800);
@@ -101,7 +130,9 @@ protected MainManager manager;
 
 	protected abstract void onBoneChanged(TwoDimensionBone bone);
 	
-	protected abstract void onBackgroundChange(ImageDrawingData background);
+	protected abstract void onBackgroundChanged(ImageDrawingData background);
+	
+	protected abstract void onTextureDataChanged(TextureData textureData) ;
 	
 	protected abstract void initialize();
 	protected abstract Widget createCenterPanel() ;
@@ -111,6 +142,7 @@ protected MainManager manager;
 
 	protected boolean needBoneUpdate;
 	protected boolean needBackgroundUpdate;
+	protected boolean needTextureUpdate;
 	protected Canvas canvas;
 	@Override
 	public void onSelection() {
@@ -119,7 +151,11 @@ protected MainManager manager;
 			needBoneUpdate=false;
 		}
 		if(needBackgroundUpdate){
-			onBackgroundChange(manager.getUploadedFileManager().getBackgroundData());
+			onBackgroundChanged(manager.getUploadedFileManager().getBackgroundData());
+		}
+		
+		if(needTextureUpdate){
+			onTextureDataChanged(manager.getUploadedFileManager().getTextureData());
 		}
 		
 		updateDatas();

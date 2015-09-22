@@ -513,17 +513,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 	protected void updateCanvas() {
 		CanvasUtils.clear(canvas);
 		
-		//draw background
-		if(background.hasBackgroundData() && background.isVisible()){
-		
-			background.getBackgroundData().draw(canvas);
-			String border="#000";
-			if(background.isSelected()){
-			//	LogUtils.log("selected");
-				border="#0f0";
-			}
-			background.getBackgroundData().drawBorder(canvas,border);
-		}
+		background.draw(canvas);
 		
 		
 		ClipData selection=getSelection();
@@ -660,6 +650,8 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		}
 		activeDataControler=active;
 		updateCanvas();
+		
+		
 		//LogUtils.log(activeDataControler!=null?activeDataControler.getName():"null-active");
 		//updateCanvas();
 		
@@ -1001,6 +993,9 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 				String dataUrl=extractCanvas.toDataUrl();
 				Anchor a=HTML5Download.get().generateBase64DownloadLink(dataUrl, "image/png", "bone-bg.png", "background", true);
 				downloadLinks.add(a);
+				
+				ImageDrawingData data=background.getBackgroundData();
+				manager.getFileManagerBar().setBackground("clip-editor", data);
 			}
 		});
 		panel.add(extractImageBt);

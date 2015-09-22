@@ -1,6 +1,6 @@
 package com.akjava.gwt.skeltalboneanimation.client;
 
-import com.akjava.gwt.lib.client.LogUtils;
+import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.dom.client.ImageElement;
 
 public class Background implements ImageDrawingDataOwner{
@@ -64,5 +64,19 @@ public class Background implements ImageDrawingDataOwner{
 			return null;
 		}
 		
+	}
+	
+	//TODO support modify color or borders
+	public void draw(Canvas canvas){
+		if(this.hasBackgroundData() && this.isVisible()){
+			
+			this.getBackgroundData().draw(canvas);
+			String border="#000";
+			if(this.isSelected() && isEditable()){
+			//	LogUtils.log("selected");
+				border="#0f0";
+			}
+			this.getBackgroundData().drawBorder(canvas,border);
+		}
 	}
 }

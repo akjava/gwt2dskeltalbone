@@ -25,9 +25,12 @@ import com.akjava.gwt.lib.client.ImageElementUtils;
 import com.akjava.gwt.lib.client.experimental.CanvasDragMoveControler;
 import com.akjava.gwt.lib.client.experimental.CanvasMoveListener;
 import com.akjava.gwt.lib.client.game.PointD;
+import com.akjava.gwt.skeltalboneanimation.client.Background;
 import com.akjava.gwt.skeltalboneanimation.client.BoneTextCell;
 import com.akjava.gwt.skeltalboneanimation.client.BoneUtils;
+import com.akjava.gwt.skeltalboneanimation.client.DrawingDataControler;
 import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingData;
+import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingDataControler;
 import com.akjava.gwt.skeltalboneanimation.client.MainManager;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationFrame;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneControlRange;
@@ -503,12 +506,27 @@ settings.setBone(newRoot);
 
 	@Override
 	protected void onCanvasTouchEnd(int sx, int sy) {
-		// TODO Auto-generated method stub
-		
+		if(activeDataControler!=null){
+			activeDataControler.onTouchEnd(sx, sy);
+		}
 	}
 
 	@Override
 	protected void onCanvasTouchStart(int sx, int sy) {
+		
+		DrawingDataControler active=null;
+		for(DrawingDataControler data:drawingDataControlers){
+			if(data.onTouchStart(sx, sy)){
+				active=data;
+				break;
+			}
+		}
+		activeDataControler=active;
+		updateCanvas();
+		
+		
+		
+		
 		TwoDimensionBone newSelection=null;
 		if(selectionModel.getSelectedObject()!=null){
 			if(bonePositionControler.isCollisionOnInitialData(selectionModel.getSelectedObject(),sx,sy)){
@@ -528,26 +546,20 @@ settings.setBone(newRoot);
 			backgroundSelected=false;
 			boneSelectedOnCanvas=newSelection;
 			selectionModel.setSelected(newSelection, true);//select by click
-		}else{
-			
-			
-			if(backgroundEditCheck.getValue() && backgroundData!=null && backgroundData.collision(sx, sy)){
-				backgroundSelected=true;
-				
-			}else{
-				backgroundSelected=false;
-			}
-			
-			
-			boneSelectedOnCanvas=null;
-			updateCanvas();
 		}
 	}
+	
 	private boolean backgroundSelected;
 	private TwoDimensionBone boneSelectedOnCanvas;
 	
 	@Override
 	protected void onCanvasDragged(int vectorX, int vectorY) {
+		if(activeDataControler!=null){
+			activeDataControler.onTouchDragged(vectorX, vectorY, canvasControler.isRightMouse());
+			updateCanvas();
+		}
+		
+		
 		if(boneSelectedOnCanvas!=null){
 			TwoDimensionBone bone=boneSelectedOnCanvas;
 			
@@ -568,40 +580,15 @@ settings.setBone(newRoot);
 			
 			driver.edit(bone);//data is update on editor,but not flash when same
 			updateBoneDatas();
-		}else{//background
-			if(backgroundEditCheck.getValue() &&  backgroundSelected && backgroundData!=null){
-				
-				
-				if(canvasControler.isRightMouse()){
-					backgroundData.incrementAngle(vectorX);
-				}else{
-					backgroundData.incrementX(vectorX);
-					backgroundData.incrementY(vectorY);
-					
-					
-					
-				}
-				backgroundData.updateBounds();
-				
-				updateCanvas();
-			}
 		}
 	}
 
 	@Override
 	protected void onCanvasWheeled(int delta, boolean shiftDown) {
-		if(backgroundEditCheck.getValue() && backgroundSelected && backgroundData!=null){
-			int zoom=(int) (100*backgroundData.getScaleX());
-			zoom+=delta/3*5;
-			if(zoom<5){
-				zoom=5;
-			}
-			
-			backgroundData.setScaleX((double)zoom/100);
-			backgroundData.setScaleY((double)zoom/100);
-			backgroundData.updateBounds();
+		if(activeDataControler!=null){
+			activeDataControler.onWhelled(delta, shiftDown);
+			updateCanvas();
 		}
-		updateCanvas();
 	}
 
 	@Override
@@ -610,9 +597,10 @@ settings.setBone(newRoot);
 	}
 
 	@Override
-	protected void onBackgroundChange(ImageDrawingData background) {
-		// TODO Auto-generated method stub
-		
+	protected void onBackgroundChange(ImageDrawingData bg) {
+		background.setBackgroundData(bg);
+		//not select
+		updateCanvas();
 	}
 	
 	private Widget createBoneSystemButtons(){
@@ -739,7 +727,8 @@ settings.setBone(newRoot);
 	    panel.add(upper);
 	   
 	    
-	    panel.add(createBackgroundButtons());	
+	    panel.add(createBackgroundButtons());
+	    panel.add(createBackgroundButtons1());
 	    panel.add(createCopyColumnButtons());
 	
 	
@@ -847,17 +836,10 @@ settings.setBone(newRoot);
 		checkNotNull(canvas,"somehow canvas is't initialized");
 		
 		CanvasUtils.clear(canvas);
-		if(backgroundData!=null){
-			
-			
-			backgroundData.draw(canvas);
-			String border="#000";
-			if(backgroundSelected){
-				border="#0f0";
-			}
-			backgroundData.drawBorder(canvas,border);
-			
-		}
+		
+		background.draw(canvas);
+		
+		
 		if(transparentEditCheck.getValue()){
 			canvas.getContext2d().setGlobalAlpha(0.3);
 		}else{
@@ -870,42 +852,13 @@ settings.setBone(newRoot);
 
 	//TwoDimensionBone boneSelection;
 	
-	private ImageDrawingData backgroundData;
+	
 	private CheckBox transparentEditCheck;
-	private Widget createBackgroundButtons() {
+	private Widget createBackgroundButtons1() {
 		HorizontalPanel panel=new HorizontalPanel();
 		panel.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
-		panel.add(new Label("Background:"));
-		FileUploadForm upload=FileUtils.createSingleFileUploadForm(new DataURLListener() {
-			
-			@Override
-			public void uploaded(File file, String text) {
-				ImageElement element=ImageElementUtils.create(text);
-				backgroundData=new ImageDrawingData("",element);
-				int canvasW=canvas.getCoordinateSpaceWidth();
-				int canvasH=canvas.getCoordinateSpaceHeight();
-				int imageW=element.getWidth();
-				int imageH=element.getHeight();
-				
-				backgroundData.setX(bonePositionControler.getSettings().getOffsetX());
-				backgroundData.setY(bonePositionControler.getSettings().getOffsetY());
-				
-				//backgroundEditCheck.setValue(false);
-				updateCanvas();
-			}
-		});
-		panel.add(upload);
-		Button reset=new Button("Clear",new ClickHandler() {
-			
-			@Override
-			public void onClick(ClickEvent event) {
-				backgroundData=null;
-				updateCanvas();
-			}
-		});
-		panel.add(reset);
-		backgroundEditCheck = new CheckBox("Edit");
-		panel.add(backgroundEditCheck);
+	
+		
 		
 		transparentEditCheck = new CheckBox("Transparent-Bone");
 		panel.add(transparentEditCheck);
@@ -919,19 +872,7 @@ settings.setBone(newRoot);
 		
 		final HorizontalPanel downloadLinks=new HorizontalPanel();
 		
-		Button extractImageBt=new Button("Extract BG",new ClickHandler() {
-			
-			@Override
-			public void onClick(ClickEvent event) {
-				
-				Canvas extractCanvas=CanvasUtils.copyToSizeOnly(canvas,null);
-				backgroundData.draw(extractCanvas);
-				String dataUrl=extractCanvas.toDataUrl();
-				Anchor a=HTML5Download.get().generateBase64DownloadLink(dataUrl, "image/png", "bone-bg.png", "background", true);
-				downloadLinks.add(a);
-			}
-		});
-		panel.add(extractImageBt);
+	
 		
 		Button extractBoneBt=new Button("Extract Bone",new ClickHandler() {
 			
@@ -947,6 +888,9 @@ settings.setBone(newRoot);
 				String dataUrl=extractCanvas.toDataUrl();
 				Anchor a=HTML5Download.get().generateBase64DownloadLink(dataUrl, "image/png", "bone-bone.png", "bone", true);
 				downloadLinks.add(a);
+				
+				ImageDrawingData data=background.getBackgroundData();
+				manager.getFileManagerBar().setBackground("bone-editor", data);
 			}
 		});
 		panel.add(extractBoneBt);
@@ -971,14 +915,16 @@ settings.setBone(newRoot);
 	private CellTree cellTree;
 	private CustomTreeModel treeModel;
 	private HorizontalPanel downloadLinks;
-	private CheckBox backgroundEditCheck;
+	
 
 	@Override
 	public String getSelectionName() {
 		return selectionModel.getSelectedObject()!=null?selectionModel.getSelectedObject().getName():null;
 	}
 
-
+	List<DrawingDataControler> drawingDataControlers;
+	private DrawingDataControler activeDataControler;
+	private Background background;
 	@Override
 	protected void initialize() {
 		driver = GWT.create(Driver.class);
@@ -991,7 +937,68 @@ settings.setBone(newRoot);
 		
 		//allbones = BoneUtils.getAllBone(rootBone);
 		
+		
+		
+		drawingDataControlers=Lists.newArrayList();
+		
+		background = new Background();
+		background.setEditable(false);
+		
+		ImageDrawingDataControler controler=new ImageDrawingDataControler(background);
+		drawingDataControlers.add(controler);
+		
+		
 		createCanvas();
 		createBoneControls(rootBone,canvas);
+	}
+	
+	private Widget createBackgroundButtons() {
+		HorizontalPanel panel=new HorizontalPanel();
+		panel.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
+		panel.add(new Label("Background:"));
+		
+		CheckBox backgroundEditCheck = new CheckBox("Editable");
+		panel.add(backgroundEditCheck);
+		backgroundEditCheck.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
+
+			@Override
+			public void onValueChange(ValueChangeEvent<Boolean> event) {
+				background.setEditable(event.getValue());
+				updateCanvas();
+			}
+		});
+		
+		CheckBox VisibleCheck = new CheckBox("Visible");
+		panel.add(VisibleCheck);
+		VisibleCheck.setValue(true);
+		VisibleCheck.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
+
+			@Override
+			public void onValueChange(ValueChangeEvent<Boolean> event) {
+				background.setVisible(event.getValue());
+				updateCanvas();
+			}
+		});
+		
+		final HorizontalPanel downloadLinks=new HorizontalPanel();
+		
+		Button extractImageBt=new Button("Extract BG",new ClickHandler() {
+			
+			@Override
+			public void onClick(ClickEvent event) {
+				
+				Canvas extractCanvas=CanvasUtils.copyToSizeOnly(canvas,null);
+				background.getBackgroundData().draw(extractCanvas);
+				String dataUrl=extractCanvas.toDataUrl();
+				Anchor a=HTML5Download.get().generateBase64DownloadLink(dataUrl, "image/png", "bone-bg.png", "background", true);
+				downloadLinks.add(a);
+			}
+		});
+		panel.add(extractImageBt);
+		
+		
+		panel.add(downloadLinks);
+		
+		return panel;
 	}
 }

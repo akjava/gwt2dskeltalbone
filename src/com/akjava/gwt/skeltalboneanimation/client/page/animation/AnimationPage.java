@@ -2,23 +2,31 @@ package com.akjava.gwt.skeltalboneanimation.client.page.animation;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import com.akjava.gwt.html5.client.download.HTML5Download;
+import com.akjava.gwt.html5.client.file.Blob;
 import com.akjava.gwt.html5.client.file.File;
+import com.akjava.gwt.html5.client.file.FileHandler;
+import com.akjava.gwt.html5.client.file.FileReader;
 import com.akjava.gwt.html5.client.file.FileUploadForm;
 import com.akjava.gwt.html5.client.file.FileUtils;
-import com.akjava.gwt.html5.client.file.FileUtils.DataURLListener;
+import com.akjava.gwt.html5.client.file.FileUtils.DataArrayListener;
+import com.akjava.gwt.html5.client.file.Uint8Array;
+import com.akjava.gwt.jszip.client.JSFile;
 import com.akjava.gwt.jszip.client.JSZip;
+import com.akjava.gwt.jszip.client.JSZipUtils;
 import com.akjava.gwt.lib.client.CanvasUtils;
 import com.akjava.gwt.lib.client.GWTHTMLUtils;
 import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.lib.client.experimental.CanvasDragMoveControler;
 import com.akjava.gwt.lib.client.experimental.CanvasMoveListener;
+import com.akjava.gwt.lib.client.experimental.ExecuteButton;
 import com.akjava.gwt.lib.client.experimental.RectCanvasUtils;
 import com.akjava.gwt.skeltalboneanimation.client.BoneUtils;
-import com.akjava.gwt.skeltalboneanimation.client.FileManagerBar;
 import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingData;
 import com.akjava.gwt.skeltalboneanimation.client.MainManager;
+import com.akjava.gwt.skeltalboneanimation.client.SkeltalFileFormat;
 import com.akjava.gwt.skeltalboneanimation.client.TextureData;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationControlRange;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationFrame;
@@ -32,13 +40,18 @@ import com.akjava.gwt.skeltalboneanimation.client.bones.CanvasBoneSettings;
 import com.akjava.gwt.skeltalboneanimation.client.bones.SkeletalAnimation;
 import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
 import com.akjava.gwt.skeltalboneanimation.client.converters.BoneAndAnimationConverter;
+import com.akjava.gwt.skeltalboneanimation.client.converters.BoneConverter;
+import com.akjava.gwt.skeltalboneanimation.client.converters.ClipImageDataConverter;
 import com.akjava.gwt.skeltalboneanimation.client.converters.TextureDataConverter;
 import com.akjava.gwt.skeltalboneanimation.client.page.AbstractPage;
 import com.akjava.gwt.skeltalboneanimation.client.page.CircleLineBonePainter;
 import com.akjava.gwt.skeltalboneanimation.client.page.HasSelectionName;
+import com.akjava.gwt.skeltalboneanimation.client.page.clippage.ClipImageData;
 import com.akjava.lib.common.graphics.Rect;
 import com.akjava.lib.common.utils.CSVUtils;
+import com.akjava.lib.common.utils.FileNames;
 import com.google.common.base.Joiner;
+import com.google.common.base.Stopwatch;
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.dom.client.CanvasElement;
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -114,7 +127,7 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName{
 			@Override
 			public void onClick(ClickEvent event) {
 				if(textureData==null){
-					Window.alert("texture.zip not loaded yet");
+					Window.alert("texture-zip not loaded yet");
 					return;
 				}
 				
@@ -122,7 +135,7 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName{
 				if(bone==null){
 					Window.alert("this zip not contain bone.txt data");
 				}else{
-					manager.getFileManagerBar().setBone("texture-data", bone);
+					manager.getFileManagerBar().setBoneAndAnimation("texture-data", new BoneAndAnimationData(bone));
 					//selectOnLoadBone(bone);
 					//setNewRootBone(bone);
 				}
@@ -326,7 +339,11 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName{
 		setNewRootBone(getRootBone());
 	}
 
-	protected void doLoadData(String lines) {
+	/**
+	 * @deprecated
+	 * @param lines
+	 */
+	protected void doLoadAnimationAndBoneData(String lines) {
 		BoneAndAnimationData data=new BoneAndAnimationConverter().reverse().convert(CSVUtils.splitLinesWithGuava(lines));
 		
 		List<TwoDimensionBone> bones=BoneUtils.getAllBone(data.getBone());
@@ -339,17 +356,26 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName{
 	}
 	protected void doSaveData() {
 		
+		
+		downloadLinks.add(HTML5Download.get().generateTextDownloadLink(createAnimationSaveData(), "2dboneanimation.txt", "download",true));
+		
+		
+	
+	}
+	private String createAnimationSaveData(){
 		BoneAndAnimationData data=new BoneAndAnimationData();
 		data.setBone(getRootBone());
 		data.setAnimation(animationControler.getAnimation());
 		
 		
 		List<String> lines=new BoneAndAnimationConverter().convert(data);
-		downloadLinks.add(HTML5Download.get().generateTextDownloadLink(Joiner.on("\r\n").join(lines), "2dboneanimation.txt", "download",true));
-		
-		
-	
+		return Joiner.on("\r\n").join(lines);
 	}
+	
+	private String createBoneSaveData(){
+		return Joiner.on("\r\n").join(new BoneConverter().convert(getRootBone()));
+	}
+	
 	protected void doAddAfterData() {
 		AnimationFrame frame=animationControler.getSelection();
 		AnimationFrame copy=frame.copy();
@@ -829,8 +855,15 @@ public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvas
 		boneControlerRange.getInputRange().setValue(value, true);
 	}
 	@Override
-	protected void onBoneChanged(TwoDimensionBone bone) {
-		selectOnLoadBone(bone);
+	protected void onBoneAndAnimationChanged(BoneAndAnimationData data) {
+		if(data.getAnimation()==null){
+			//bone only data usually modify bone by other page
+			selectOnLoadBone(data.getBone());
+		}else{
+			//usually by self(load or save)
+			setNewBoneAndAnimation(data.getBone(), data.getAnimation());
+		}
+		
 	}
 	@Override
 	protected void onBackgroundChanged(ImageDrawingData background) {
@@ -868,16 +901,59 @@ public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvas
 	    
 	    //load & save
 	    upper.add(new Label("Animation-Load:"));
+	    /*
 	    FileUploadForm load=FileUtils.createSingleTextFileUploadForm(new DataURLListener() {
 			
 			@Override
 			public void uploaded(File file, String text) {
-				doLoadData(text);
+				doLoadAnimationAndBoneData(text);
 			}
 		}, true);
 	    load.setAccept(FileUploadForm.ACCEPT_TXT);
+	    */
 	    
-	    upper.add(load);
+	    
+	    
+	    FileUploadForm load2=FileUtils.createSingleFileUploadForm(new DataArrayListener() {
+			@Override
+			public void uploaded(final File file, Uint8Array array) {
+				String extension=FileNames.getExtension(file.getFileName()).toLowerCase();
+				if(extension.equals("zip")){
+					JSZip zip=JSZip.loadFromArray(array);
+					JSFile jsFile=zip.getFile(SkeltalFileFormat.ANIMATION_FILE);
+					if(jsFile!=null){
+						String text=jsFile.asText();
+						setBoneAndAnimationText(file.getFileName(),text);
+					}else{
+						Window.alert("not contain bone.txt");
+					}
+					//parse datas.
+					TextureData textureData=new TextureDataConverter().convert(zip);
+					manager.getFileManagerBar().setTexture(file.getFileName(), textureData);
+					
+					ClipImageData clipImageData=new ClipImageDataConverter().convert(zip);
+					manager.getFileManagerBar().setClipImageData(file.getFileName(), clipImageData);
+					
+				}else{
+					Blob blob=Blob.createBlob(array, "plain/text");
+					final FileReader reader=FileReader.createFileReader();
+					reader.setOnLoad(new FileHandler() {
+						
+						@Override
+						public void onLoad() {
+							String text=reader.getResultAsString();
+							setBoneAndAnimationText(file.getFileName(),text);
+						}
+					});
+					reader.readAsText((File)blob.cast(), "uff8");
+				}
+			}
+		});
+	    upper.add(load2);
+	    load2.setAccept(FileUploadForm.ACCEPT_TXT,FileUploadForm.ACCEPT_ZIP);
+	    
+	    
+	   
 	    upper.add(new Button("Save animation",new ClickHandler() {
 			
 			@Override
@@ -885,6 +961,7 @@ public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvas
 				doSaveData();
 			}
 		}));
+	    /*
 	    upper.add(new Button("Save All",new ClickHandler() {
 			
 			@Override
@@ -892,6 +969,25 @@ public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvas
 				doSaveAll();
 			}
 		}));
+		*/
+	    
+	    Button doSaveallButton=new ExecuteButton("Save All"){
+			
+			 @Override
+				public void beforeExecute() {
+				 downloadLinks.clear();
+			 }
+			 
+			@Override
+			public void executeOnClick() {
+				doSaveAll();
+			}
+			 
+		 };
+	    upper.add(doSaveallButton);
+	    
+	    
+	    
 	    panel.add(upper);
 	    downloadLinks = new HorizontalPanel();
 	    downloadLinks.setWidth("80px");
@@ -947,9 +1043,39 @@ public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvas
 	
 	return panel;
 	}
+	
+	private void setBoneAndAnimationText(String name,String text){
+		BoneAndAnimationData data=new BoneAndAnimationConverter().reverse().convert(CSVUtils.splitLinesWithGuava(text));
+		manager.getFileManagerBar().setBoneAndAnimation(name, data);
+	}
+	
 	protected void doSaveAll() {
+		TextureData textureData=manager.getUploadedFileManager().getTextureData();
+		ClipImageData clipData=manager.getUploadedFileManager().getClipImageData();
+		
+		if(textureData==null ){
+			Window.alert("texture data is not exist.cant save all\njust do try save animation!");
+			return;
+		}
 		//save bone & animation & texture & clip
-		//TODO make way to share clip-data
+		Stopwatch watch=Stopwatch.createStarted();
+		
+		TextureDataConverter converter=new TextureDataConverter();
+		JSZip jszip=converter.reverse().convert(textureData);
+		
+		if(clipData!=null){
+		//addition clip-data
+			new ClipImageDataConverter().convertToJsZip(jszip, clipData);
+		}
+		//add animation. bone is created by textureData
+		
+		String animationText=createAnimationSaveData();
+		jszip.file(SkeltalFileFormat.ANIMATION_FILE, animationText);
+		
+		downloadLinks.add(JSZipUtils.createDownloadAnchor(jszip, "2dbone-all-data.zip", "download", true));
+	
+		double time=watch.elapsed(TimeUnit.MILLISECONDS);
+		LogUtils.log("clip-zip generation-millisecond"+time);
 		
 	}
 	@Override
@@ -970,10 +1096,6 @@ public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvas
 		
 		updateCanvas();
 	}
-	@Override
-	protected void onAnimationChanged(SkeletalAnimation skeletalAnimation) {
-		// TODO Auto-generated method stub
-		
-	}
+
 
 }

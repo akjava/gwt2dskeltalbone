@@ -9,10 +9,9 @@ import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingData;
 import com.akjava.gwt.skeltalboneanimation.client.MainManager;
 import com.akjava.gwt.skeltalboneanimation.client.TextureData;
 import com.akjava.gwt.skeltalboneanimation.client.UploadedFileManager.BackgroundChangeListener;
-import com.akjava.gwt.skeltalboneanimation.client.UploadedFileManager.BoneChangeListener;
-import com.akjava.gwt.skeltalboneanimation.client.UploadedFileManager.SkeletalAnimationChangeListener;
+import com.akjava.gwt.skeltalboneanimation.client.UploadedFileManager.BoneAndAnimationChangeListener;
 import com.akjava.gwt.skeltalboneanimation.client.UploadedFileManager.TextureDataChangeListener;
-import com.akjava.gwt.skeltalboneanimation.client.bones.SkeletalAnimation;
+import com.akjava.gwt.skeltalboneanimation.client.bones.BoneAndAnimationData;
 import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.dom.client.Style.Unit;
@@ -58,14 +57,14 @@ protected MainManager manager;
 			}
 		});
 		
-		manager.getUploadedFileManager().addBoneChangeListener(new BoneChangeListener() {
+		manager.getUploadedFileManager().addBoneAndAnimationChangeListener(new BoneAndAnimationChangeListener() {
 			
 			@Override
-			public void boneChanged(TwoDimensionBone bone) {
+			public void boneAndAnimationChanged(BoneAndAnimationData bone) {
 				if(manager.isSelected(AbstractPage.this)){
-					onBoneChanged(bone);
+					onBoneAndAnimationChanged(bone);
 				}else{
-					needBoneUpdate=true;
+					needBoneAndAnimationUpdate=true;
 				}
 			}
 		});
@@ -84,6 +83,7 @@ protected MainManager manager;
 			}
 		});
 		
+		/*
 		manager.getUploadedFileManager().addSkeletalAnimationChangeListener(new SkeletalAnimationChangeListener() {
 			
 			
@@ -99,11 +99,12 @@ protected MainManager manager;
 				}
 			}
 		});
+		*/
 	}
 	
-	private boolean needAnimationUpdate;
+	//private boolean needAnimationUpdate;
 
-	abstract protected void onAnimationChanged(SkeletalAnimation skeletalAnimation) ;
+	//abstract protected void onAnimationChanged(SkeletalAnimation skeletalAnimation) ;
 
 
 
@@ -150,7 +151,7 @@ protected MainManager manager;
 	protected abstract void onCanvasDragged(int vectorX, int vectorY);
 	protected abstract void onCanvasWheeled(int delta,boolean shiftDown);
 
-	protected abstract void onBoneChanged(TwoDimensionBone bone);
+	protected abstract void onBoneAndAnimationChanged(BoneAndAnimationData data);
 	
 	protected abstract void onBackgroundChanged(ImageDrawingData background);
 	
@@ -162,15 +163,15 @@ protected MainManager manager;
 	protected abstract Widget createWestPanel();
 
 
-	protected boolean needBoneUpdate;
+	protected boolean needBoneAndAnimationUpdate;
 	protected boolean needBackgroundUpdate;
 	protected boolean needTextureUpdate;
 	protected Canvas canvas;
 	@Override
 	public void onSelection() {
-		if(needBoneUpdate){
-			onBoneChanged(manager.getUploadedFileManager().getBone());
-			needBoneUpdate=false;
+		if(needBoneAndAnimationUpdate){
+			onBoneAndAnimationChanged(manager.getUploadedFileManager().getBoneAndAnimation());
+			needBoneAndAnimationUpdate=false;
 		}
 		if(needBackgroundUpdate){
 			onBackgroundChanged(manager.getUploadedFileManager().getBackgroundData());
@@ -180,9 +181,11 @@ protected MainManager manager;
 			onTextureDataChanged(manager.getUploadedFileManager().getTextureData());
 		}
 		
+		/*
 		if(needAnimationUpdate){
 			onAnimationChanged(manager.getUploadedFileManager().getSkeletalAnimation());
 		}
+		*/
 		
 		updateDatas();
 		updateCanvas();

@@ -2,44 +2,41 @@ package com.akjava.gwt.skeltalboneanimation.client;
 
 import java.util.List;
 
-import com.akjava.gwt.skeltalboneanimation.client.bones.SkeletalAnimation;
-import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
+import com.akjava.gwt.skeltalboneanimation.client.bones.BoneAndAnimationData;
 import com.akjava.gwt.skeltalboneanimation.client.page.clippage.ClipImageData;
 import com.google.common.collect.Lists;
 
 public class UploadedFileManager {
 
-private TwoDimensionBone bone;
+private BoneAndAnimationData boneAndAnimation;
 
 
-public TwoDimensionBone getBone() {
-	return bone;
+public BoneAndAnimationData getBoneAndAnimation() {
+	return boneAndAnimation;
 }
 
-public void setBone(TwoDimensionBone bone) {
-	this.bone = bone;
-	for(BoneChangeListener listener:boneChangeListeners){
-		listener.boneChanged(bone);
+public void setBoneAndAnimation(BoneAndAnimationData boneAndAnimation) {
+	this.boneAndAnimation = boneAndAnimation;
+	modifyBoneAndAnimation();
+}
+
+public void modifyBoneAndAnimation(){
+	for(BoneAndAnimationChangeListener listener:boneChangeListeners){
+		listener.boneAndAnimationChanged(boneAndAnimation);
 	}
 }
 
-public void modifyBone(){
-	for(BoneChangeListener listener:boneChangeListeners){
-		listener.boneChanged(bone);
-	}
-}
-
-private List<BoneChangeListener> boneChangeListeners=Lists.newArrayList();
-public void addBoneChangeListener(BoneChangeListener listener){
+private List<BoneAndAnimationChangeListener> boneChangeListeners=Lists.newArrayList();
+public void addBoneAndAnimationChangeListener(BoneAndAnimationChangeListener listener){
 	boneChangeListeners.add(listener);
 }
 
-public void removeBoneChangeListener(BoneChangeListener listener){
+public void removeBoneAndAnimationChangeListener(BoneAndAnimationChangeListener listener){
 	boneChangeListeners.remove(listener);
 }
 
-	public static interface BoneChangeListener{
-		public void boneChanged(TwoDimensionBone bone);
+	public static interface BoneAndAnimationChangeListener{
+		public void boneAndAnimationChanged(BoneAndAnimationData bone);
 	}
 	
 	
@@ -136,7 +133,7 @@ public void removeBoneChangeListener(BoneChangeListener listener){
 			}
 			
 			
-			
+			/*
 			private SkeletalAnimation skeletalAnimation;
 
 
@@ -167,4 +164,5 @@ public void removeBoneChangeListener(BoneChangeListener listener){
 				public static interface SkeletalAnimationChangeListener{
 					public void SkeletalAnimationChanged(SkeletalAnimation SkeletalAnimation);
 				}
+				*/
 }

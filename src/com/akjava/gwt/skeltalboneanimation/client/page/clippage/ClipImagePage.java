@@ -25,6 +25,7 @@ import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingData;
 import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingDataControler;
 import com.akjava.gwt.skeltalboneanimation.client.MainManager;
 import com.akjava.gwt.skeltalboneanimation.client.TextureData;
+import com.akjava.gwt.skeltalboneanimation.client.bones.BoneAndAnimationData;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneListBox;
 import com.akjava.gwt.skeltalboneanimation.client.bones.SkeletalAnimation;
 import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
@@ -53,7 +54,6 @@ import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.TextColumn;
-import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Anchor;
 import com.google.gwt.user.client.ui.Button;
@@ -418,13 +418,15 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 			TextureDataConverter converter=new TextureDataConverter();
 			JSZip jszip=converter.reverse().convert(textureData);
 			
+			ClipImageData clipData=generateSaveData();
 			//addition clip-data
-			new ClipImageDataConverter().convertToJsZip(jszip, generateSaveData());
+			new ClipImageDataConverter().convertToJsZip(jszip, clipData);
 			
 			
 			downloadLinks.add(JSZipUtils.createDownloadAnchor(jszip, "2dbone-clips-textures.zip", "download", true));
 		
 			manager.getFileManagerBar().setTexture("clip-editor", textureData);
+			manager.getFileManagerBar().setClipImageData("clip-editor", clipData);
 			double time=watch.elapsed(TimeUnit.MILLISECONDS);
 			LogUtils.log("clip-zip generation-millisecond"+time);
 		}
@@ -507,7 +509,12 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 	
 
 	@Override
-	protected void onBoneChanged(TwoDimensionBone bone) {
+	protected void onBoneAndAnimationChanged(BoneAndAnimationData boneAndAnimationData) {
+		
+		//not support animation-yet
+		
+		TwoDimensionBone bone=boneAndAnimationData.getBone();
+		
 		List<TwoDimensionBone> bones=BoneUtils.getAllBone(bone);
 		
 		for(ClipData data:cellObjects.getDatas()){
@@ -973,7 +980,9 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		}
 		
 		if(data.getBone()!=null){
-			manager.getFileManagerBar().setBone(name,data.getBone());
+			BoneAndAnimationData baa=new BoneAndAnimationData();
+			baa.setBone(data.getBone());
+			manager.getFileManagerBar().setBoneAndAnimation(name,baa);
 		}
 		
 		updateCanvas();
@@ -1074,11 +1083,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 	}
 
 
-	@Override
-	protected void onAnimationChanged(SkeletalAnimation skeletalAnimation) {
-		// TODO Auto-generated method stub
-		
-	}
+	
 
 
 

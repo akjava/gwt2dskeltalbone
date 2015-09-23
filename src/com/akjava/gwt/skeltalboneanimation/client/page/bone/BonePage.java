@@ -34,6 +34,7 @@ import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingDataControler;
 import com.akjava.gwt.skeltalboneanimation.client.MainManager;
 import com.akjava.gwt.skeltalboneanimation.client.TextureData;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationFrame;
+import com.akjava.gwt.skeltalboneanimation.client.bones.BoneAndAnimationData;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneControlRange;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BonePositionControler;
 import com.akjava.gwt.skeltalboneanimation.client.bones.CanvasBoneSettings;
@@ -406,7 +407,8 @@ settings.setBone(newRoot);
 		downloadLinks.clear();
 		downloadLinks.add(HTML5Download.get().generateTextDownloadLink(Joiner.on("\r\n").join(lines), "2dbones.txt", "download",true));
 	
-		manager.getFileManagerBar().setBone("bone-editor", bone);
+		 
+		manager.getFileManagerBar().setBoneAndAnimation("bone-editor", new BoneAndAnimationData(bone));
 	}
 	//for redraw-tree when add/remove children or renamed
 	public void refreshTree(TwoDimensionBone value) {
@@ -593,8 +595,9 @@ settings.setBone(newRoot);
 	}
 
 	@Override
-	protected void onBoneChanged(TwoDimensionBone bone) {
-		setNewRoot(bone);
+	protected void onBoneAndAnimationChanged(BoneAndAnimationData data) {
+		setNewRoot(data.getBone());
+		//TODO support animation?
 	}
 
 	@Override
@@ -1010,12 +1013,6 @@ settings.setBone(newRoot);
 		
 	}
 
-
-	@Override
-	protected void onAnimationChanged(SkeletalAnimation skeletalAnimation) {
-		// TODO Auto-generated method stub
-		
-	}
 
 
 }

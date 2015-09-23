@@ -47,7 +47,7 @@ public class FileManagerBar extends VerticalPanel{
 			public void uploaded(File file, String text) {
 				BoneAndAnimationData data=new BoneAndAnimationConverter().reverse().convert(CSVUtils.splitLinesWithGuava(text));
 				
-				setBoneAndAnimation(file.getFileName(),data.getBone(),data.getAnimation());
+				setBoneAndAnimation(file.getFileName(),data);
 				
 			}
 		}, true);
@@ -138,11 +138,10 @@ public class FileManagerBar extends VerticalPanel{
 		textureNameLabel.setText(fileName);
 		uploadedFileManager.setTextureData(textureData);
 	}
-	public void setBoneAndAnimation(String fileName,TwoDimensionBone bone,SkeletalAnimation animation){
+	public void setBoneAndAnimation(String fileName,BoneAndAnimationData data){
 		boneNameLabel.setText(fileName);
 		
-		uploadedFileManager.setBone(bone);
-		uploadedFileManager.setSkeletalAnimation(animation);
+		uploadedFileManager.setBoneAndAnimation(data);
 	}
 	//TODO clip
 	public void setClipImageData(String fileName,ClipImageData data){
@@ -163,10 +162,12 @@ public class FileManagerBar extends VerticalPanel{
 	}
 	*/
 	
+	/*
 	public void setBone(String fileName,TwoDimensionBone bone){
 		boneNameLabel.setText(fileName);
-		uploadedFileManager.setBone(bone);
+		uploadedFileManager.setBoneAndAnimation(bone);
 	}
+	*/
 	
 	
 	

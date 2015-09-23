@@ -27,4 +27,9 @@ public SkeletalAnimation getAnimation() {
 public void setAnimation(SkeletalAnimation animation) {
 	this.animation = animation;
 }
+
+public boolean isAnimationNullOrEmpty(){
+	return animation==null || animation.getFrames().size()==0;
+}
+
 }

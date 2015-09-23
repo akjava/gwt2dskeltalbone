@@ -863,10 +863,12 @@ public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvas
 	}
 	@Override
 	protected void onBoneAndAnimationChanged(BoneAndAnimationData data) {
-		if(data.getAnimation()==null){
+		
+		if(data.isAnimationNullOrEmpty()){
 			//bone only data usually modify bone by other page
 			selectOnLoadBone(data.getBone());
 		}else{
+			LogUtils.log(data.getAnimation().getFrames().size());//some case return 0?
 			//usually by self(load or save)
 			setNewBoneAndAnimation(data.getBone(), data.getAnimation());
 		}

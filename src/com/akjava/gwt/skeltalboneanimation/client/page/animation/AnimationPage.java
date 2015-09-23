@@ -1084,6 +1084,8 @@ public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvas
 		if(clipData!=null){
 		//addition clip-data
 			new ClipImageDataConverter().convertToJsZip(jszip, clipData);
+		}else{
+			Window.alert("clipImageData not exist!this contain only texture and animation");
 		}
 		//add animation. bone is created by textureData
 		

@@ -878,7 +878,7 @@ settings.setBone(newRoot);
 		
 	
 		
-		Button extractBoneBt=new Button("Extract Bone",new ClickHandler() {
+		Button extractBoneBt=new Button("Paint bone on Image",new ClickHandler() {
 			
 			@Override
 			public void onClick(ClickEvent event) {

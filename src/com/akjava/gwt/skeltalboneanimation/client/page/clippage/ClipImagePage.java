@@ -405,6 +405,9 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		public void executeOnClick() {
 			final TextureData textureData=toTextureData();
 			manager.getFileManagerBar().setTexture("clip-editor", textureData);
+			
+			ClipImageData clipData=generateSaveData();
+			manager.getFileManagerBar().setClipImageData("clip-editor", clipData);
 		}
 		 
 	 };
@@ -809,6 +812,52 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 			boneList.setEnabled(false);
 			
 			
+			HorizontalPanel movePanel=new HorizontalPanel();
+			movePanel.add(new Button("Top",new ClickHandler() {
+				
+				@Override
+				public void onClick(ClickEvent event) {
+					if(value==null){
+						return;
+					}
+					cellObjects.topItem(value);
+					updateCanvas();
+				}
+			}));
+			movePanel.add(new Button("Up",new ClickHandler() {
+				
+				@Override
+				public void onClick(ClickEvent event) {
+					if(value==null){
+						return;
+					}
+					cellObjects.upItem(value);
+					updateCanvas();
+				}
+			}));
+			movePanel.add(new Button("Down",new ClickHandler() {
+				
+				@Override
+				public void onClick(ClickEvent event) {
+					if(value==null){
+						return;
+					}
+					cellObjects.downItem(value);
+					updateCanvas();
+				}
+			}));
+			movePanel.add(new Button("Bottom",new ClickHandler() {
+				
+				@Override
+				public void onClick(ClickEvent event) {
+					if(value==null){
+						return;
+					}
+					cellObjects.bottomItem(value);
+					updateCanvas();
+				}
+			}));
+			add(movePanel);
 		}
 		
 		protected void doInsertPoint() {

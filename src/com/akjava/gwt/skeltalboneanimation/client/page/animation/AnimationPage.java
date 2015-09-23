@@ -900,12 +900,7 @@ public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvas
 	    
 	    
 	    
-	    upper.add(new Button("Clear All",new ClickHandler() {
-			@Override
-			public void onClick(ClickEvent event) {
-				doCreateNewData();
-			}
-		}));
+	   
 
 	    upper.add(new Button("Insert Before",new ClickHandler() {
 			@Override
@@ -927,6 +922,12 @@ public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvas
 			}
 		}));
 	    
+	    upper.add(new Button("Clear All",new ClickHandler() {
+			@Override
+			public void onClick(ClickEvent event) {
+				doCreateNewData();
+			}
+		}));
 	    
 	    
 	   
@@ -968,6 +969,11 @@ public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvas
 		convertedDatas=null;
 		
 		updateCanvas();
+	}
+	@Override
+	protected void onAnimationChanged(SkeletalAnimation skeletalAnimation) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

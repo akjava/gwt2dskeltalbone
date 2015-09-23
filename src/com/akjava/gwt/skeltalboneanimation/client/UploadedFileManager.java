@@ -2,7 +2,9 @@ package com.akjava.gwt.skeltalboneanimation.client;
 
 import java.util.List;
 
+import com.akjava.gwt.skeltalboneanimation.client.bones.SkeletalAnimation;
 import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
+import com.akjava.gwt.skeltalboneanimation.client.page.clippage.ClipImageData;
 import com.google.common.collect.Lists;
 
 public class UploadedFileManager {
@@ -101,4 +103,68 @@ public void removeBoneChangeListener(BoneChangeListener listener){
 		public static interface TextureDataChangeListener{
 			public void textureDataChanged(TextureData textureData);
 		}
+		
+		private ClipImageData clipImageData;
+
+
+		public ClipImageData getClipImageData() {
+			return clipImageData;
+		}
+
+		public void setClipImageData(ClipImageData ClipImageData) {
+			this.clipImageData = ClipImageData;
+			modifyClipImageData();
+		}
+
+		public void modifyClipImageData(){
+			for(ClipImageDataChangeListener listener:ClipImageDataChangeListeners){
+				listener.ClipImageDataChanged(clipImageData);
+			}
+		}
+
+		private List<ClipImageDataChangeListener> ClipImageDataChangeListeners=Lists.newArrayList();
+		public void addClipImageDataChangeListener(ClipImageDataChangeListener listener){
+			ClipImageDataChangeListeners.add(listener);
+		}
+
+		public void removeClipImageDataChangeListener(ClipImageDataChangeListener listener){
+			ClipImageDataChangeListeners.remove(listener);
+		}
+
+			public static interface ClipImageDataChangeListener{
+				public void ClipImageDataChanged(ClipImageData ClipImageData);
+			}
+			
+			
+			
+			private SkeletalAnimation skeletalAnimation;
+
+
+			public SkeletalAnimation getSkeletalAnimation() {
+				return skeletalAnimation;
+			}
+
+			public void setSkeletalAnimation(SkeletalAnimation SkeletalAnimation) {
+				this.skeletalAnimation = SkeletalAnimation;
+				modifySkeletalAnimation();
+			}
+
+			public void modifySkeletalAnimation(){
+				for(SkeletalAnimationChangeListener listener:SkeletalAnimationChangeListeners){
+					listener.SkeletalAnimationChanged(skeletalAnimation);
+				}
+			}
+
+			private List<SkeletalAnimationChangeListener> SkeletalAnimationChangeListeners=Lists.newArrayList();
+			public void addSkeletalAnimationChangeListener(SkeletalAnimationChangeListener listener){
+				SkeletalAnimationChangeListeners.add(listener);
+			}
+
+			public void removeSkeletalAnimationChangeListener(SkeletalAnimationChangeListener listener){
+				SkeletalAnimationChangeListeners.remove(listener);
+			}
+
+				public static interface SkeletalAnimationChangeListener{
+					public void SkeletalAnimationChanged(SkeletalAnimation SkeletalAnimation);
+				}
 }

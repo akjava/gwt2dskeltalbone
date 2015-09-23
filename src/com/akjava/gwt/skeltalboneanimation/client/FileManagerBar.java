@@ -10,9 +10,11 @@ import com.akjava.gwt.jszip.client.JSZipUtils.ZipListener;
 import com.akjava.gwt.lib.client.ImageElementUtils;
 import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneAndAnimationData;
+import com.akjava.gwt.skeltalboneanimation.client.bones.SkeletalAnimation;
 import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
 import com.akjava.gwt.skeltalboneanimation.client.converters.BoneAndAnimationConverter;
 import com.akjava.gwt.skeltalboneanimation.client.converters.TextureDataConverter;
+import com.akjava.gwt.skeltalboneanimation.client.page.clippage.ClipImageData;
 import com.akjava.lib.common.utils.CSVUtils;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
@@ -24,6 +26,8 @@ public class FileManagerBar extends VerticalPanel{
     private UploadedFileManager uploadedFileManager;
 	private Label backgroundNameLabel;
 	private Label textureNameLabel;
+	private Label animationNameLabel;
+	private Label clipNameLabel;
 	public FileManagerBar(MainManager manager){
 		manager.setFileManagerBar(this);
 		
@@ -33,7 +37,7 @@ public class FileManagerBar extends VerticalPanel{
 		panel.setVerticalAlignment(ALIGN_MIDDLE);
 		this.add(panel);
 		
-		panel.add(createLabel("Bone"));
+		panel.add(new Label("Bone/Animation"));
 		boneNameLabel = createLabel("");
 		panel.add(boneNameLabel);
 		
@@ -41,15 +45,34 @@ public class FileManagerBar extends VerticalPanel{
 		FileUploadForm boneUpload=FileUtils.createSingleTextFileUploadForm(new DataURLListener() {
 			@Override
 			public void uploaded(File file, String text) {
-				setBoneAndAnimationText(file.getFileName(),text);
+				BoneAndAnimationData data=new BoneAndAnimationConverter().reverse().convert(CSVUtils.splitLinesWithGuava(text));
+				
+				setBoneAndAnimation(file.getFileName(),data.getBone(),data.getAnimation());
 				
 			}
 		}, true);
 		boneUpload.setAccept(FileUploadForm.ACCEPT_TXT);
 		panel.add(boneUpload);
 		
+		/*
+		panel.add(new Label("Animation"));
+		animationNameLabel = createLabel("");
+		panel.add(animationNameLabel);
 		
-		panel.add(createLabel("Background:"));
+		//TODO maybe remove
+		FileUploadForm animatiomUpload=FileUtils.createSingleTextFileUploadForm(new DataURLListener() {
+			@Override
+			public void uploaded(File file, String text) {
+				setBoneText(file.getFileName(),text);
+				
+			}
+		}, true);
+		boneUpload.setAccept(FileUploadForm.ACCEPT_TXT);
+		panel.add(animatiomUpload);
+		*/
+		
+		
+		panel.add(new Label("Background:"));
 		backgroundNameLabel = createLabel("");
 		panel.add(backgroundNameLabel);
 		
@@ -63,7 +86,7 @@ public class FileManagerBar extends VerticalPanel{
 		backgroundUpload.setAccept(FileUploadForm.ACCEPT_IMAGE);
 		panel.add(backgroundUpload);
 		
-		panel.add(createLabel("Texture:"));
+		panel.add(new Label("Texture:"));
 		textureNameLabel = createLabel("");
 		panel.add(textureNameLabel);
 		
@@ -85,6 +108,29 @@ public class FileManagerBar extends VerticalPanel{
 			});
 		panel.add(textureUpload);
 		
+		panel.add(new Label("Clip:"));
+		textureNameLabel = createLabel("");
+		panel.add(textureNameLabel);
+		
+		/*
+		panel.add(new Label("Load:"));
+		 FileUploadForm textureUpload=JSZipUtils.createZipFileUploadForm(new ZipListener() {
+				
+				@Override
+				public void onLoad(String name, JSZip zip) {
+					TextureDataConverter converter=new TextureDataConverter();
+					
+					setTexture(name,converter.convert(zip));
+					
+				}
+				
+				@Override
+				public void onFaild(int states, String statesText) {
+					LogUtils.log("faild:"+states+","+statesText);
+				}
+			});
+		panel.add(textureUpload);
+		*/
 		
 	}
 	
@@ -92,12 +138,30 @@ public class FileManagerBar extends VerticalPanel{
 		textureNameLabel.setText(fileName);
 		uploadedFileManager.setTextureData(textureData);
 	}
-	
-	public void setBoneAndAnimationText(String fileName,String text){
+	public void setBoneAndAnimation(String fileName,TwoDimensionBone bone,SkeletalAnimation animation){
+		boneNameLabel.setText(fileName);
+		
+		uploadedFileManager.setBone(bone);
+		uploadedFileManager.setSkeletalAnimation(animation);
+	}
+	//TODO clip
+	public void setClipImageData(String fileName,ClipImageData data){
+		clipNameLabel.setText(fileName);
+		uploadedFileManager.setClipImageData(data);
+	}
+	/*
+	public void setBoneText(String fileName,String text){
 	
 		BoneAndAnimationData data=new BoneAndAnimationConverter().reverse().convert(CSVUtils.splitLinesWithGuava(text));
 		setBone(fileName,data.getBone());
 	}
+	
+	public void setAnimationText(String fileName,String text){
+		
+		BoneAndAnimationData data=new BoneAndAnimationConverter().reverse().convert(CSVUtils.splitLinesWithGuava(text));
+		//setAnimation(fileName,data.getAnimation());
+	}
+	*/
 	
 	public void setBone(String fileName,TwoDimensionBone bone){
 		boneNameLabel.setText(fileName);

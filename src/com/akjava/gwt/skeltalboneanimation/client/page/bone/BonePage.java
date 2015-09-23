@@ -1011,4 +1011,11 @@ settings.setBone(newRoot);
 	}
 
 
+	@Override
+	protected void onAnimationChanged(SkeletalAnimation skeletalAnimation) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
 }

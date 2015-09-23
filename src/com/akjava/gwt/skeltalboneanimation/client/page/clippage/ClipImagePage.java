@@ -26,6 +26,7 @@ import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingDataControler;
 import com.akjava.gwt.skeltalboneanimation.client.MainManager;
 import com.akjava.gwt.skeltalboneanimation.client.TextureData;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneListBox;
+import com.akjava.gwt.skeltalboneanimation.client.bones.SkeletalAnimation;
 import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
 import com.akjava.gwt.skeltalboneanimation.client.converters.ClipImageDataConverter;
 import com.akjava.gwt.skeltalboneanimation.client.converters.TextureDataConverter;
@@ -1068,6 +1069,13 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 
 	@Override
 	protected void onTextureDataChanged(TextureData textureData) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	@Override
+	protected void onAnimationChanged(SkeletalAnimation skeletalAnimation) {
 		// TODO Auto-generated method stub
 		
 	}

@@ -10,7 +10,9 @@ import com.akjava.gwt.skeltalboneanimation.client.MainManager;
 import com.akjava.gwt.skeltalboneanimation.client.TextureData;
 import com.akjava.gwt.skeltalboneanimation.client.UploadedFileManager.BackgroundChangeListener;
 import com.akjava.gwt.skeltalboneanimation.client.UploadedFileManager.BoneChangeListener;
+import com.akjava.gwt.skeltalboneanimation.client.UploadedFileManager.SkeletalAnimationChangeListener;
 import com.akjava.gwt.skeltalboneanimation.client.UploadedFileManager.TextureDataChangeListener;
+import com.akjava.gwt.skeltalboneanimation.client.bones.SkeletalAnimation;
 import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.dom.client.Style.Unit;
@@ -81,9 +83,29 @@ protected MainManager manager;
 				}
 			}
 		});
+		
+		manager.getUploadedFileManager().addSkeletalAnimationChangeListener(new SkeletalAnimationChangeListener() {
+			
+			
+
+			
+
+			@Override
+			public void SkeletalAnimationChanged(SkeletalAnimation skeletalAnimation) {
+				if(manager.isSelected(AbstractPage.this)){
+					onAnimationChanged(skeletalAnimation);
+				}else{
+					needAnimationUpdate=true;
+				}
+			}
+		});
 	}
 	
-	
+	private boolean needAnimationUpdate;
+
+	abstract protected void onAnimationChanged(SkeletalAnimation skeletalAnimation) ;
+
+
 
 	protected CanvasDragMoveControler canvasControler;
 	public void initializeCanvas(){
@@ -156,6 +178,10 @@ protected MainManager manager;
 		
 		if(needTextureUpdate){
 			onTextureDataChanged(manager.getUploadedFileManager().getTextureData());
+		}
+		
+		if(needAnimationUpdate){
+			onAnimationChanged(manager.getUploadedFileManager().getSkeletalAnimation());
 		}
 		
 		updateDatas();

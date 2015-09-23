@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.akjava.gwt.lib.client.LogUtils;
-import com.akjava.gwt.skeltalboneanimation.client.BoneAnimationData;
+import com.akjava.gwt.skeltalboneanimation.client.InnerBoneAnimationData;
 import com.akjava.gwt.skeltalboneanimation.client.BoneUtils;
 import com.akjava.lib.common.graphics.Rect;
 import com.google.common.base.Preconditions;
@@ -112,12 +112,12 @@ public class BonePositionControler {
 	public void setRawAnimationedData(List<BoneWithXYAngle> rawAnimationedData) {
 		this.rawAnimationedData = rawAnimationedData;
 	}
-	protected void makeBoneAnimationData(List<BoneAnimationData> list,TwoDimensionBone bone,AnimationFrame frame){
+	protected void makeBoneAnimationData(List<InnerBoneAnimationData> list,TwoDimensionBone bone,AnimationFrame frame){
 		makeBoneAnimationData(list, bone, frame,null);
 	}
 
-	protected void makeBoneAnimationData(List<BoneAnimationData> list,TwoDimensionBone bone,AnimationFrame frame,BoneAnimationData parent){
-		BoneAnimationData calculator=new BoneAnimationData(bone.getName(),bone.getX(),bone.getY());
+	protected void makeBoneAnimationData(List<InnerBoneAnimationData> list,TwoDimensionBone bone,AnimationFrame frame,InnerBoneAnimationData parent){
+		InnerBoneAnimationData calculator=new InnerBoneAnimationData(bone.getName(),bone.getX(),bone.getY());
 		calculator.setParent(parent);
 		list.add(calculator);
 		
@@ -136,11 +136,11 @@ public class BonePositionControler {
 		List<BoneWithXYAngle> boneWiths=new ArrayList<BoneWithXYAngle>();
 		List<TwoDimensionBone> bones=BoneUtils.getAllBone(root);
 		
-		List<BoneAnimationData> list=new ArrayList<BoneAnimationData>();
+		List<InnerBoneAnimationData> list=new ArrayList<InnerBoneAnimationData>();
 		makeBoneAnimationData(list,root,frame,null);
 		//List<double[]> pts=new ArrayList<double[]>();
 		
-		for(BoneAnimationData bc:list){
+		for(InnerBoneAnimationData bc:list){
 			double[] pts=BoneUtils.getFinalPositionAndAngle(bc);
 			TwoDimensionBone tbone=BoneUtils.findBoneByName(bones, bc.getName());
 			boneWiths.add(new BoneWithXYAngle(tbone, (int)pts[0], (int)pts[1], pts[2]));

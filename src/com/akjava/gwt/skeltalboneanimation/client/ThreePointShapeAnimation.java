@@ -92,8 +92,8 @@ public class ThreePointShapeAnimation extends VerticalPanel{
 		buttons.add(next);
 	}
 	
-	public void makeBoneCalculator(List<BoneAnimationData> list,TwoDimensionBone bone,AnimationFrame frame,BoneAnimationData parent){
-		BoneAnimationData calculator=new BoneAnimationData(bone.getName(),bone.getX(),bone.getY());
+	public void makeBoneCalculator(List<InnerBoneAnimationData> list,TwoDimensionBone bone,AnimationFrame frame,InnerBoneAnimationData parent){
+		InnerBoneAnimationData calculator=new InnerBoneAnimationData(bone.getName(),bone.getX(),bone.getY());
 		calculator.setParent(parent);
 		list.add(calculator);
 		
@@ -110,7 +110,7 @@ public class ThreePointShapeAnimation extends VerticalPanel{
 	}
 	private Map<String,double[]> cache=new HashMap<String, double[]>();
 	private Canvas canvas;
-	public void drawFrame(BoneAnimationData bone,AnimationFrame frame){
+	public void drawFrame(InnerBoneAnimationData bone,AnimationFrame frame){
 		int offsetX=200;
 		int offsetY=200;
 		double[] pt=BoneUtils.getFinalPositionAndAngle(bone);
@@ -202,10 +202,10 @@ public class ThreePointShapeAnimation extends VerticalPanel{
 		LogUtils.log("frame:"+index);
 		CanvasUtils.clear(canvas);
 		cache.clear();
-		List<BoneAnimationData> list=new ArrayList<BoneAnimationData>();
+		List<InnerBoneAnimationData> list=new ArrayList<InnerBoneAnimationData>();
 		makeBoneCalculator(list,root,frame,null);
 
-		for(BoneAnimationData bone:list){
+		for(InnerBoneAnimationData bone:list){
 			drawFrame(bone,frame);
 		}
 	}

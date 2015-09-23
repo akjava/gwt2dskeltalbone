@@ -1,19 +1,19 @@
 package com.akjava.gwt.skeltalboneanimation.client;
 
 //almost same but has angle,usually create from framedata
-public class BoneAnimationData {
+public class InnerBoneAnimationData {
 private String name;
-public BoneAnimationData(String name, double x, double y) {
+public InnerBoneAnimationData(String name, double x, double y) {
 	super();
 	this.name = name;
 	this.x = x;
 	this.y = y;
 }
-private BoneAnimationData parent;
-public BoneAnimationData getParent() {
+private InnerBoneAnimationData parent;
+public InnerBoneAnimationData getParent() {
 	return parent;
 }
-public void setParent(BoneAnimationData parent) {
+public void setParent(InnerBoneAnimationData parent) {
 	this.parent = parent;
 }
 public String getName() {

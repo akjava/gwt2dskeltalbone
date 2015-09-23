@@ -63,6 +63,9 @@ public boolean isRoot(){
 	return parent==null;
 }
 
+/*
+ * becareful maybe parent's ref is other
+ */
 public TwoDimensionBone copy(boolean copyChildren){
 	TwoDimensionBone copyBone=new TwoDimensionBone(name, x, y,parent);
 	copyBone.setLocked(locked);

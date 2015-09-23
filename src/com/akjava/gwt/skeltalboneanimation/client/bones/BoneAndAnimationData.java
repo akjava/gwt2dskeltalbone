@@ -1,5 +1,7 @@
 package com.akjava.gwt.skeltalboneanimation.client.bones;
 
+import com.akjava.gwt.skeltalboneanimation.client.BoneUtils;
+
 //TODO optional
 public class BoneAndAnimationData {
 private TwoDimensionBone bone;
@@ -30,6 +32,11 @@ public void setAnimation(SkeletalAnimation animation) {
 
 public boolean isAnimationNullOrEmpty(){
 	return animation==null || animation.getFrames().size()==0;
+}
+public BoneAndAnimationData copy() {
+	//TODO copy animation
+	BoneAndAnimationData data=new BoneAndAnimationData(BoneUtils.copyAll(bone),animation);
+	return data;
 }
 
 }

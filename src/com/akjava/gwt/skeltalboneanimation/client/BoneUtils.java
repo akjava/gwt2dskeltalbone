@@ -2,6 +2,7 @@ package com.akjava.gwt.skeltalboneanimation.client;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import com.akjava.gwt.lib.client.game.PointXY;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationFrame;
@@ -10,6 +11,7 @@ import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
 import com.akjava.lib.common.utils.FileNames;
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Maps;
 
 public class BoneUtils {
 
@@ -39,6 +41,30 @@ public class BoneUtils {
 		}
 		
 		return parents.get(0);
+	}
+	
+	public static TwoDimensionBone copyAll(TwoDimensionBone bone){
+		Map<String,TwoDimensionBone> boneMap=Maps.newHashMap();
+		List<TwoDimensionBone> allBone=getAllBone(bone);
+		
+		TwoDimensionBone newRoot=null;
+		for(TwoDimensionBone bo:allBone){
+			TwoDimensionBone newBone=bo.copy(false);
+			boneMap.put(newBone.getName(), newBone);
+			if(newRoot==null){
+				newRoot=newBone;
+			}
+		}
+		
+		for(TwoDimensionBone copied:boneMap.values()){
+			
+			if(copied.getParent()!=null){
+				boneMap.get(copied.getParent().getName()).addBone(copied);
+				
+			}
+		}
+		
+		return newRoot;
 	}
 	
 	public static  AnimationFrame createEmptyAnimationFrame(TwoDimensionBone root){

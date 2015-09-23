@@ -22,7 +22,8 @@ public void setBoneAndAnimation(BoneAndAnimationData boneAndAnimation) {
 
 public void modifyBoneAndAnimation(){
 	for(BoneAndAnimationChangeListener listener:boneChangeListeners){
-		listener.boneAndAnimationChanged(boneAndAnimation);
+		//use copy 
+		listener.boneAndAnimationChanged(boneAndAnimation.copy());
 	}
 }
 

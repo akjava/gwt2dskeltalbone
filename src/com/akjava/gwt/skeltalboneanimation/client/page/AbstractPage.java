@@ -170,15 +170,19 @@ protected MainManager manager;
 	@Override
 	public void onSelection() {
 		if(needBoneAndAnimationUpdate){
-			onBoneAndAnimationChanged(manager.getUploadedFileManager().getBoneAndAnimation());
+			onBoneAndAnimationChanged(manager.getUploadedFileManager().getBoneAndAnimation().copy());
 			needBoneAndAnimationUpdate=false;
 		}
 		if(needBackgroundUpdate){
+			//TODO copy
 			onBackgroundChanged(manager.getUploadedFileManager().getBackgroundData());
+			needBackgroundUpdate=false;
 		}
 		
 		if(needTextureUpdate){
+			//TODO copy
 			onTextureDataChanged(manager.getUploadedFileManager().getTextureData());
+			needTextureUpdate=false;
 		}
 		
 		/*

@@ -32,7 +32,7 @@ public class BoneControlRange extends VerticalPanel{
 	}
 	
 	public void setFrame(AnimationFrame frame){
-		boneMap.clear();
+		rangeMap.clear();
 		for(BoneFrame boneFrame:frame.getBoneFrames().values()){
 			rangeMap.put(boneFrame.getBoneName(),(int) boneFrame.getAngle());
 		}
@@ -146,7 +146,7 @@ public class BoneControlRange extends VerticalPanel{
 	public static interface BoneControlListener{
 		public void changed(TwoDimensionBone bone,int angle,int moveX,int moveY);
 	}
-	public TwoDimensionBone getBone(String name){
+	public TwoDimensionBone getBoneByName(String name){
 		return boneMap.get(name);
 	}
 	

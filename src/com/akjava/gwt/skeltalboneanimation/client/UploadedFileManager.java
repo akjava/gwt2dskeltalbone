@@ -108,28 +108,28 @@ public void removeBoneAndAnimationChangeListener(BoneAndAnimationChangeListener 
 			return clipImageData;
 		}
 
-		public void setClipImageData(ClipImageData ClipImageData) {
-			this.clipImageData = ClipImageData;
+		public void setClipImageData(ClipImageData clipImageData) {
+			this.clipImageData = clipImageData;
 			modifyClipImageData();
 		}
 
 		public void modifyClipImageData(){
-			for(ClipImageDataChangeListener listener:ClipImageDataChangeListeners){
+			for(ClipImageDataChangeListener listener:clipImageDataChangeListeners){
 				listener.ClipImageDataChanged(clipImageData);
 			}
 		}
 
-		private List<ClipImageDataChangeListener> ClipImageDataChangeListeners=Lists.newArrayList();
+		private List<ClipImageDataChangeListener> clipImageDataChangeListeners=Lists.newArrayList();
 		public void addClipImageDataChangeListener(ClipImageDataChangeListener listener){
-			ClipImageDataChangeListeners.add(listener);
+			clipImageDataChangeListeners.add(listener);
 		}
 
 		public void removeClipImageDataChangeListener(ClipImageDataChangeListener listener){
-			ClipImageDataChangeListeners.remove(listener);
+			clipImageDataChangeListeners.remove(listener);
 		}
 
 			public static interface ClipImageDataChangeListener{
-				public void ClipImageDataChanged(ClipImageData ClipImageData);
+				public void ClipImageDataChanged(ClipImageData clipImageData);
 			}
 			
 			

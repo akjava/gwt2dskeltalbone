@@ -25,9 +25,9 @@ import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingData;
 import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingDataControler;
 import com.akjava.gwt.skeltalboneanimation.client.MainManager;
 import com.akjava.gwt.skeltalboneanimation.client.TextureData;
+import com.akjava.gwt.skeltalboneanimation.client.UploadedFileManager.ClipImageDataChangeListener;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneAndAnimationData;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneListBox;
-import com.akjava.gwt.skeltalboneanimation.client.bones.SkeletalAnimation;
 import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
 import com.akjava.gwt.skeltalboneanimation.client.converters.ClipImageDataConverter;
 import com.akjava.gwt.skeltalboneanimation.client.converters.TextureDataConverter;
@@ -77,7 +77,14 @@ public class ClipImagePage extends AbstractPage {
 	 
 	public ClipImagePage(final MainManager manager){
 		super(manager);
-		
+		//clip is minor
+		manager.getUploadedFileManager().addClipImageDataChangeListener(new ClipImageDataChangeListener() {
+			
+			@Override
+			public void ClipImageDataChanged(ClipImageData data) {
+				onClipImageDataChanged(data);
+			}
+		});
 	}
 	
 	
@@ -961,14 +968,10 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 	}
 
 
-	protected void doLoadData(String name, JSZip zip) {
-		ClipImageData data=new ClipImageDataConverter().convert(zip);
-		if(data.getImageDrawingData()!=null){
-			//maybe this set background
-			manager.getFileManagerBar().setBackground(name,data.getImageDrawingData());
-		}else{
-			LogUtils.log("clip-data has no background");
-		}
+	protected void onClipImageDataChanged(ClipImageData data){
+		LogUtils.log("onClipImageDataChanged:");
+		//background and bone called if exist.
+		
 		cellObjects.clearAllItems();
 		for(ClipData clip:data.getClips()){
 			cellObjects.addItem(clip);
@@ -979,13 +982,16 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 			cellObjects.setSelected(clip, true);
 		}
 		
-		if(data.getBone()!=null){
-			BoneAndAnimationData baa=new BoneAndAnimationData();
-			baa.setBone(data.getBone());
-			manager.getFileManagerBar().setBoneAndAnimation(name,baa);
-		}
-		
 		updateCanvas();
+	}
+	
+	protected void doLoadData(String name, JSZip zip) {
+		ClipImageData data=new ClipImageDataConverter().convert(zip);
+		
+		
+		manager.getFileManagerBar().setClipImageData(name, data);
+		
+		
 	}
 
 

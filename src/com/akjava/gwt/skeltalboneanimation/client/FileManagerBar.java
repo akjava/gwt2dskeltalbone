@@ -26,7 +26,7 @@ public class FileManagerBar extends VerticalPanel{
     private UploadedFileManager uploadedFileManager;
 	private Label backgroundNameLabel;
 	private Label textureNameLabel;
-	private Label animationNameLabel;
+
 	private Label clipNameLabel;
 	public FileManagerBar(MainManager manager){
 		manager.setFileManagerBar(this);
@@ -109,8 +109,8 @@ public class FileManagerBar extends VerticalPanel{
 		panel.add(textureUpload);
 		
 		panel.add(new Label("Clip:"));
-		textureNameLabel = createLabel("");
-		panel.add(textureNameLabel);
+		clipNameLabel = createLabel("");
+		panel.add(clipNameLabel);
 		
 		/*
 		panel.add(new Label("Load:"));
@@ -147,6 +147,19 @@ public class FileManagerBar extends VerticalPanel{
 	public void setClipImageData(String fileName,ClipImageData data){
 		clipNameLabel.setText(fileName);
 		uploadedFileManager.setClipImageData(data);
+		
+		if(data.getImageDrawingData()!=null){
+			//maybe this set background
+			setBackground(fileName,data.getImageDrawingData());
+		}else{
+			LogUtils.log("clip-data has no background");
+		}
+		
+		if(data.getBone()!=null){
+			BoneAndAnimationData baa=new BoneAndAnimationData();
+			baa.setBone(data.getBone());
+			setBoneAndAnimation(fileName,baa);
+		}
 	}
 	/*
 	public void setBoneText(String fileName,String text){

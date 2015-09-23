@@ -69,6 +69,7 @@ public class GWT2DSkeltalBoneAnimation implements EntryPoint {
 		
 		root.add(tab);
 		//advanced
+		/*
 		DockLayoutPanel boneDock2=new DockLayoutPanel(Unit.PX);
 		tab.add(boneDock2,"Bone2");
 		SimpleBoneEditorPage2 bonePage2=new SimpleBoneEditorPage2(boneDock2);
@@ -78,6 +79,7 @@ public class GWT2DSkeltalBoneAnimation implements EntryPoint {
 		tab.add(animationDock2,"Animation2");
 		SimpleAnimationEditorPage2 animationPage2=new SimpleAnimationEditorPage2(animationDock2);
 		animationDock2.add(animationPage2);
+		*/
 		
 		DockLayoutPanel textureDock2=new DockLayoutPanel(Unit.PX);
 		tab.add(textureDock2,"Texture2");

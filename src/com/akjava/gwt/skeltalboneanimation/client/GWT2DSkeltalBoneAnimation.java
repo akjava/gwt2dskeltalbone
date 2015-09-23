@@ -86,6 +86,7 @@ public class GWT2DSkeltalBoneAnimation implements EntryPoint {
 		SimpleTextureEditorPage2 texturePage2=new SimpleTextureEditorPage2(textureDock2);
 		textureDock2.add(texturePage2);
 		
+		
 		tab.selectTab(1);
 	}
 }

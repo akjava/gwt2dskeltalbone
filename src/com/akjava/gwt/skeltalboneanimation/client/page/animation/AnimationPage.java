@@ -164,6 +164,13 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName{
 	
 	private void selectOnLoadBone(final TwoDimensionBone bone){
 		
+		if(getRootBone().isSameStructure(bone, true)){
+			LogUtils.log("same bone.no need care");
+			//usually happen when clipimage-data loaded
+			return;
+		}
+		
+		
 		if(autoReplaceBoneCheck.getValue()){
 			setNewBoneAndAnimation(bone,animationControler.getAnimation());
 			return;
@@ -917,36 +924,7 @@ public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvas
 	    FileUploadForm load2=FileUtils.createSingleFileUploadForm(new DataArrayListener() {
 			@Override
 			public void uploaded(final File file, Uint8Array array) {
-				String extension=FileNames.getExtension(file.getFileName()).toLowerCase();
-				if(extension.equals("zip")){
-					JSZip zip=JSZip.loadFromArray(array);
-					JSFile jsFile=zip.getFile(SkeltalFileFormat.ANIMATION_FILE);
-					if(jsFile!=null){
-						String text=jsFile.asText();
-						setBoneAndAnimationText(file.getFileName(),text);
-					}else{
-						Window.alert("not contain bone.txt");
-					}
-					//parse datas.
-					TextureData textureData=new TextureDataConverter().convert(zip);
-					manager.getFileManagerBar().setTexture(file.getFileName(), textureData);
-					
-					ClipImageData clipImageData=new ClipImageDataConverter().convert(zip);
-					manager.getFileManagerBar().setClipImageData(file.getFileName(), clipImageData);
-					
-				}else{
-					Blob blob=Blob.createBlob(array, "plain/text");
-					final FileReader reader=FileReader.createFileReader();
-					reader.setOnLoad(new FileHandler() {
-						
-						@Override
-						public void onLoad() {
-							String text=reader.getResultAsString();
-							setBoneAndAnimationText(file.getFileName(),text);
-						}
-					});
-					reader.readAsText((File)blob.cast(), "uff8");
-				}
+				doLoadFile(file.getFileName(),array);
 			}
 		});
 	    upper.add(load2);
@@ -1044,6 +1022,44 @@ public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvas
 	return panel;
 	}
 	
+	protected void doLoadFile(final String name, Uint8Array array) {
+		String extension=FileNames.getExtension(name).toLowerCase();
+		if(extension.equals("zip")){
+			
+			//load animation
+			JSZip zip=JSZip.loadFromArray(array);
+			JSFile jsFile=zip.getFile(SkeltalFileFormat.ANIMATION_FILE);
+			if(jsFile!=null){
+				String text=jsFile.asText();
+				setBoneAndAnimationText(name,text);
+			}else{
+				Window.alert("not contain "+SkeltalFileFormat.ANIMATION_FILE);
+			}
+			
+			//parse datas.
+			TextureData textureData=new TextureDataConverter().convert(zip);
+			manager.getFileManagerBar().setTexture(name, textureData);
+			
+			//
+			ClipImageData clipImageData=new ClipImageDataConverter().convert(zip);
+			manager.getFileManagerBar().setClipImageData(name, clipImageData);
+			
+			//this call background & bone
+			
+		}else{
+			Blob blob=Blob.createBlob(array, "plain/text");
+			final FileReader reader=FileReader.createFileReader();
+			reader.setOnLoad(new FileHandler() {
+				
+				@Override
+				public void onLoad() {
+					String text=reader.getResultAsString();
+					setBoneAndAnimationText(name,text);
+				}
+			});
+			reader.readAsText((File)blob.cast(), "uff8");
+		}
+	}
 	private void setBoneAndAnimationText(String name,String text){
 		BoneAndAnimationData data=new BoneAndAnimationConverter().reverse().convert(CSVUtils.splitLinesWithGuava(text));
 		manager.getFileManagerBar().setBoneAndAnimation(name, data);

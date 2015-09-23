@@ -106,4 +106,52 @@ public String toString(){
 	String parent=getParent()==null?"":getParent().getName();
 	return parent+","+getName()+","+getX()+","+getY()+","+locked;
 }
+
+
+public boolean isSameStructure(TwoDimensionBone bone,boolean recursive) {
+	if(!isSameStructure(this,bone,recursive)){
+		return false;
+	}
+	//not 
+	return true;
+}
+
+
+public static boolean isSameStructure(TwoDimensionBone boneA,TwoDimensionBone boneB,boolean recursive) {
+	if(boneA.getX()!=boneB.getX()){
+		return false;
+	}
+	if(boneA.getY()!=boneB.getY()){
+		return false;
+	}
+	if(!boneA.getName().equals(boneB.getName())){
+		return false;
+	}
+	if(boneA.isLocked()!=boneB.isLocked()){
+		return false;
+	}
+	
+	String boneParentName=boneA.getParent()!=null?boneA.getParent().getName():"";
+	String parentName=boneB.getParent()!=null?boneB.getParent().getName():"";
+	if(!boneParentName.equals(parentName)){
+		return false;
+	}
+	if(boneA.getChildren().size()!=boneB.getChildren().size()){
+		return false;
+	}
+	if(recursive){
+		for(int i=0;i<boneA.getChildren().size();i++){
+			TwoDimensionBone childA=boneA.getChildren().get(i);
+			TwoDimensionBone childB=boneB.getChildren().get(i);
+			boolean same=isSameStructure(childA,childB,true);
+			if(!same){
+				return false;
+			}
+		}
+	}
+	
+	//not 
+	return true;
+}
+
 }

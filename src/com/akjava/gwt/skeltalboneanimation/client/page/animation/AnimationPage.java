@@ -1143,6 +1143,7 @@ upper.add(extractImageBt);
 	}
 	
 	protected void doSaveAll() {
+		
 		TextureData textureData=manager.getUploadedFileManager().getTextureData();
 		ClipImageData clipData=manager.getUploadedFileManager().getClipImageData();
 		
@@ -1150,6 +1151,7 @@ upper.add(extractImageBt);
 			Window.alert("texture data is not exist.cant save all\njust do try save animation!");
 			return;
 		}
+		
 		//save bone & animation & texture & clip
 		Stopwatch watch=Stopwatch.createStarted();
 		
@@ -1177,7 +1179,7 @@ upper.add(extractImageBt);
 		downloadLinks.add(JSZipUtils.createDownloadAnchor(jszip, "2dbone-all-data.zip", "download", true));
 	
 		double time=watch.elapsed(TimeUnit.MILLISECONDS);
-		LogUtils.log("clip-zip generation-millisecond"+time);
+		LogUtils.log("clip-zip generation-millisecond "+time+" ms");
 		
 	}
 	@Override

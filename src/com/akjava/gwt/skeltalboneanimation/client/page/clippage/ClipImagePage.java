@@ -1,6 +1,8 @@
 package com.akjava.gwt.skeltalboneanimation.client.page.clippage;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import com.akjava.gwt.html5.client.download.HTML5Download;
@@ -12,6 +14,7 @@ import com.akjava.gwt.lib.client.CanvasUtils;
 import com.akjava.gwt.lib.client.ImageElementUtils;
 import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.lib.client.experimental.ExecuteButton;
+import com.akjava.gwt.lib.client.experimental.ImageBuilder;
 import com.akjava.gwt.lib.client.experimental.RectCanvasUtils;
 import com.akjava.gwt.lib.client.game.PointD;
 import com.akjava.gwt.lib.client.game.PointXY;
@@ -33,6 +36,7 @@ import com.akjava.gwt.skeltalboneanimation.client.converters.ClipImageDataConver
 import com.akjava.gwt.skeltalboneanimation.client.converters.TextureDataConverter;
 import com.akjava.gwt.skeltalboneanimation.client.page.AbstractPage;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.BoneControler;
+import com.akjava.gwt.skeltalboneanimation.client.page.html5app.TransparentItPage;
 import com.akjava.lib.common.graphics.Rect;
 import com.google.common.base.Optional;
 import com.google.common.base.Stopwatch;
@@ -74,8 +78,18 @@ public class ClipImagePage extends AbstractPage {
 	Driver driver;
 	private EasyCellTableObjects<ClipData> cellObjects;
 
+	private TransparentItPage transparentItPage;
 	 
-	 
+	public TransparentItPage getTransparentItPage() {
+		return transparentItPage;
+	}
+
+
+	public void setTransparentItPage(TransparentItPage transparentItPage) {
+		this.transparentItPage = transparentItPage;
+	}
+
+
 	public ClipImagePage(final MainManager manager){
 		super(manager);
 		//clip is minor
@@ -463,9 +477,31 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		}
 		 
 	 };
-	 
-	
 	 h4.add(exportAsTexture);
+	 Button transparent=new ExecuteButton("transparent"){
+			
+		 @Override
+			public void beforeExecute() {
+			 //downloadLinks.clear();
+		 }
+		 
+		@Override
+		public void executeOnClick() {
+			
+			doTransparent();
+			
+			
+			
+			
+			
+		}
+		 
+	 };
+	 
+	 
+	 h4.add(transparent);
+	
+	 
 	
 	
 	 panel.add(downloadLinks);
@@ -473,6 +509,63 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		return panel;
 	}
 	
+	protected void doTransparent() {
+
+		TextureData textureData=manager.getUploadedFileManager().getTextureData();
+		List<ImageDrawingData> datas=Lists.newArrayList();
+		
+		transparentItPage.clearAll();
+		
+		//check duplicate bone-name
+		boolean duplicateBoneName=false;
+		List<String> names=Lists.newArrayList();
+		for(ClipData clip:cellObjects.getDatas()){
+			if(names.indexOf(clip.getBone())!=-1){
+				duplicateBoneName=true;
+				break;
+			}
+			names.add(clip.getBone());
+		}
+		if(duplicateBoneName){
+			Window.alert("now only suport one bone,one texture.some how duplidated.may this not work correctly");
+		}
+		
+		//idea should do id with bone-name + bounds?
+		
+		for(ClipData clip:cellObjects.getDatas()){
+			//now only one image per bone support.
+			ImageDrawingData data=convertToImageDrawingData(clip);
+			datas.add(data);
+			//TODO change uniq id & name.id not empty
+			data.setImageName(data.getId()+".png");
+			
+			
+			
+			String src=data.getImageElement().getSrc();
+			String notClipped=generateClippedImage(clip,false);
+			data.getImageElement().setSrc(notClipped);//in here imagedrawing using data need clipping but transparent need not clippling data.
+			if(textureData!=null){
+				//ImageDrawingData pastData=null;
+				for(ImageDrawingData textureImage:textureData.getImageDrawingDatas()){
+					if(textureImage.getId().equals(data.getId())){
+						//use texture image as start image
+						
+						//if same size,no problem.
+						if(ImageElementUtils.isSameSize(data.getImageElement(),textureImage.getImageElement())){
+						src=textureImage.getImageElement().getSrc();
+						break;
+						}
+					}
+				}
+			}
+			
+			transparentItPage.addItem(data, src);
+		}
+		
+	}
+	
+
+
 	private TextureData toTextureData(){
 		List<ImageDrawingData> datas=Lists.newArrayList();
 		for(ClipData clip:cellObjects.getDatas()){
@@ -510,17 +603,26 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 	
 
 
-
-	protected String generateClippedImage(ClipData selection) {
+	protected String generateClippedImage(ClipData selection){
+		return generateClippedImage(selection,true);
+	}
+	
+	protected String generateClippedImage(ClipData selection,boolean clip) {
 		//int expand=64;
+		
+		
 		Rect rect=selection.getBound();
 		rect.expandSelf(selection.getExpand(), selection.getExpand());
 		Canvas clipCanvas=CanvasUtils.createCanvas(rect.getWidth(), rect.getHeight());
+		Context2d context=clipCanvas.getContext2d();
+		
+		if(clip){
 		List<PointXY> newPoints=Lists.newArrayList();
 		for(PointXY pt:selection.getPoints()){
 			newPoints.add(pt.copy().incrementXY(-rect.getX(), -rect.getY()));
 		}
-		Context2d context=clipCanvas.getContext2d();
+		
+		
 		context.beginPath();
 		
 		
@@ -530,7 +632,9 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		}
 		context.lineTo(newPoints.get(0).x, newPoints.get(0).y);
 		context.closePath();
+		
 		context.clip();
+		}
 		
 		ImageElement bg=ImageElementUtils.create(generateBackgroundImage());
 		context.drawImage(bg, -rect.getX(), -rect.getY());
@@ -1024,12 +1128,24 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 	}
 	
 	private Widget createClipButtons(){
-		HorizontalPanel northPanel=new HorizontalPanel();
-	    northPanel.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
+		HorizontalPanel panel=new HorizontalPanel();
+	    panel.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
 	
-	    northPanel.add(new Label("Clips:"));
+	    panel.add(new Label("Clips:"));
 	    
-	    northPanel.add(new Label("Load:(Clips,Bone,Background)"));
+	    Button test=new Button("test",new ClickHandler() {
+			
+			@Override
+			public void onClick(ClickEvent event) {
+				//test deadly code
+				String dataUrl=ImageBuilder.from(ImageElementUtils.create(canvas.toDataUrl())).onFileName("root").toDataUrl();
+				LogUtils.log("fine");
+				
+			}
+		});
+	    panel.add(test);
+	    
+	    panel.add(new Label("Load:(Clips,Bone,Background)"));
 	    FileUploadForm load=JSZipUtils.createZipFileUploadForm(new ZipListener() {
 			
 			@Override
@@ -1047,8 +1163,8 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 	    
 	   
 	    
-	    northPanel.add(load);
-	    northPanel.add(new Button("Save(not contain texture)",new ClickHandler() {
+	    panel.add(load);
+	    panel.add(new Button("Save(not contain texture)",new ClickHandler() {
 			
 			@Override
 			public void onClick(ClickEvent event) {
@@ -1057,9 +1173,9 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		}));
 	    
 	    downloadLinks = new HorizontalPanel();
-	    northPanel.add(downloadLinks);
+	    panel.add(downloadLinks);
 		
-	    return northPanel;
+	    return panel;
 	}
 	protected void doSaveData() {
 		

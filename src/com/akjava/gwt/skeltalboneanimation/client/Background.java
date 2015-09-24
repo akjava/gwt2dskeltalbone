@@ -75,8 +75,9 @@ public class Background implements ImageDrawingDataOwner{
 			if(this.isSelected() && isEditable()){
 			//	LogUtils.log("selected");
 				border="#0f0";
+				this.getBackgroundData().drawBorder(canvas,border);
 			}
-			this.getBackgroundData().drawBorder(canvas,border);
+			
 		}
 	}
 }

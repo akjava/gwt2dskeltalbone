@@ -6,6 +6,7 @@ import com.akjava.gwt.skeltalboneanimation.client.page.SimpleTextureEditorPage2;
 import com.akjava.gwt.skeltalboneanimation.client.page.animation.AnimationPage;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.BonePage;
 import com.akjava.gwt.skeltalboneanimation.client.page.clippage.ClipImagePage;
+import com.akjava.gwt.skeltalboneanimation.client.page.html5app.TransparentItPage;
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.user.client.ui.DockLayoutPanel;
@@ -62,8 +63,13 @@ public class GWT2DSkeltalBoneAnimation implements EntryPoint {
 		
 		tab.add(new BonePage(manager),"Bone");
 		tab.add(new AnimationPage(manager),"Animation");
-		tab.add(new ClipImagePage(manager),"Clip");
 		
+		ClipImagePage clip=new ClipImagePage(manager);
+		tab.add(clip,"Clip");
+		
+		TransparentItPage trasparent=new TransparentItPage(manager);
+		tab.add(trasparent,"Transparent");
+		clip.setTransparentItPage(trasparent);
 		
 		//add everything inside
 		
@@ -87,6 +93,6 @@ public class GWT2DSkeltalBoneAnimation implements EntryPoint {
 		textureDock2.add(texturePage2);
 		
 		
-		tab.selectTab(0);
+		tab.selectTab(2);
 	}
 }

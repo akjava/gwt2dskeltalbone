@@ -13,6 +13,7 @@ public class ImageDrawingDataControler implements DrawingDataControler{
 
 	private ImageDrawingData collisioned;
 	
+	private int baseRatio=100;
 	public void onWhelled(int delta,boolean shiftDowned){
 		if(!owner.isEditable()){
 			return;
@@ -20,7 +21,7 @@ public class ImageDrawingDataControler implements DrawingDataControler{
 		
 		ImageDrawingData selection=owner.getSelection();
 		if(selection!=null && selection.isVisible()){
-			int zoom=(int) (100*selection.getScaleX());
+			int zoom=(int) (baseRatio*selection.getScaleX());
 			
 			int vector=1;
 			if(delta<0){
@@ -33,8 +34,8 @@ public class ImageDrawingDataControler implements DrawingDataControler{
 				zoom=5;
 			}
 			
-			selection.setScaleX((double)zoom/100);
-			selection.setScaleY((double)zoom/100);
+			selection.setScaleX((double)zoom/baseRatio);
+			selection.setScaleY((double)zoom/baseRatio);
 			selection.updateBounds();
 		}
 	}

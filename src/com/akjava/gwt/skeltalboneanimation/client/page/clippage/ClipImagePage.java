@@ -1087,7 +1087,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 
 
 	protected void onClipImageDataChanged(ClipImageData data){
-		LogUtils.log("onClipImageDataChanged:");
+		//LogUtils.log("onClipImageDataChanged:");
 		//background and bone called if exist.
 		
 		cellObjects.clearAllItems();

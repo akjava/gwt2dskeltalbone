@@ -922,7 +922,7 @@ public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvas
 			//bone only data usually modify bone by other page
 			selectOnLoadBone(data.getBone());
 		}else{
-			LogUtils.log(data.getAnimation().getFrames().size());//some case return 0?
+			//LogUtils.log(data.getAnimation().getFrames().size());//some case return 0?
 			//usually by self(load or save)
 			setNewBoneAndAnimation(data.getBone(), data.getAnimation());
 		}

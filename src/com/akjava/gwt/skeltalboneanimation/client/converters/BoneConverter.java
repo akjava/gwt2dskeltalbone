@@ -39,8 +39,8 @@ public class BoneConverter extends Converter<TwoDimensionBone, List<String>>{
 				LogUtils.log("invalid line:"+line);
 				continue;//just ignore
 			}
-			int x=Integer.parseInt(values[2]);
-			int y=Integer.parseInt(values[3]);
+			double x=Double.parseDouble(values[2]);
+			double y=Double.parseDouble(values[3]);
 			TwoDimensionBone bone=new TwoDimensionBone(values[1], x, y);
 			parentNames.add(values[0]);
 			boneMap.put(bone.getName(), bone);

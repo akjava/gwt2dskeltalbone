@@ -566,6 +566,7 @@ settings.setBone(newRoot);
 		if(boneSelectedOnCanvas!=null){
 			TwoDimensionBone bone=boneSelectedOnCanvas;
 			
+			/*
 			if(bone==getRootBone()){
 				
 				//rotate root
@@ -577,6 +578,8 @@ settings.setBone(newRoot);
 				
 				return;//rootBone is fixed,so far.
 			}
+			*/
+			
 			//other bone moving
 			if(canvasControler.isRightMouse()){
 				if(vectorX!=0){

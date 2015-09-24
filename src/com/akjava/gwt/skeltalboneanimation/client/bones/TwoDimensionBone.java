@@ -3,9 +3,11 @@ package com.akjava.gwt.skeltalboneanimation.client.bones;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.lib.client.game.PointD;
 import com.akjava.gwt.lib.client.game.PointXY;
 import com.akjava.gwt.skeltalboneanimation.client.BoneUtils;
+import com.google.common.collect.Lists;
 
 public class TwoDimensionBone {
 private double x;
@@ -41,6 +43,10 @@ public List<TwoDimensionBone> getChildrenAll() {
 public void setChildrens(List<TwoDimensionBone> childrens) {
 	this.children = childrens;
 }
+public void set(double x,double y){
+	this.x=x;
+	this.y=y;
+}
 public double getX() {
 	return x;
 }
@@ -62,6 +68,57 @@ public void setName(String name) {
 public boolean isRoot(){
 	return parent==null;
 }
+
+//not test yet
+public void rotateChildrens(double angle){
+	List<TwoDimensionBone> children=BoneUtils.getAllBone(this);
+	children.remove(this);
+	
+	List<PointD> positions=Lists.newArrayList();
+	for(TwoDimensionBone child:children){
+		PointD pos=child.getAbsolutePosition();
+		//LogUtils.log(child.getName()+","+pos.toString());
+		positions.add(pos);
+	}
+	
+	List<PointD> newPositions=Lists.newArrayList();
+	PointD center=getAbsolutePosition();
+	for(PointD position:positions){
+		PointD pos=PointD.turnedAngle(center, position, angle);
+		//LogUtils.log(angle+","+pos);
+		
+		/*
+		PointD parentPosition=this.getAbsolutePosition();
+		parentPosition.x-=this.x;
+		parentPosition.y-=this.y;
+		
+		pos.x+=parentPosition.x;
+		pos.y+=parentPosition.y;
+		*/
+		
+		newPositions.add(pos);
+		//add other parent
+		
+	}
+	
+	//reset
+	for(int i=0;i<children.size();i++){
+		TwoDimensionBone bone=children.get(i);
+		PointD parentPosition=bone.getAbsolutePosition();
+		//LogUtils.log(bone.getName()+"-ab,"+parentPosition.toString());
+		//LogUtils.log(bone.getName()+","+bone.x+"x"+bone.y);
+		
+		parentPosition.x-=bone.x;
+		parentPosition.y-=bone.y;
+		//LogUtils.log(bone.getName()+"-parent,"+parentPosition.toString());
+		
+		double newX=newPositions.get(i).x-parentPosition.x;
+		double newY=newPositions.get(i).y-parentPosition.y;
+		bone.set(newX,newY);
+	}
+}
+
+
 
 /*
  * becareful maybe parent's ref is other

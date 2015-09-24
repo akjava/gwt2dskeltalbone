@@ -28,6 +28,18 @@ public class BoneUtils {
 		
 		return parents;
 	}
+	
+	//return -180 - 180
+	public int clampAngle(int angle){
+		angle%=360;
+		if(angle<-180){
+			angle=360+angle;
+		}else if(angle>180){
+			angle=angle-360;
+		}
+		return angle;
+	}
+	
 	public static TwoDimensionBone getRoot(TwoDimensionBone bone){
 		List<TwoDimensionBone> parents=new ArrayList<TwoDimensionBone>();
 		while(bone.getParent()!=null){
@@ -141,6 +153,15 @@ public class BoneUtils {
 			
 		}
 		return new double[]{x,y,angle};
+	}
+	
+	public static double[] turnedAngle(double centerx,double centery,double px,double py,double angle){
+		double x=px-centerx;
+		double y=py-centery;
+		double radian=Math.toRadians(angle);
+		double turnedX=Math.cos(radian)*x-Math.sin(radian)*y;
+		double turnedY=Math.cos(radian)*y+Math.sin(radian)*x;
+		return new double[]{turnedX+centerx, turnedY+centery};
 	}
 	
 	public static double[] turnedAngle(double x,double y,double angle){

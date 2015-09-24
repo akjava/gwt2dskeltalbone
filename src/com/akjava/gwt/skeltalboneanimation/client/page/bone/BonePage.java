@@ -567,12 +567,31 @@ settings.setBone(newRoot);
 			TwoDimensionBone bone=boneSelectedOnCanvas;
 			
 			if(bone==getRootBone()){
+				
+				//rotate root
+				if( canvasControler.isRightMouse()&&vectorX!=0){
+					bone.rotateChildrens(vectorX);
+					updateBoneDatas();
+				}
+				
+				
 				return;//rootBone is fixed,so far.
 			}
+			//other bone moving
+			if(canvasControler.isRightMouse()){
+				if(vectorX!=0){
+					bone.rotateChildrens(vectorX);
+					updateBoneDatas();
+				}
+				return;
+			}
+			
+			//normal xy-move
 			
 			bone.setX(bone.getX()+vectorX);
 			bone.setY(bone.getY()+vectorY);
 			
+			//move only selection
 			if(canvasControler.isShiftKeyDown()){
 				for(TwoDimensionBone child:bone.getChildren()){
 					child.setX(child.getX()-vectorX);

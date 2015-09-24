@@ -12,12 +12,14 @@ import com.akjava.gwt.html5.client.file.FileReader;
 import com.akjava.gwt.html5.client.file.FileUploadForm;
 import com.akjava.gwt.html5.client.file.FileUtils;
 import com.akjava.gwt.html5.client.file.FileUtils.DataArrayListener;
+import com.akjava.gwt.html5.client.file.FileUtils.DataURLListener;
 import com.akjava.gwt.html5.client.file.Uint8Array;
 import com.akjava.gwt.jszip.client.JSFile;
 import com.akjava.gwt.jszip.client.JSZip;
 import com.akjava.gwt.jszip.client.JSZipUtils;
 import com.akjava.gwt.lib.client.CanvasUtils;
 import com.akjava.gwt.lib.client.GWTHTMLUtils;
+import com.akjava.gwt.lib.client.ImageElementUtils;
 import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.lib.client.experimental.CanvasDragMoveControler;
 import com.akjava.gwt.lib.client.experimental.CanvasMoveListener;
@@ -51,9 +53,11 @@ import com.akjava.lib.common.graphics.Rect;
 import com.akjava.lib.common.utils.CSVUtils;
 import com.akjava.lib.common.utils.FileNames;
 import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
 import com.google.common.base.Stopwatch;
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.dom.client.CanvasElement;
+import com.google.gwt.dom.client.ImageElement;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.MouseWheelEvent;
@@ -61,6 +65,7 @@ import com.google.gwt.event.dom.client.MouseWheelHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.ui.Anchor;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.DialogBox;
@@ -250,6 +255,39 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName{
 		
 		return panel;
 	}
+	
+	private String bg2Name;
+	private ImageElement bg2;
+	private boolean drawBG2=true;
+	private Widget createBackground2ColumnButtons() {
+		HorizontalPanel panel=new HorizontalPanel();
+		panel.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
+		panel.add(new Label("[Background2] "));
+		
+		FileUploadForm upload=FileUtils.createSingleFileUploadForm(new DataURLListener() {
+			
+			@Override
+			public void uploaded(File file, String text) {
+				bg2=ImageElementUtils.create(text);
+				bg2Name=file.getFileName();
+				updateCanvas();
+			}
+		});
+		panel.add(upload);
+		final CheckBox check=new CheckBox("draw bg2");
+		check.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
+
+			@Override
+			public void onValueChange(ValueChangeEvent<Boolean> event) {
+				drawBG2=event.getValue();
+				updateCanvas();
+			}
+			
+		});
+		check.setValue(true);
+		panel.add(check);
+		return panel;
+	}
 	private TextureData textureData;
 	protected void doLoadTexture(String name,JSZip zip) {
 		
@@ -263,6 +301,8 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName{
 	
 	private void setNewBoneAndAnimation(TwoDimensionBone newRoot,SkeletalAnimation animations){
 		setRootBone(newRoot);
+		
+		boneSelectionOnCanvas=null;
 		
 		if(animations==null || animations.getFrames().size()==0){
 			LogUtils.log("animation null or empty");
@@ -615,8 +655,15 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName{
 
 
 	protected void updateCanvas() {
+		
+		
 		//LogUtils.log("update-canvas");
 		CanvasUtils.clear(canvas);
+		
+		if(drawBG2 && bg2!=null){
+			CanvasUtils.drawCenter(canvas, bg2);
+		}
+		
 		//painter.paintBone(currentSelectionFrame);
 		//TODO paint textures
 		
@@ -715,74 +762,81 @@ private void initializeConvetedCanvas(){
 	}
 	
 }
+
+private void drawTextureData(Canvas canvas){
+
+	bonePositionControler.updateBoth(currentSelectionFrame);//TODO update on value changed only
+	//TODO add show bone check
+	//TODO make class,it's hard to understand
+	 List<BoneWithXYAngle> emptyBonePosition=bonePositionControler.getRawInitialData();
+	 List<BoneWithXYAngle> movedBonePosition=bonePositionControler.getRawAnimationedData();
+	 
+	
+	
+	//int offsetX=painter.getOffsetX();
+	//int offsetY=painter.getOffsetY();
+	
+	int offsetX=bonePositionControler.getSettings().getOffsetX();
+	int offsetY=bonePositionControler.getSettings().getOffsetY();
+	
+	List<ImageDrawingData> imageDrawingDatas=textureData.getImageDrawingDatas();
+	for(int i=0;i<imageDrawingDatas.size();i++){
+		ImageDrawingData data=imageDrawingDatas.get(i);
+		if(!data.isVisible()){
+			continue;
+		}
+		
+		String boneName=data.getBoneName();
+		
+	
+		
+		int boneIndex=findIndex(movedBonePosition,boneName);
+		
+		if(boneIndex==-1){
+			//noindex
+			continue;
+		}
+		
+		int boneX=(int)emptyBonePosition.get(boneIndex).getX();
+		int boneY=(int)emptyBonePosition.get(boneIndex).getY();
+		
+		int movedX=(int)movedBonePosition.get(boneIndex).getX();
+		int movedY=(int)movedBonePosition.get(boneIndex).getY();
+		
+		
+		
+		//LogUtils.log(boneX+","+boneY+","+movedX+","+movedY);
+		double angle=movedBonePosition.get(boneIndex).getAngle();
+		
+		
+		if(!data.isVisible()){
+			continue;
+		}
+		initializeConvetedCanvas();
+		
+		Canvas converted=convertedDatas.get(i);
+		
+		int diffX=(boneX+offsetX)-(data.getX()-converted.getCoordinateSpaceWidth()/2);
+		int diffY=(boneY+offsetY)-(data.getY()-converted.getCoordinateSpaceHeight()/2);
+		
+		
+		int imageX=(int)(data.getX()-converted.getCoordinateSpaceWidth()/2)-(boneX+offsetX); //
+		int imageY=(int)(data.getY()-converted.getCoordinateSpaceHeight()/2)-(boneY+offsetY);//
+		//LogUtils.log(imageX+","+imageY);
+		
+		drawImageAt(canvas,converted.getCanvasElement(),movedX+offsetX-diffX,movedY+offsetY-diffY,diffX,diffY,angle);
+		//canvas.getContext2d().drawImage(converted.getCanvasElement(), (int)(data.getX()-converted.getCoordinateSpaceWidth()/2), (int)(data.getY()-converted.getCoordinateSpaceHeight()/2));
+		//
+	}
+	
+}
+
 private void updateCanvasOnAnimation() {
 		
 		
 		//switch mode
 		if(textureData!=null){
-		bonePositionControler.updateBoth(currentSelectionFrame);//TODO update on value changed only
-		//TODO add show bone check
-		//TODO make class,it's hard to understand
-		 List<BoneWithXYAngle> emptyBonePosition=bonePositionControler.getRawInitialData();
-		 List<BoneWithXYAngle> movedBonePosition=bonePositionControler.getRawAnimationedData();
-		 
-		
-		
-		//int offsetX=painter.getOffsetX();
-		//int offsetY=painter.getOffsetY();
-		
-		int offsetX=bonePositionControler.getSettings().getOffsetX();
-		int offsetY=bonePositionControler.getSettings().getOffsetY();
-		
-		List<ImageDrawingData> imageDrawingDatas=textureData.getImageDrawingDatas();
-		for(int i=0;i<imageDrawingDatas.size();i++){
-			ImageDrawingData data=imageDrawingDatas.get(i);
-			if(!data.isVisible()){
-				continue;
-			}
-			
-			String boneName=data.getBoneName();
-			
-		
-			
-			int boneIndex=findIndex(movedBonePosition,boneName);
-			
-			if(boneIndex==-1){
-				//noindex
-				continue;
-			}
-			
-			int boneX=(int)emptyBonePosition.get(boneIndex).getX();
-			int boneY=(int)emptyBonePosition.get(boneIndex).getY();
-			
-			int movedX=(int)movedBonePosition.get(boneIndex).getX();
-			int movedY=(int)movedBonePosition.get(boneIndex).getY();
-			
-			
-			
-			//LogUtils.log(boneX+","+boneY+","+movedX+","+movedY);
-			double angle=movedBonePosition.get(boneIndex).getAngle();
-			
-			
-			if(!data.isVisible()){
-				continue;
-			}
-			initializeConvetedCanvas();
-			
-			Canvas converted=convertedDatas.get(i);
-			
-			int diffX=(boneX+offsetX)-(data.getX()-converted.getCoordinateSpaceWidth()/2);
-			int diffY=(boneY+offsetY)-(data.getY()-converted.getCoordinateSpaceHeight()/2);
-			
-			
-			int imageX=(int)(data.getX()-converted.getCoordinateSpaceWidth()/2)-(boneX+offsetX); //
-			int imageY=(int)(data.getY()-converted.getCoordinateSpaceHeight()/2)-(boneY+offsetY);//
-			//LogUtils.log(imageX+","+imageY);
-			
-			drawImageAt(canvas,converted.getCanvasElement(),movedX+offsetX-diffX,movedY+offsetY-diffY,diffX,diffY,angle);
-			//canvas.getContext2d().drawImage(converted.getCanvasElement(), (int)(data.getX()-converted.getCoordinateSpaceWidth()/2), (int)(data.getY()-converted.getCoordinateSpaceHeight()/2));
-			//
-		}
+			drawTextureData(canvas);
 		}
 		
 		if(showBoneCheck.getValue()){
@@ -1005,6 +1059,22 @@ public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvas
 			}
 		}));
 	    
+Button extractImageBt=new Button("Draw Frame",new ClickHandler() {
+			
+			@Override
+			public void onClick(ClickEvent event) {
+				
+				Canvas extractCanvas=CanvasUtils.copyToSizeOnly(canvas,null);
+				drawTextureData(extractCanvas);
+				//background.getBackgroundData().draw(extractCanvas);
+				String dataUrl=extractCanvas.toDataUrl();
+				Anchor a=HTML5Download.get().generateBase64DownloadLink(dataUrl, "image/png", "bone-frame.png", "background", true);
+				downloadLinks.add(a);
+				
+			}
+		});
+upper.add(extractImageBt);
+	    
 	    
 	   
 		
@@ -1013,7 +1083,7 @@ public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvas
 		panel.add(createFirstColumnButtons());
 		panel.add(createBonesColumnButtons());
 		panel.add(createTextureColumnButtons());
-	    
+		panel.add(createBackground2ColumnButtons());
 	    
 	    
 	panel.add(canvas);
@@ -1042,11 +1112,16 @@ public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvas
 			TextureData textureData=new TextureDataConverter().convert(zip);
 			manager.getFileManagerBar().setTexture(name, textureData);
 			
-			//
+			//this call background & bone
 			ClipImageData clipImageData=new ClipImageDataConverter().convert(zip);
 			manager.getFileManagerBar().setClipImageData(name, clipImageData);
 			
-			//this call background & bone
+			Optional<ImageElement> bg2Image=JSZipUtils.getImagheFile(zip, SkeltalFileFormat.BACKGROUND_IMAGE2);
+			for(ImageElement image:bg2Image.asSet()){
+				bg2=image;
+				updateCanvas();
+			}
+			
 			
 		}else{
 			Blob blob=Blob.createBlob(array, "plain/text");
@@ -1091,6 +1166,13 @@ public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvas
 		
 		String animationText=createAnimationSaveData();
 		jszip.file(SkeltalFileFormat.ANIMATION_FILE, animationText);
+		
+		//bg2
+		if(bg2!=null){
+			//TODO support differenct format
+			JSZipUtils.createImageFile(jszip, SkeltalFileFormat.BACKGROUND_IMAGE2, bg2);
+		}
+		
 		
 		downloadLinks.add(JSZipUtils.createDownloadAnchor(jszip, "2dbone-all-data.zip", "download", true));
 	

@@ -61,6 +61,7 @@ import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Panel;
+import com.google.gwt.user.client.ui.RadioButton;
 import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
@@ -174,6 +175,9 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 	}
 	
 	
+	/*
+	 * create each bone area without locked,root is specially creating circle area
+	 */
 	protected void doCreateClipDataFromBone() {
 		for(TwoDimensionBone rootBone:getRootBone().asSet()){
 			List<TwoDimensionBone> bones=BoneUtils.getAllBone(rootBone);
@@ -188,10 +192,27 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 						clip.setBone(bone.getName());
 						cellObjects.addItem(clip);
 					}
+				}else if(bone.getParent()==null && !bone.isLocked()){
+					//Bone is circle
+					PointXY selfPoint=boneControler.getBoneInitialPosition(bone).get();
+					int width=40;
+					int max=6;
+					PointXY base=new PointXY(0,-width);
+					ClipData clip=new ClipData();
+					
+					for(int i=0;i<max;i++){
+						int angle=360/max;
+						PointXY newPoint=BoneUtils.turnedAngle(base.copy(), angle*i);
+						clip.addPoint(newPoint.incrementXY(selfPoint.x, selfPoint.y));
+					}
+					clip.setBone(bone.getName());
+					cellObjects.addItem(clip);
+					
 				}
 			}
 			//BoneUtils.
 		}
+		updateCanvas();
 	}
 
 
@@ -572,17 +593,65 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 	}
 
 
+	private void drawBackground(Canvas canvas){
+
+		canvas.getContext2d().save();
+		
+		
+		//there are 
+		if(drawMode==BOTH){
+			background.draw(canvas);
+		}else if(drawMode==OUTSIDE){
+			background.draw(canvas);
+			canvas.getContext2d().setGlobalCompositeOperation("destination-out");
+			canvas.getContext2d().setFillStyle("#000");
+			
+			
+			for(ClipData data:cellObjects.getDatas()){
+				List<PointXY> pts=data.getPoints();
+				if(data.getPoints().size()>2){
+					canvas.getContext2d().beginPath();
+					canvas.getContext2d().moveTo(pts.get(pts.size()-1).getX(), pts.get(pts.size()-1).getY());
+					for(PointXY pt:data.getPoints()){
+						canvas.getContext2d().lineTo(pt.getX(),pt.getY());
+					}
+					canvas.getContext2d().closePath();
+					canvas.getContext2d().fill();
+				}
+				
+			}
+			
+		}else if(drawMode==INSIDE){
+			for(ClipData data:cellObjects.getDatas()){
+				List<PointXY> pts=data.getPoints();
+				if(data.getPoints().size()>2){
+					canvas.getContext2d().beginPath();
+					canvas.getContext2d().moveTo(pts.get(pts.size()-1).getX(), pts.get(pts.size()-1).getY());
+					for(PointXY pt:data.getPoints()){
+						canvas.getContext2d().lineTo(pt.getX(),pt.getY());
+					}
+					canvas.getContext2d().closePath();
+					canvas.getContext2d().save();
+					canvas.getContext2d().clip();
+					background.draw(canvas);
+					canvas.getContext2d().restore();
+				}
+				
+			}
+		}
+		
+		canvas.getContext2d().restore();
+		
+	}
+	
 	@Override
 	protected void updateCanvas() {
 		CanvasUtils.clear(canvas);
 		
-		background.draw(canvas);
-		
-		
 		ClipData selection=getSelection();
 		
 		
-		
+		drawBackground(canvas);
 		
 		
 		
@@ -1099,7 +1168,8 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 			public void onClick(ClickEvent event) {
 				
 				Canvas extractCanvas=CanvasUtils.copyToSizeOnly(canvas,null);
-				background.getBackgroundData().draw(extractCanvas);
+				drawBackground(extractCanvas);
+				//background.getBackgroundData().draw(extractCanvas);
 				String dataUrl=extractCanvas.toDataUrl();
 				Anchor a=HTML5Download.get().generateBase64DownloadLink(dataUrl, "image/png", "bone-bg.png", "background", true);
 				downloadLinks.add(a);
@@ -1110,11 +1180,101 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		});
 		panel.add(extractImageBt);
 		
+		panel.add(new Label("Mode"));
+		
+		RadioButton both=new RadioButton("draw-mode", "both");
+		both.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
+			@Override
+			public void onValueChange(ValueChangeEvent<Boolean> event) {
+				
+					drawMode=BOTH;
+					updateCanvas();
+				
+			}
+		});
+		RadioButton inside=new RadioButton("draw-mode", "inside");
+		inside.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
+			@Override
+			public void onValueChange(ValueChangeEvent<Boolean> event) {
+				
+				
+					drawMode=INSIDE;
+					updateCanvas();
+				
+			}
+		});
+		RadioButton outside=new RadioButton("draw-mode", "outside");
+		outside.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
+			@Override
+			public void onValueChange(ValueChangeEvent<Boolean> event) {
+				
+					drawMode=OUTSIDE;
+					updateCanvas();
+				
+			}
+		});
+		panel.add(both);
+		both.setValue(true);
+		panel.add(inside);
+		panel.add(outside);
+		/*
+		CheckBox clipCheck=new CheckBox("showClipedAreaOnly");
+		panel.add(clipCheck);
+		clipCheck.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
+
+			@Override
+			public void onValueChange(ValueChangeEvent<Boolean> event) {
+				showClipedAreaOnly=event.getValue();
+				updateCanvas();
+			}
+		});
+		*/
+		/*
+		Button extractRemainImageBt=new Button("Extract RemainBG",new ClickHandler() {
+			
+			@Override
+			public void onClick(ClickEvent event) {
+				
+				Canvas extractCanvas=CanvasUtils.copyToSizeOnly(canvas,null);
+				background.getBackgroundData().draw(extractCanvas);
+				
+				extractCanvas.getContext2d().setFillStyle("#000");
+				extractCanvas.getContext2d().beginPath();
+				extractCanvas.getContext2d().setGlobalCompositeOperation("destination-out");
+				for(ClipData data:cellObjects.getDatas()){
+					List<PointXY> pts=data.getPoints();
+					if(data.getPoints().size()>2){
+						extractCanvas.getContext2d().moveTo(pts.get(pts.size()-1).getX(), pts.get(pts.size()-1).getY());
+						for(PointXY pt:data.getPoints()){
+							extractCanvas.getContext2d().lineTo(pt.getX(),pt.getY());
+						}
+					}
+					
+				}
+				extractCanvas.getContext2d().closePath();
+				extractCanvas.getContext2d().fill();
+				
+				
+				String dataUrl=extractCanvas.toDataUrl();
+				Anchor a=HTML5Download.get().generateBase64DownloadLink(dataUrl, "image/png", "bone-remain-bg.png", "background", true);
+				downloadLinks.add(a);
+				
+				ImageDrawingData data=background.getBackgroundData();
+				manager.getFileManagerBar().setBackground("clip-editor", data);
+			}
+		});
+		panel.add(extractRemainImageBt);
+		*/
 		
 		panel.add(downloadLinks);
 		
 		return panel;
 	}
+	private static final int BOTH=0;
+	private static final int INSIDE=1;
+	private static final int OUTSIDE=2;
+	private int drawMode=BOTH;
+	private boolean showClipedAreaOnly;
 	
 	public String generateBackgroundImage(){
 		Canvas extractCanvas=CanvasUtils.copyToSizeOnly(canvas,null);

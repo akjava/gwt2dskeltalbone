@@ -32,7 +32,10 @@ import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingData;
 import com.akjava.gwt.skeltalboneanimation.client.MainManager;
 import com.akjava.gwt.skeltalboneanimation.client.TextureData;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneAndAnimationData;
+import com.akjava.gwt.skeltalboneanimation.client.page.ListenerSystem.DataChangeListener;
+import com.akjava.gwt.skeltalboneanimation.client.page.ListenerSystem.DataOwner;
 import com.akjava.gwt.skeltalboneanimation.client.page.clippage.PointShape;
+import com.akjava.gwt.skeltalboneanimation.client.page.html5app.InpaintEngine.InpaintListener;
 import com.akjava.lib.common.utils.ColorUtils;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
@@ -800,6 +803,24 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 		});
 		exbuttons.add(drawShapeBt);
 		
+		Button inpaintBt=new Button("Inpaint-Clip",new ClickHandler() {
+			
+			@Override
+			public void onClick(ClickEvent event) {
+				doInpaint(true);
+			}
+		});
+		exbuttons.add(inpaintBt);
+		
+		Button inpaintAllBt=new Button("Inpaint-All",new ClickHandler() {
+			
+			@Override
+			public void onClick(ClickEvent event) {
+				doInpaint(false);
+			}
+		});
+		exbuttons.add(inpaintAllBt);
+		
 		
 		//controler,fist,pre,next,auto-play + time,clear
 		
@@ -979,6 +1000,47 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 		return root;
 	}
 	
+	protected void doInpaint(final boolean clip) {
+		if(selection!=null){
+			InpaintEngine engine=new InpaintEngine();
+			ImageElement image=ImageElementUtils.create(selection.getDataUrl());
+			List<MaskData> masks=Lists.newArrayList(new MaskData());
+			engine.doInpaint(image, 4, masks, new InpaintListener() {
+				
+				@Override
+				public void createMixedImage(String dataUrl) {
+					canvas.getContext2d().save();
+					if(clip){
+						selection.getPointShape().clip(canvas);
+					}
+					CanvasUtils.drawCenter(canvas, ImageElementUtils.create(dataUrl));
+					
+					updateCurrentSelectionDataUrl(canvas.toDataUrl());
+					
+					canvas.getContext2d().restore();
+				}
+				
+				@Override
+				public void createInpainteMaks(String dataUrl) {
+					// TODO Auto-generated method stub
+					
+				}
+				
+				@Override
+				public void createInpaintImage(String dataUrl) {
+					// TODO Auto-generated method stub
+					
+				}
+				
+				@Override
+				public void createGreyScaleMaks(String dataUrl) {
+					// TODO Auto-generated method stub
+					
+				}
+			});
+			
+		}
+	}
 	protected void doSyncAsTexture() {
 		final TextureData textureData=toTextureData();
 		manager.getFileManagerBar().setTexture("transparentIt", textureData);
@@ -1839,8 +1901,43 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 	protected void initialize() {
 		drawShape=true;
 		penSize=16;
+		
+		manager.getTextureOrderSystem().addListener(new DataChangeListener<List<String>>() {
+			@Override
+			public void dataChanged(List<String> data, DataOwner owner) {
+				onTextureOrderChanged(data,owner);
+			}
+		});
+	}
+	
+	private void onTextureOrderChanged(List<String> data, DataOwner owner){
+		List<ImageElementData2> newDatas=Lists.newArrayList();
+		
+		for(String id:data){
+			for(ImageElementData2 finded:findDataByName(id).asSet()){
+				easyCellTableObjects.getDatas().remove(finded);
+				newDatas.add(finded);
+			}
+		}
+		
+		for(ImageElementData2 remain:easyCellTableObjects.getDatas()){
+			newDatas.add(remain);
+		}
+		
+		easyCellTableObjects.setDatas(newDatas);
+		easyCellTableObjects.update();
+		
 	}
 
+	public Optional<ImageElementData2> findDataByName(String id){
+		for(ImageElementData2 data:easyCellTableObjects.getDatas()){
+			if(data.getFileName().equals(id)){
+				return Optional.of(data);
+			}
+		}
+		return Optional.absent();
+	}
+	
 	@Override
 	protected Widget createWestPanel() {
 		// TODO Auto-generated method stub

@@ -4,6 +4,8 @@ import java.util.List;
 
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneAndAnimationData;
 import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
+import com.akjava.gwt.skeltalboneanimation.client.page.ListenerSystem;
+import com.akjava.gwt.skeltalboneanimation.client.page.ListenerSystem.DataOwner;
 import com.akjava.gwt.skeltalboneanimation.client.page.SkeltalBonePage;
 import com.google.common.collect.Lists;
 import com.google.gwt.event.logical.shared.SelectionEvent;
@@ -75,5 +77,16 @@ public BoneAndAnimationData getBoneAndAnimation() {
 private TwoDimensionBone getBone() {
 	return getUploadedFileManager().getBoneAndAnimation().getBone();
 }
+public void setTextureOrder(List<String> names,DataOwner owner){
+	textureOrderSystem.setData(names, owner);	
+}
+
+public ListenerSystem<List<String>> textureOrderSystem=new ListenerSystem<List<String>>();
+
+public ListenerSystem<List<String>> getTextureOrderSystem() {
+	return textureOrderSystem;
+}
+
+
 
 }

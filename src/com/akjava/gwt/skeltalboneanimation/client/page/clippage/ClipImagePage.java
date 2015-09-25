@@ -33,12 +33,17 @@ import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
 import com.akjava.gwt.skeltalboneanimation.client.converters.ClipImageDataConverter;
 import com.akjava.gwt.skeltalboneanimation.client.converters.TextureDataConverter;
 import com.akjava.gwt.skeltalboneanimation.client.page.AbstractPage;
+import com.akjava.gwt.skeltalboneanimation.client.page.ListenerSystem.DataChangeListener;
+import com.akjava.gwt.skeltalboneanimation.client.page.ListenerSystem.DataOwner;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.BoneControler;
+import com.akjava.gwt.skeltalboneanimation.client.page.html5app.ImageElementData2;
 import com.akjava.gwt.skeltalboneanimation.client.page.html5app.TransparentItPage;
 import com.akjava.lib.common.graphics.Rect;
+import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.canvas.dom.client.Context2d;
@@ -68,7 +73,7 @@ import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 
-public class ClipImagePage extends AbstractPage {
+public class ClipImagePage extends AbstractPage implements DataOwner{
 	 interface Driver extends SimpleBeanEditorDriver< ClipData,  ClipDataEditor> {}
 	
 	 //dont initialize here
@@ -994,6 +999,15 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 			}));
 			add(movePanel);
 			
+			movePanel.add(new Button("Sync others",new ClickHandler() {
+				
+				@Override
+				public void onClick(ClickEvent event) {
+					doSyncTextureOrder();
+				}
+			}));
+			add(movePanel);
+			
 			add(new Label("high-Green dot is last point.insert at white box"));
 			
 			HorizontalPanel panel=new HorizontalPanel();
@@ -1038,6 +1052,8 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 			
 		}
 		
+		
+
 		protected void doInsertPoint() {
 			if(!isClipDataSelected() || selectionPt==null){
 				return;
@@ -1116,7 +1132,14 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 				
 			}
 	}
-	
+	protected void doSyncTextureOrder() {
+		List<String> names=FluentIterable.from(cellObjects.getDatas()).transform(new Function<ClipData,String>(){
+			@Override
+			public String apply(ClipData input) {
+				return input.getBone();
+			}}).toList();
+		manager.setTextureOrder(names, this);
+	}
 	
 	private HorizontalPanel downloadLinks;
 	
@@ -1407,15 +1430,54 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 
 	@Override
 	protected void initialize() {
+		manager.getTextureOrderSystem().addListener(new DataChangeListener<List<String>>() {
+			@Override
+			public void dataChanged(List<String> data, DataOwner owner) {
+				onTextureOrderChanged(data,owner);
+			}
+		});
+	}
+	public Optional<ClipData> findDataById(String id){
+		for(ClipData clip:cellObjects.getDatas()){
+			if(clip.getBone().equals(id)){
+				return Optional.of(clip);
+			}
+		}
+		return Optional.absent();
+	}
+	private void onTextureOrderChanged(List<String> data, DataOwner owner){
+		if(owner==this){ //called by myself no need to change
+			return;
+		}
+		List<ClipData> newDatas=Lists.newArrayList();
+		
+		for(String id:data){
+			for(ClipData finded:findDataById(id).asSet()){
+				cellObjects.getDatas().remove(finded);
+				newDatas.add(finded);
+			}
+		}
+		
+		for(ClipData remain:cellObjects.getDatas()){
+			newDatas.add(remain);
+		}
+		
+		cellObjects.setDatas(newDatas);
+		cellObjects.update();
+		
+	}
+
+	@Override
+	protected void onTextureDataChanged(TextureData textureData) {
 		// TODO Auto-generated method stub
 		
 	}
 
 
 	@Override
-	protected void onTextureDataChanged(TextureData textureData) {
+	public String getName() {
 		// TODO Auto-generated method stub
-		
+		return "Clip-Editor";
 	}
 
 

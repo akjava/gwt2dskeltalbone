@@ -39,12 +39,18 @@ import com.akjava.gwt.skeltalboneanimation.client.converters.TextureDataConverte
 import com.akjava.gwt.skeltalboneanimation.client.page.AbstractPage;
 import com.akjava.gwt.skeltalboneanimation.client.page.CircleLineBonePainter;
 import com.akjava.gwt.skeltalboneanimation.client.page.HasSelectionName;
+import com.akjava.gwt.skeltalboneanimation.client.page.ListenerSystem.DataChangeListener;
+import com.akjava.gwt.skeltalboneanimation.client.page.ListenerSystem.DataOwner;
 import com.akjava.gwt.skeltalboneanimation.client.page.SimpleBoneEditorPage.FlushTextBox;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.BoneControler;
+import com.akjava.gwt.skeltalboneanimation.client.page.clippage.ClipData;
 import com.akjava.gwt.skeltalboneanimation.client.ui.LabeledInputRangeWidget;
 import com.akjava.lib.common.utils.CSVUtils;
 import com.akjava.lib.common.utils.FileNames;
 import com.akjava.lib.common.utils.ValuesUtils;
+import com.google.common.base.Function;
+import com.google.common.base.Optional;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.core.client.GWT;
@@ -76,7 +82,7 @@ import com.google.gwt.user.client.ui.ValueListBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 
-public class TexturePage extends AbstractPage implements HasSelectionName{
+public class TexturePage extends AbstractPage implements HasSelectionName, DataOwner{
 	
 private Canvas canvas;
 private CanvasDragMoveControler canvasControler;
@@ -144,6 +150,15 @@ public ImageDrawingDataEditor(){
 			}
 			drawingDataObjects.bottomItem(value);
 			updateCanvas();
+		}
+	}));
+	add(movePanel);
+	
+	movePanel.add(new Button("Sync others",new ClickHandler() {
+		
+		@Override
+		public void onClick(ClickEvent event) {
+			doSyncTextureOrder();
 		}
 	}));
 	add(movePanel);
@@ -412,8 +427,54 @@ public void setBoneNames(List<String> names){
 		 driver = GWT.create(Driver.class);
 		 convertedDatas=new ArrayList<Canvas>();
 		 background=new Background();
+		 
+			manager.getTextureOrderSystem().addListener(new DataChangeListener<List<String>>() {
+				@Override
+				public void dataChanged(List<String> data, DataOwner owner) {
+					onTextureOrderChanged(data,owner);
+				}
+			});
 	}
 
+	protected void doSyncTextureOrder() {
+		List<String> names=FluentIterable.from(drawingDataObjects.getDatas()).transform(new Function<ImageDrawingData,String>(){
+			@Override
+			public String apply(ImageDrawingData input) {
+				return input.getId();
+			}}).toList();
+		manager.setTextureOrder(names, this);
+	}
+
+	public Optional<ImageDrawingData> findDataById(String id){
+		for(ImageDrawingData clip:drawingDataObjects.getDatas()){
+			if(clip.getId().equals(id)){
+				return Optional.of(clip);
+			}
+		}
+		return Optional.absent();
+	}
+	private void onTextureOrderChanged(List<String> data, DataOwner owner){
+		if(owner==this){ //called by myself no need to change
+			return;
+		}
+		List<ImageDrawingData> newDatas=Lists.newArrayList();
+		
+		for(String id:data){
+			for(ImageDrawingData finded:findDataById(id).asSet()){
+				drawingDataObjects.getDatas().remove(finded);
+				newDatas.add(finded);
+			}
+		}
+		
+		for(ImageDrawingData remain:drawingDataObjects.getDatas()){
+			newDatas.add(remain);
+		}
+		
+		drawingDataObjects.setDatas(newDatas);
+		drawingDataObjects.update();
+		
+	}
+	
 	@Override
 	protected Widget createCenterPanel() {
 		VerticalPanel panel=new VerticalPanel();
@@ -1533,6 +1594,11 @@ if(modeAnimation){
 	protected void updateDatas() {
 		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public String getName() {
+		return "Texture-Editor";
 	}
 
 	

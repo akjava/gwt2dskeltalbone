@@ -8,6 +8,7 @@ import com.akjava.lib.common.graphics.Rect;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 
+//TODO need id otherwise can't multi clip on bone.
 public class ClipData {
 public static int DEFAULT_EXPAND=64;
 public static  int dotSize=10;

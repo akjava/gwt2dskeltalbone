@@ -29,6 +29,11 @@ public void stroke(String style,Canvas canvas){
 	canvas.getContext2d().stroke();
 }
 
+public void clip(Canvas canvas){
+	makePath(canvas);
+	canvas.getContext2d().clip();
+}
+
 public void makePath(Canvas canvas){
 	if(points.isEmpty()){
 		return;

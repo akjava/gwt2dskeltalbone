@@ -153,7 +153,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		
 		HorizontalPanel buttons2=new HorizontalPanel();
 		root.add(buttons2);
-		CheckBox drawBoundsCheck=new CheckBox("draw bounds");
+		final CheckBox drawBoundsCheck=new CheckBox("draw bounds");
 		drawBoundsCheck.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
 
 			@Override
@@ -165,7 +165,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		});
 		buttons2.add(drawBoundsCheck);
 		
-		CheckBox drawSelectionOnlyCheck=new CheckBox("draw selection-only");
+		final CheckBox drawSelectionOnlyCheck=new CheckBox("draw selection-only");
 		drawSelectionOnlyCheck.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
 
 			@Override
@@ -176,6 +176,10 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 			
 		});
 		buttons2.add(drawSelectionOnlyCheck);
+		
+		//no need preview,because without other-posing,image quality is best.no difference order.
+		
+		
 		return root;
 	}
 	private boolean drawBounds;
@@ -944,46 +948,6 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		ClipData value;
 		private BoneListBox boneList;
 		public ClipDataEditor(){
-			add(new Label("high-Green dot is last point.insert at white box"));
-			
-			HorizontalPanel panel=new HorizontalPanel();
-			panel.setVerticalAlignment(ALIGN_MIDDLE);
-			Button insertPointBt=new Button("Insert Point",new ClickHandler() {
-				
-				@Override
-				public void onClick(ClickEvent event) {
-					doInsertPoint();
-				}
-			});
-			panel.add(insertPointBt);
-			
-			Button removePointBt=new Button("Remove Point",new ClickHandler() {
-				
-				@Override
-				public void onClick(ClickEvent event) {
-					doRemovePoint();
-				}
-			});
-			panel.add(removePointBt);
-			add(panel);
-			
-			
-			HorizontalPanel h1=new HorizontalPanel();
-			h1.setVerticalAlignment(ALIGN_MIDDLE);
-			h1.add(new Label("bone:"));
-			add(h1);
-			
-			boneList=new BoneListBox();
-			boneList.addValueChangeHandler(new ValueChangeHandler<TwoDimensionBone>() {
-				
-				@Override
-				public void onValueChange(ValueChangeEvent<TwoDimensionBone> event) {
-					flush();
-				}
-			});
-			h1.add(boneList);
-			boneList.setEnabled(false);
-			
 			
 			HorizontalPanel movePanel=new HorizontalPanel();
 			movePanel.add(new Button("Top",new ClickHandler() {
@@ -1031,6 +995,49 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 				}
 			}));
 			add(movePanel);
+			
+			add(new Label("high-Green dot is last point.insert at white box"));
+			
+			HorizontalPanel panel=new HorizontalPanel();
+			panel.setVerticalAlignment(ALIGN_MIDDLE);
+			Button insertPointBt=new Button("Insert Point",new ClickHandler() {
+				
+				@Override
+				public void onClick(ClickEvent event) {
+					doInsertPoint();
+				}
+			});
+			panel.add(insertPointBt);
+			
+			Button removePointBt=new Button("Remove Point",new ClickHandler() {
+				
+				@Override
+				public void onClick(ClickEvent event) {
+					doRemovePoint();
+				}
+			});
+			panel.add(removePointBt);
+			add(panel);
+			
+			
+			HorizontalPanel h1=new HorizontalPanel();
+			h1.setVerticalAlignment(ALIGN_MIDDLE);
+			h1.add(new Label("bone:"));
+			add(h1);
+			
+			boneList=new BoneListBox();
+			boneList.addValueChangeHandler(new ValueChangeHandler<TwoDimensionBone>() {
+				
+				@Override
+				public void onValueChange(ValueChangeEvent<TwoDimensionBone> event) {
+					flush();
+				}
+			});
+			h1.add(boneList);
+			boneList.setEnabled(false);
+			
+			
+			
 		}
 		
 		protected void doInsertPoint() {

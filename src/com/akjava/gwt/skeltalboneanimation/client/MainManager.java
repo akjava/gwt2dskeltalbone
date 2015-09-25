@@ -2,6 +2,7 @@ package com.akjava.gwt.skeltalboneanimation.client;
 
 import java.util.List;
 
+import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
 import com.akjava.gwt.skeltalboneanimation.client.page.SkeltalBonePage;
 import com.google.common.collect.Lists;
 import com.google.gwt.event.logical.shared.SelectionEvent;
@@ -53,6 +54,21 @@ public SkeltalBonePage getPageAt(int index){
 public boolean isSelected(SkeltalBonePage page){
 	int index=pages.indexOf(page);
 	return index==tab.getSelectedIndex();
+}
+
+public void setTextureData(String fileName,TextureData textureData){
+	getFileManagerBar().setTexture(fileName, textureData);
+}
+public TextureData getTextureData(){
+	//sync bone-new
+	
+	TextureData data= getUploadedFileManager().getTextureData();
+	data.setBone(getBone());
+	return data;
+}
+
+private TwoDimensionBone getBone() {
+	return getUploadedFileManager().getBoneAndAnimation().getBone();
 }
 
 }

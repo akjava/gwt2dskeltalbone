@@ -22,6 +22,7 @@ import com.google.gwt.user.client.ui.Widget;
 
 public abstract class AbstractPage extends DockLayoutPanel implements SkeltalBonePage{
 protected MainManager manager;
+protected int westPanelWidth=300;
 	public AbstractPage(final MainManager manager){
 		super(Unit.PX);
 		this.manager=manager;
@@ -31,7 +32,7 @@ protected MainManager manager;
 		
 		Widget westWidget=createWestPanel();
 		if(westWidget!=null){
-			this.addWest(westWidget,300);
+			this.addWest(westWidget,westPanelWidth);
 		}else{
 			LogUtils.log("AbstractPage:west-widget is null");
 		}

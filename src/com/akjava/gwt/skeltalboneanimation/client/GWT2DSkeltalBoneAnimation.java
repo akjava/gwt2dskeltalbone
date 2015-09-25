@@ -7,6 +7,7 @@ import com.akjava.gwt.skeltalboneanimation.client.page.animation.AnimationPage;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.BonePage;
 import com.akjava.gwt.skeltalboneanimation.client.page.clippage.ClipImagePage;
 import com.akjava.gwt.skeltalboneanimation.client.page.html5app.TransparentItPage;
+import com.akjava.gwt.skeltalboneanimation.client.page.texture.TexturePage;
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.user.client.ui.DockLayoutPanel;
@@ -64,6 +65,7 @@ public class GWT2DSkeltalBoneAnimation implements EntryPoint {
 		tab.add(new BonePage(manager),"Bone");
 		tab.add(new AnimationPage(manager),"Animation");
 		
+		//clip & transparent is not so popular action,so connect directly
 		ClipImagePage clip=new ClipImagePage(manager);
 		tab.add(clip,"Clip");
 		
@@ -72,6 +74,7 @@ public class GWT2DSkeltalBoneAnimation implements EntryPoint {
 		clip.setTransparentItPage(trasparent);
 		
 		//add everything inside
+		tab.add(new TexturePage(manager),"Texture");
 		
 		root.add(tab);
 		//advanced
@@ -87,12 +90,14 @@ public class GWT2DSkeltalBoneAnimation implements EntryPoint {
 		animationDock2.add(animationPage2);
 		*/
 		
+		/*
 		DockLayoutPanel textureDock2=new DockLayoutPanel(Unit.PX);
 		tab.add(textureDock2,"Texture2");
 		SimpleTextureEditorPage2 texturePage2=new SimpleTextureEditorPage2(textureDock2);
 		textureDock2.add(texturePage2);
+		*/
 		
 		
-		tab.selectTab(2);
+		tab.selectTab(4);
 	}
 }

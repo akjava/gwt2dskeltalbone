@@ -32,9 +32,8 @@ import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingData;
 import com.akjava.gwt.skeltalboneanimation.client.MainManager;
 import com.akjava.gwt.skeltalboneanimation.client.TextureData;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneAndAnimationData;
-import com.akjava.gwt.skeltalboneanimation.client.page.clippage.ClipData;
+import com.akjava.gwt.skeltalboneanimation.client.page.clippage.PointShape;
 import com.akjava.lib.common.utils.ColorUtils;
-import com.akjava.lib.common.utils.FileNames;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import com.google.gwt.canvas.client.Canvas;
@@ -166,8 +165,9 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 	public void clearAll(){
 		easyCellTableObjects.clearAllItems();
 	}
-	public void addItem(ImageDrawingData drawingData,String dataUrl){
-		final ImageElementData2 data=new ImageElementData2(drawingData.getId(),drawingData,dataUrl);
+	public void addItem(ImageDrawingData drawingData,String dataUrl,PointShape pointShape){
+		
+		final ImageElementData2 data=new ImageElementData2(drawingData.getId(),drawingData,dataUrl,pointShape);
 		
 		easyCellTableObjects.addItem(data);
 		
@@ -772,36 +772,33 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 		exbuttons.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
 		controler.add(exbuttons);
 		
-		exbuttons.add(new Label(textConstants.BgImage()));
-		final FileUploadForm bgupload=FileUtils.createSingleFileUploadForm(new DataURLListener() {
-			
-			
+		//TODO below
+		CheckBox drawShapeCheck=new CheckBox("draw-shape");
+		drawShapeCheck.setValue(true);
+		drawShapeCheck.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
 
 			@Override
-			public void uploaded(File file, String asStringText) {
-				bgImage=ImageElementUtils.create(asStringText);
-				
-				updateBgImage(bgImage);
+			public void onValueChange(ValueChangeEvent<Boolean> event) {
+				drawShape=event.getValue();
+				updateCanvas();
 			}
-		}, false);
+			
+		});
+		//exbuttons.add(drawShapeCheck);
+		//TODO as canvas-layer,this is just draw line can't hide
 		
-		exbuttons.add(bgupload);
-		Button reset=new Button(textConstants.Reset_BG(),new ClickHandler() {
+		//this is temporaly and not wrap command
+		Button drawShapeBt=new Button("draw-shape-line",new ClickHandler() {
 			
 			@Override
 			public void onClick(ClickEvent event) {
-				canvas.removeStyleName("newbg");
-				bgImage=null;
-				injectedBgCss.removeFromParent();//can't remove this is just style-text
-				//LogUtils.log(injectedBgCss.getParentElement());
-				//LogUtils.log(injectedBgCss);
-				bgupload.reset();
-				
-				//updateBgStyle();
-				updateCanvas(false);
+				if(selection!=null){
+					selection.getPointShape().stroke("#000", canvas);
+					updateCurrentSelectionDataUrl(canvas.toDataUrl());//
+				}
 			}
 		});
-		exbuttons.add(reset);
+		exbuttons.add(drawShapeBt);
 		
 		
 		//controler,fist,pre,next,auto-play + time,clear
@@ -1248,7 +1245,9 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 		//canvas.getContext2d().translate(originImage.getCoordinateSpaceWidth(), 0); //flip horizontal
 		//canvas.getContext2d().scale(-1, 1);
 		//canvas.getContext2d().transform(-1, 0, 0, 1, 0, 0);
-		canvas.getContext2d().drawImage(selection.getImageElement(), 0, 0);
+		
+		
+		canvas.getContext2d().drawImage(ImageElementUtils.create(selection.getInitialDataUrl()), 0, 0);
 		//canvas.getContext2d().restore();
 		
 		String dataUrl=canvas.toDataUrl("image/png");
@@ -1693,7 +1692,10 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 		
 		CanvasUtils.drawImage(canvas, selectionImage);
 		
+		
 		ImageElementUtils.copytoCanvas(selectionImage, overlayCanvas,false);
+		
+		
 	}
 
 	public abstract class HtmlColumn<T> extends Column<T,SafeHtml>{
@@ -1835,8 +1837,8 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 
 	@Override
 	protected void initialize() {
-		// TODO Auto-generated method stub
-		
+		drawShape=true;
+		penSize=16;
 	}
 
 	@Override
@@ -1853,8 +1855,10 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 
 	@Override
 	protected void updateCanvas() {
-		// TODO Auto-generated method stub
-		
+		//don't call updateCanvas is specially for this page
+		//updateCanvas(true);
 	}
+	
+	private boolean drawShape;
 	
 }

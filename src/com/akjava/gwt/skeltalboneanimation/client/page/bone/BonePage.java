@@ -683,6 +683,14 @@ settings.setBone(newRoot);
 	    */
 	   
 	    
+	    panel.add(new Button("Reload",new ClickHandler() {
+			
+			@Override
+			public void onClick(ClickEvent event) {
+				onBoneAndAnimationChanged(manager.getBoneAndAnimation().copy());
+			}
+		}));
+ 
 	    panel.add(new Button("Save",new ClickHandler() {
 			
 			@Override

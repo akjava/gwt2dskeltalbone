@@ -1,8 +1,6 @@
 package com.akjava.gwt.skeltalboneanimation.client.page.clippage;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import com.akjava.gwt.html5.client.download.HTML5Download;
@@ -562,8 +560,8 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 					}
 				}
 			}
-			
-			transparentItPage.addItem(data, src);
+			PointShape pointShape=new ClipDataToShapeFunction().apply(clip);
+			transparentItPage.addItem(data, src,pointShape);
 		}
 		
 	}
@@ -761,7 +759,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		
 		drawBackground(canvas);
 		
-		
+		boneControler.paintBone();
 		
 		for(ClipData data:cellObjects.getDatas()){
 			
@@ -778,7 +776,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 					RectCanvasUtils.fill(rect, canvas, rectColor);
 					
 					if(pt==selectionPt){
-						rect.expandSelf(8, 8);
+						rect.expandSelf(data.getExpand(),data.getExpand());
 						RectCanvasUtils.stroke(rect, canvas, "#000");
 						
 						
@@ -853,7 +851,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		
 		//bone
 		
-			boneControler.paintBone();
+			
 		
 	}
 

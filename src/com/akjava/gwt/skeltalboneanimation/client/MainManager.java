@@ -2,6 +2,7 @@ package com.akjava.gwt.skeltalboneanimation.client;
 
 import java.util.List;
 
+import com.akjava.gwt.skeltalboneanimation.client.bones.BoneAndAnimationData;
 import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
 import com.akjava.gwt.skeltalboneanimation.client.page.SkeltalBonePage;
 import com.google.common.collect.Lists;
@@ -65,6 +66,10 @@ public TextureData getTextureData(){
 	TextureData data= getUploadedFileManager().getTextureData();
 	data.setBone(getBone());
 	return data;
+}
+
+public BoneAndAnimationData getBoneAndAnimation() {
+	return getUploadedFileManager().getBoneAndAnimation();
 }
 
 private TwoDimensionBone getBone() {

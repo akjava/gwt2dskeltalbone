@@ -15,7 +15,7 @@ import com.google.gwt.canvas.client.Canvas;
 public abstract class BoneControler implements HasSelectionName{
 private Canvas canvas;
 public BoneControler(Canvas canvas) {
-	super();
+	checkNotNull(canvas,"BoneControler:canvas is null");
 	this.canvas = canvas;
 	settings=new CanvasBoneSettings(canvas, null);
 	

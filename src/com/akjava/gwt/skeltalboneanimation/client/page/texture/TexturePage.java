@@ -40,6 +40,7 @@ import com.akjava.gwt.skeltalboneanimation.client.page.AbstractPage;
 import com.akjava.gwt.skeltalboneanimation.client.page.CircleLineBonePainter;
 import com.akjava.gwt.skeltalboneanimation.client.page.HasSelectionName;
 import com.akjava.gwt.skeltalboneanimation.client.page.SimpleBoneEditorPage.FlushTextBox;
+import com.akjava.gwt.skeltalboneanimation.client.page.bone.BoneControler;
 import com.akjava.gwt.skeltalboneanimation.client.ui.LabeledInputRangeWidget;
 import com.akjava.lib.common.utils.CSVUtils;
 import com.akjava.lib.common.utils.FileNames;
@@ -83,6 +84,7 @@ private BonePositionControler bonePositionControler;
 
 interface Driver extends SimpleBeanEditorDriver< ImageDrawingData,  ImageDrawingDataEditor> {}
 Driver driver;
+private BoneControler boneControler;
 
 
 
@@ -383,13 +385,15 @@ public void setBoneNames(List<String> names){
 
 	@Override
 	protected void onBoneAndAnimationChanged(BoneAndAnimationData data) {
-		// TODO Auto-generated method stub
-		
+		if(data.getBone()==null){
+			LogUtils.log("TexturePage:invalidly bone is null");
+		}
+		boneControler.setBone(data.getBone());
 	}
 
 	@Override
 	protected void onBackgroundChanged(ImageDrawingData background) {
-		// TODO Auto-generated method stub
+		// TODO support later
 		
 	}
 
@@ -415,6 +419,9 @@ public void setBoneNames(List<String> names){
 		VerticalPanel panel=new VerticalPanel();
 
 		
+		
+		
+		
 		//cerate default bone
 		TwoDimensionBone rootBone = new TwoDimensionBone("root",0, 0,null);
 		
@@ -427,6 +434,13 @@ public void setBoneNames(List<String> names){
 		 
 		createCanvas();
 		createBoneControls(animations,rootBone,canvas);
+		
+		boneControler =new BoneControler(canvas){
+			@Override
+			public String getSelectionName() {
+				return drawingDataObjects.getSelection()!=null?drawingDataObjects.getSelection().getBoneName():null;
+			}
+		};
 		
 		//createWestPanel(root);
 	
@@ -455,7 +469,13 @@ public void setBoneNames(List<String> names){
 		    
 		   
 		    
-		   
+		    northPanel.add(new Button("Reload",new ClickHandler() {
+				
+				@Override
+				public void onClick(ClickEvent event) {
+					doReloadData();
+				}
+			}));
 		    
 		    
 		    northPanel.add(new Button("Save",new ClickHandler() {
@@ -499,7 +519,7 @@ public void setBoneNames(List<String> names){
 			animations.add(BoneUtils.createEmptyAnimationFrame(getRootBone()));
 			bonePositionControler.updateBoth(currentSelectionFrame);
 		
-		panel.add(createBackgroundButtons());
+		//panel.add(createBackgroundButtons());
 		panel.add(createAnimationLoadButtons());
 		panel.add(createAnimationFrameControlButtons(animations));    
 		
@@ -512,6 +532,10 @@ public void setBoneNames(List<String> names){
 		return panel;
 	}
 	
+
+	protected void doReloadData() {
+		onTextureDataChanged(manager.getTextureData());
+	}
 
 	public void onImageDrawingDataFlush() {
 		drawingDataObjects.update();
@@ -788,7 +812,7 @@ public void setBoneNames(List<String> names){
 			}
 			
 		});
-		panel.add(animationModeToggle);
+		//panel.add(animationModeToggle);
 		
 		
 		
@@ -854,7 +878,7 @@ public void setBoneNames(List<String> names){
 			}, true);
 		    load.setAccept(FileUploadForm.ACCEPT_TXT);
 		
-		panel.add(load);
+		//panel.add(load);
 		
 		Button fromTexture=new Button("from texture-zip-bone",new ClickHandler() {
 			
@@ -874,7 +898,7 @@ public void setBoneNames(List<String> names){
 				}
 			}
 		});
-		panel.add(fromTexture);
+		//panel.add(fromTexture);
 		
 		return panel;
 	}
@@ -987,7 +1011,7 @@ public void setBoneNames(List<String> names){
 	}
 	private boolean shiftDowned;
 	
-	private CircleLineBonePainter painter;
+	//private CircleLineBonePainter painter;
 
 
 	private void createBoneControls(SkeletalAnimation animations,TwoDimensionBone rootBone,final Canvas canvas){
@@ -1004,7 +1028,7 @@ public void setBoneNames(List<String> names){
 		
 		
 		
-		painter = new CircleLineBonePainter(canvas, this, bonePositionControler);
+		//painter = new CircleLineBonePainter(canvas, this, bonePositionControler);
 		
 		
 
@@ -1035,7 +1059,7 @@ public void setBoneNames(List<String> names){
 				updateCanvas();
 			}
 		});
-		panel.add(upload);
+		//panel.add(upload);
 		Button reset=new Button("Clear",new ClickHandler() {
 			
 			@Override
@@ -1044,7 +1068,7 @@ public void setBoneNames(List<String> names){
 				updateCanvas();
 			}
 		});
-		panel.add(reset);
+		//panel.add(reset);
 		
 		
 		panel.add(backgroundVisibleCheck);
@@ -1227,7 +1251,7 @@ if(modeAnimation){
 		
 		if(showBoneCheck.getValue()){
 		canvas.getContext2d().setGlobalAlpha(0.5);
-		painter.paintBone(currentSelectionFrame);
+		//painter.paintBone(currentSelectionFrame);
 		canvas.getContext2d().setGlobalAlpha(1.0);
 		}
 	}
@@ -1243,7 +1267,11 @@ if(modeAnimation){
 			}
 			CanvasUtils.draw(canvas,data.getCornerPoint(),true,color);
 		}
-		painter.paintBone();//bone-last
+		
+		if(showBoneCheck.getValue()){
+			boneControler.paintBone();
+		}
+		//painter.paintBone();//bone-last
 		
 	}
 
@@ -1377,7 +1405,7 @@ if(modeAnimation){
 
 	@Override
 	protected Widget createWestPanel() {
-		LogUtils.log("createWestPanel");
+		
 		VerticalPanel panel=new VerticalPanel();
 
 		panel.setSpacing(2);
@@ -1458,12 +1486,12 @@ if(modeAnimation){
 				imageDataSelectionOnCanvas=selection;//for mouse-wheel-zoom
 			}
 		};
-		LogUtils.log("createWestPanel2");
+		
 		drawingDataEditor = new ImageDrawingDataEditor();
 		driver.initialize(drawingDataEditor);
 		
 		driver.edit(new ImageDrawingData("",null));//dummy for flush
-		LogUtils.log("createWestPanel3");
+	
 		
 		panel.add(drawingDataEditor);
 		

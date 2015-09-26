@@ -620,6 +620,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 			
 				if(penMode==MODE_PICK){
 					doPick(event.getX(), event.getY());
+					startCreateCommand();
 					return ;
 				}
 				
@@ -776,7 +777,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 		controler.add(exbuttons);
 		
 		//TODO below
-		CheckBox drawShapeCheck=new CheckBox("draw-shape");
+		CheckBox drawShapeCheck=new CheckBox("these not undo supported yet draw-shape");
 		drawShapeCheck.setValue(true);
 		drawShapeCheck.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
 
@@ -1190,8 +1191,9 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 		
 		
 		
+		startCreateCommand();//stop using timer,some time end command called before start command;
 		
-		
+		/*
 		//don't do heavy things in onStart
 		Timer timer=new Timer(){//TODO fix it
 			@Override
@@ -1200,11 +1202,12 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 			}
 		};
 		timer.schedule(50);
+		*/
 	}
 	
 	private void startCreateCommand(){
 		DataUriCommand newCommand=new DataUriCommand();
-		if(currentCommand!=null){
+		if(currentCommand!=null && currentCommand.getAfterUri()!=null){
 			newCommand.setBeforeUri(currentCommand.getAfterUri());
 		}else{
 			newCommand.setBeforeUri(selection.getDataUrl());
@@ -1701,6 +1704,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 			redoBt.setEnabled(false);
 			updateCanvas(false);
 		}
+		startCreateCommand();
 	}
 
 	private ImageElement bgImage;

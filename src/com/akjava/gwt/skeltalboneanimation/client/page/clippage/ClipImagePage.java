@@ -781,7 +781,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 					RectCanvasUtils.fill(rect, canvas, rectColor);
 					
 					if(pt==selectionPt){
-						rect.expandSelf(data.getExpand(),data.getExpand());
+						rect.expandSelf(8,8);
 						RectCanvasUtils.stroke(rect, canvas, "#000");
 						
 						
@@ -844,7 +844,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 			if(data==selection || !drawSelectionOnly){
 			if(data.getPoints().size()>2 && drawBounds){
 			Rect boundRect=Rect.fromPoints(data.getPoints());
-			int expand=16;
+			int expand=data.getExpand();
 			boundRect.expandSelf(expand, expand);
 			RectCanvasUtils.stroke(boundRect, canvas, "#444");
 			}

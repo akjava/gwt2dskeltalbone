@@ -1065,6 +1065,11 @@ Button extractImageBt=new Button("Draw Frame",new ClickHandler() {
 			public void onClick(ClickEvent event) {
 				
 				Canvas extractCanvas=CanvasUtils.copyToSizeOnly(canvas,null);
+				
+				if(drawBG2 && bg2!=null){
+					CanvasUtils.drawCenter(extractCanvas, bg2);
+				}
+				
 				drawTextureData(extractCanvas);
 				//background.getBackgroundData().draw(extractCanvas);
 				String dataUrl=extractCanvas.toDataUrl();

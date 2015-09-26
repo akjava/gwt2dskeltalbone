@@ -2,6 +2,7 @@ package com.akjava.gwt.skeltalboneanimation.client;
 
 import java.util.List;
 
+import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneAndAnimationData;
 import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
 import com.akjava.gwt.skeltalboneanimation.client.page.ListenerSystem;
@@ -63,10 +64,10 @@ public void setTextureData(String fileName,TextureData textureData){
 	getFileManagerBar().setTexture(fileName, textureData);
 }
 public TextureData getTextureData(){
-	//sync bone-new
-	
 	TextureData data= getUploadedFileManager().getTextureData();
-	data.setBone(getBone());
+	if(data!=null){
+		data.setBone(getBone());//replace latest bone
+	}
 	return data;
 }
 

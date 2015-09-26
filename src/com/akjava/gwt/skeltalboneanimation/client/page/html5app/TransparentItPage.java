@@ -165,6 +165,12 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 	private ColorBox bgColorPicker;
 
 	
+	public void removeItemById(String id){
+		for(ImageElementData2 data:findDataByName(id).asSet()){
+			easyCellTableObjects.removeItem(data);
+		}
+	}
+	
 	public void clearAll(){
 		easyCellTableObjects.clearAllItems();
 	}
@@ -1333,6 +1339,8 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 		redoBt.setEnabled(false);
 		updateCurrentSelectionDataUrl(dataUrl);
 		
+		updateScale((int)currentScale);
+		
 		LogUtils.log("after-reset:"+canvas.getContext2d().getGlobalCompositeOperation());
 	}
 
@@ -1741,8 +1749,9 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 			undoBt.setEnabled(false);
 			redoBt.setEnabled(false);
 			updateCanvas(false);
+			startCreateCommand();
 		}
-		startCreateCommand();
+		
 	}
 
 	private ImageElement bgImage;
@@ -1952,7 +1961,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 		});
 	}
 	
-	private void onTextureOrderChanged(List<String> data, DataOwner owner){
+	public void onTextureOrderChanged(List<String> data, DataOwner owner){
 		List<ImageElementData2> newDatas=Lists.newArrayList();
 		
 		for(String id:data){

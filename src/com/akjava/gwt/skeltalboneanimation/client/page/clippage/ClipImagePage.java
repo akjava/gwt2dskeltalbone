@@ -3,6 +3,8 @@ package com.akjava.gwt.skeltalboneanimation.client.page.clippage;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.Nullable;
+
 import com.akjava.gwt.html5.client.download.HTML5Download;
 import com.akjava.gwt.html5.client.file.FileUploadForm;
 import com.akjava.gwt.jszip.client.JSZip;
@@ -485,6 +487,9 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		 
 	 };
 	 h4.add(exportAsTexture);
+	 
+	 HorizontalPanel h5=new HorizontalPanel();
+	 panel.add(h5);
 	 Button transparent=new ExecuteButton("transparent"){
 			
 		 @Override
@@ -496,24 +501,95 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		public void executeOnClick() {
 			
 			doTransparent();
+		}
+		 
+	 };
+	 h5.add(transparent);
+	 
+	 Button transparentSelection=new ExecuteButton("transparent selection"){
 			
-			
-			
-			
-			
+		 @Override
+			public void beforeExecute() {
+			 //downloadLinks.clear();
+		 }
+		 
+		@Override
+		public void executeOnClick() {
+			if(isClipDataSelected()){
+				doTransparent(getSelection());
+				//added data's order is invalid,fix it
+				doSyncTextureOrder();
+			}else{
+				LogUtils.log("clip-data not selected.skipped");
+			}
 		}
 		 
 	 };
 	 
 	 
-	 h4.add(transparent);
-	
+	 h5.add(transparentSelection);
 	 
 	
 	
 	 panel.add(downloadLinks);
 	 
 		return panel;
+	}
+	
+	//TODO find create uniq-id-way
+	public String getClipDataId(ClipData data){
+		return data.getBone()!=null?data.getBone():"";
+	}
+	
+	public class TransparentData{
+		ImageDrawingData imageDrawingData;
+		String imageSrc;
+		PointShape pointShape;
+		//TODO add bone
+	}
+	
+	public class ClipDataToTransparentDataFunction implements Function<ClipData, TransparentData>{
+		private TextureData textureData;
+		public ClipDataToTransparentDataFunction(@Nullable TextureData textureData) {
+			super();
+			this.textureData = textureData;
+		}
+		@Override
+		public TransparentData apply(ClipData clip) {
+			TransparentData transParentData=new TransparentData();
+			ImageDrawingData imageDrawingData=convertToImageDrawingData(clip);
+			
+			//use id as image,that why id must be uniq
+			String clippedImageSrc=imageDrawingData.getImageElement().getSrc();//clipped image
+			
+			String notClippedSrc=generateClippedImage(clip,false);
+			imageDrawingData.getImageElement().setSrc(notClippedSrc);//in here imagedrawing using data need clipping but transparent need not clippling data.
+			if(textureData!=null){
+				for(ImageDrawingData textureImage:textureData.findDataById(imageDrawingData.getId()).asSet()){
+					if(ImageElementUtils.isSameSize(imageDrawingData.getImageElement(),textureImage.getImageElement())){
+						//possible texturedata created by clipped-data,use old texture data
+						clippedImageSrc=textureImage.getImageElement().getSrc();
+						}
+				}
+			}
+			PointShape pointShape=new ClipDataToShapeFunction().apply(clip);
+			
+			transParentData.imageDrawingData=imageDrawingData;
+			transParentData.pointShape=pointShape;
+			transParentData.imageSrc=clippedImageSrc;
+			
+			//transparentItPage.addItem(data, clippedImageSrc,pointShape);
+			return transParentData;
+		}
+	}
+	
+	protected void doTransparent(ClipData clipData) {
+
+		TextureData textureData=manager.getTextureData();
+		transparentItPage.removeItemById(getClipDataId(clipData));
+		TransparentData data=new ClipDataToTransparentDataFunction(textureData).apply(clipData);
+		transparentItPage.addItem(data.imageDrawingData, data.imageSrc,data.pointShape);
+		
 	}
 	
 	protected void doTransparent() {
@@ -596,11 +672,12 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		ImageElement element=ImageElementUtils.create(generateClippedImage(clip));
 		
 		
-		ImageDrawingData data=new ImageDrawingData(clip.getBone()!=null?clip.getBone():"", element);
+		ImageDrawingData data=new ImageDrawingData(getClipDataId(clip), element);
 		data.setBoneName(clip.getBone());
 		data.setX((int)pt.getX());
 		data.setY((int)pt.getY());
 		
+		data.setImageName(data.getId()+".png");
 		
 	//	data.incrementX(canvas.getCoordinateSpaceWidth()/2);
 	//	data.incrementY(canvas.getCoordinateSpaceHeight()/2);

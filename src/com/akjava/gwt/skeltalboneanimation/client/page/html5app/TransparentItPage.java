@@ -1207,9 +1207,13 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 		timer.schedule(50);
 		*/
 	}
+	public ImageElementData2 getSelection(){
+		return easyCellTableObjects.getSelection();
+	}
 	
 	private void startCreateCommand(){
 		DataUriCommand newCommand=new DataUriCommand();
+		newCommand.setBeforeSelection(getSelection());
 		if(currentCommand!=null && currentCommand.getAfterUri()!=null){
 			newCommand.setBeforeUri(currentCommand.getAfterUri());
 		}else{
@@ -1220,6 +1224,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 
 	private void endCreateCommand(String dataUrl){
 		if(currentCommand!=null){
+			currentCommand.setAfterSelection(getSelection());
 			currentCommand.setAfterUri(dataUrl);
 			}
 		undoBt.setEnabled(true);
@@ -1314,8 +1319,10 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 		//canvas.getContext2d().scale(-1, 1);
 		//canvas.getContext2d().transform(-1, 0, 0, 1, 0, 0);
 		
+		//need size,for some buggy case
+		ImageElementUtils.copytoCanvas(ImageElementUtils.create(selection.getInitialDataUrl()), canvas);
 		
-		canvas.getContext2d().drawImage(ImageElementUtils.create(selection.getInitialDataUrl()), 0, 0);
+		//canvas.getContext2d().drawImage(imageElement), 0, 0);
 		//canvas.getContext2d().restore();
 		
 		String dataUrl=canvas.toDataUrl("image/png");
@@ -1490,6 +1497,24 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 	public class DataUriCommand implements Command{
 		private String beforeUri;
 		private String afterUri;
+		private ImageElementData2 beforeSelection;
+		private ImageElementData2 afterSelection;
+		public ImageElementData2 getBeforeSelection() {
+			return beforeSelection;
+		}
+
+		public void setBeforeSelection(ImageElementData2 beforeSelection) {
+			this.beforeSelection = beforeSelection;
+		}
+
+		public ImageElementData2 getAfterSelection() {
+			return afterSelection;
+		}
+
+		public void setAfterSelection(ImageElementData2 afterSelection) {
+			this.afterSelection = afterSelection;
+		}
+
 		public String getBeforeUri() {
 			return beforeUri;
 		}
@@ -1509,6 +1534,11 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 		
 		@Override
 		public void undo() {
+			
+			if(beforeSelection!=easyCellTableObjects.getSelection()){
+				LogUtils.log("differenct selection.ignore undo");
+				return;
+			}
 			
 			ImageElementLoader loader=new ImageElementLoader();
 			loader.load(beforeUri, new ImageElementListener() {
@@ -1532,6 +1562,11 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 
 		@Override
 		public void redo() {
+			if(afterSelection!=easyCellTableObjects.getSelection()){
+				LogUtils.log("differenct selection.ignore redo");
+				return;
+			}
+			
 			ImageElementLoader loader=new ImageElementLoader();
 			loader.load(afterUri, new ImageElementListener() {
 				@Override

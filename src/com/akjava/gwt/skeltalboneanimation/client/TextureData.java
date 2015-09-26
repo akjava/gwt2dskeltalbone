@@ -15,6 +15,7 @@ public List<ImageDrawingData> getImageDrawingDatas() {
 public void setImageDrawingDatas(List<ImageDrawingData> imageDrawingDatas) {
 	this.imageDrawingDatas = imageDrawingDatas;
 }
+
 public TwoDimensionBone getBone() {
 	return bone;
 }
@@ -30,6 +31,20 @@ public String getId(ImageDrawingData data) {
 @Override
 public List<ImageDrawingData> getDatas() {
 	return imageDrawingDatas;
+}
+
+public TextureData copy(){
+	TextureData data=new TextureData();
+	if(data.getBone()!=null){
+		data.setBone(bone.copy(true));
+	}
+	
+	
+	for(ImageDrawingData idata:imageDrawingDatas){
+		data.getDatas().add(idata.copy());
+	}
+	
+	return data;
 }
 
 

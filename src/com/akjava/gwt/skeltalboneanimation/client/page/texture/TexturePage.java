@@ -37,13 +37,11 @@ import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
 import com.akjava.gwt.skeltalboneanimation.client.converters.BoneAndAnimationConverter;
 import com.akjava.gwt.skeltalboneanimation.client.converters.TextureDataConverter;
 import com.akjava.gwt.skeltalboneanimation.client.page.AbstractPage;
-import com.akjava.gwt.skeltalboneanimation.client.page.CircleLineBonePainter;
 import com.akjava.gwt.skeltalboneanimation.client.page.HasSelectionName;
 import com.akjava.gwt.skeltalboneanimation.client.page.ListenerSystem.DataChangeListener;
 import com.akjava.gwt.skeltalboneanimation.client.page.ListenerSystem.DataOwner;
 import com.akjava.gwt.skeltalboneanimation.client.page.SimpleBoneEditorPage.FlushTextBox;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.BoneControler;
-import com.akjava.gwt.skeltalboneanimation.client.page.clippage.ClipData;
 import com.akjava.gwt.skeltalboneanimation.client.ui.LabeledInputRangeWidget;
 import com.akjava.lib.common.utils.CSVUtils;
 import com.akjava.lib.common.utils.FileNames;
@@ -53,6 +51,8 @@ import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
 import com.google.gwt.canvas.client.Canvas;
+import com.google.gwt.cell.client.CheckboxCell;
+import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.CanvasElement;
 import com.google.gwt.dom.client.ImageElement;
@@ -68,12 +68,12 @@ import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.text.shared.Renderer;
 import com.google.gwt.user.cellview.client.CellTable;
+import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.TextColumn;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Anchor;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.CheckBox;
-import com.google.gwt.user.client.ui.DockLayoutPanel;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ScrollPanel;
@@ -81,6 +81,7 @@ import com.google.gwt.user.client.ui.ToggleButton;
 import com.google.gwt.user.client.ui.ValueListBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
+import com.google.web.bindery.autobean.shared.AutoBeanFactory.NoWrap;
 
 public class TexturePage extends AbstractPage implements HasSelectionName, DataOwner{
 	
@@ -414,11 +415,15 @@ public void setBoneNames(List<String> names){
 
 	@Override
 	protected void onTextureDataChanged(TextureData textureData) {
+		
 		List<ImageDrawingData> datas=textureData.getImageDrawingDatas();
 		
 		drawingDataObjects.setDatas(datas);
 		drawingDataObjects.update();
 		driver.edit(null);
+		
+		notDrawingItem.clear();//handle visible
+		
 		updateCanvas();
 	}
 
@@ -434,6 +439,7 @@ public void setBoneNames(List<String> names){
 					onTextureOrderChanged(data,owner);
 				}
 			});
+			notDrawingItem=Lists.newArrayList();
 	}
 
 	protected void doSyncTextureOrder() {
@@ -595,7 +601,7 @@ public void setBoneNames(List<String> names){
 	
 
 	protected void doReloadData() {
-		onTextureDataChanged(manager.getTextureData());
+		onTextureDataChanged(manager.getTextureData().copy());
 	}
 
 	public void onImageDrawingDataFlush() {
@@ -1319,7 +1325,7 @@ if(modeAnimation){
 	private void updateCanvasOnEdit() {
 
 		for(ImageDrawingData data:drawingDataObjects.getDatas()){
-			if(data.isVisible()){
+			if(data.isVisible() && isDrawItem(data)){//drawitem is temporaly draw or not modify data itself
 				data.draw(canvas);
 			}
 			String color="#0f0";
@@ -1539,6 +1545,23 @@ if(modeAnimation){
 					}
 				};
 				table.addColumn(nameColumn);
+				
+				  Column<ImageDrawingData,Boolean> activeColumn=new Column<ImageDrawingData,Boolean>(new CheckboxCell()){
+					    @Override public Boolean getValue(    ImageDrawingData iteration){
+					      return isDrawItem(iteration);
+					    }
+					  }
+					;
+					  activeColumn.setFieldUpdater(new FieldUpdater<ImageDrawingData,Boolean>(){
+					    @Override public void update(    int index,    ImageDrawingData iteration,    Boolean value){
+					      
+					      setDrawItem(iteration,value);
+					     updateCanvas();
+					    }
+					  }
+					);
+					  table.addColumn(activeColumn,"Active");
+					
 			}
 		};
 		scroll.add(dataTable);
@@ -1595,6 +1618,21 @@ if(modeAnimation){
 		
 		return panel;
 	}
+	
+	private boolean isDrawItem(ImageDrawingData data){
+		return !notDrawingItem.contains(data);
+	}
+	private void setDrawItem(ImageDrawingData data,boolean value){
+	
+		if(value){
+			notDrawingItem.remove(data);
+		}else{
+			notDrawingItem.add(data);
+		}
+	}
+	
+	List<ImageDrawingData> notDrawingItem;
+	
 
 	@Override
 	protected void updateDatas() {

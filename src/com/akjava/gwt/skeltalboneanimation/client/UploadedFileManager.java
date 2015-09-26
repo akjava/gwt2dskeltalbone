@@ -85,7 +85,7 @@ public void removeBoneAndAnimationChangeListener(BoneAndAnimationChangeListener 
 
 	public void modifyTextureData(){
 		for(TextureDataChangeListener listener:textureDataChangeListeners){
-			listener.textureDataChanged(textureData);
+			listener.textureDataChanged(textureData.copy());
 		}
 	}
 

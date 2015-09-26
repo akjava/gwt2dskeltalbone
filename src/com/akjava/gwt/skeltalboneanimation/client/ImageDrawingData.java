@@ -341,7 +341,7 @@ public boolean collision(int screenX,int screenY){
  * @return
  */
 public ImageDrawingData copy(){
-	ImageDrawingData data=new ImageDrawingData(getId(),getImageElement());
+	ImageDrawingData data=new ImageDrawingData(getId(),ImageElementUtils.copy(getImageElement()));
 	
 	data.setImageName(imageName);
 	data.setBoneName(getBoneName());

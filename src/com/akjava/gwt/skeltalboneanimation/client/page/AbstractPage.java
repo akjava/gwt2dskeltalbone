@@ -182,7 +182,7 @@ protected int westPanelWidth=300;
 		
 		if(needTextureUpdate){
 			//TODO copy
-			onTextureDataChanged(manager.getUploadedFileManager().getTextureData());
+			onTextureDataChanged(manager.getUploadedFileManager().getTextureData().copy());
 			needTextureUpdate=false;
 		}
 		

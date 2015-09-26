@@ -17,6 +17,16 @@ private int maxLength=16;
 private Rect clipRect=new Rect(0,0,0,0);
 private boolean useClip;
 
+public MaskData fade(int fade){
+	this.fade=fade;
+	return this;
+}
+
+public MaskData expand(int expand){
+	this.expand=expand;
+	return this;
+}
+
 public Rect getClipRect() {
 	return clipRect;
 }

@@ -54,6 +54,13 @@ public class LabeledInputRangeWidget extends HorizontalPanel{
 			
 			textBox.setReadOnly(true);//not yet
 		}
+		
+		public void setWidgetWidthPx(int nameWidth,int rangeWidth,int boxWidth){
+			nameLabel.setWidth(nameWidth+"px");
+			range.setWidth(rangeWidth+"px");
+			textBox.setWidth(boxWidth+"px");
+		}
+		
 		public void setTextBoxText(String value){
 		value=value.substring(0, Math.min(5, value.length()));//limit text
 		textBox.setValue(value);

@@ -36,6 +36,7 @@ import com.akjava.gwt.skeltalboneanimation.client.page.ListenerSystem.DataChange
 import com.akjava.gwt.skeltalboneanimation.client.page.ListenerSystem.DataOwner;
 import com.akjava.gwt.skeltalboneanimation.client.page.clippage.PointShape;
 import com.akjava.gwt.skeltalboneanimation.client.page.html5app.InpaintEngine.InpaintListener;
+import com.akjava.gwt.skeltalboneanimation.client.ui.LabeledInputRangeWidget;
 import com.akjava.lib.common.utils.ColorUtils;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
@@ -798,7 +799,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 		//TODO as canvas-layer,this is just draw line can't hide
 		
 		//this is temporaly and not wrap command
-		Button drawShapeBt=new Button("draw-shape-line",new ClickHandler() {
+		Button drawShapeBt=new Button("draw-shape",new ClickHandler() {
 			
 			@Override
 			public void onClick(ClickEvent event) {
@@ -830,6 +831,17 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 		});
 		exbuttons.add(inpaintAllBt);
 		
+		LabeledInputRangeWidget range=new LabeledInputRangeWidget("radius",1,20,1);
+		exbuttons.add(range);
+		range.setValue(3);
+		range.getRange().addValueChangeHandler(new ValueChangeHandler<Number>() {
+
+			@Override
+			public void onValueChange(ValueChangeEvent<Number> event) {
+				inpaintRadius=event.getValue().intValue();
+			}
+		});
+		range.setWidgetWidthPx(40,80,20);
 		
 		//controler,fist,pre,next,auto-play + time,clear
 		
@@ -1008,14 +1020,16 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 		
 		return root;
 	}
+	int inpaintRadius;
 	
 	protected void doInpaint(final boolean clip) {
 		if(selection!=null){
+			//currentCommand=null;//store current data-url
 			startCreateCommand();
 			InpaintEngine engine=new InpaintEngine();
 			ImageElement image=ImageElementUtils.create(selection.getDataUrl());
-			List<MaskData> masks=Lists.newArrayList(new MaskData());
-			engine.doInpaint(image, 4, masks, new InpaintListener() {
+			List<MaskData> masks=Lists.newArrayList(new MaskData().fade(0).expand(0));
+			engine.doInpaint(image, inpaintRadius, masks, new InpaintListener() {
 				
 				@Override
 				public void createMixedImage(String dataUrl) {
@@ -1218,9 +1232,11 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 	}
 	
 	private void startCreateCommand(){
+		//for cutdown todataUrl cost,use last command data-url
+		
 		DataUriCommand newCommand=new DataUriCommand();
 		newCommand.setBeforeSelection(getSelection());
-		if(currentCommand!=null && currentCommand.getAfterUri()!=null){
+		if(currentCommand!=null && currentCommand.getAfterUri()!=null && !currentCommand.isUndoed()){
 			newCommand.setBeforeUri(currentCommand.getAfterUri());
 		}else{
 			newCommand.setBeforeUri(selection.getDataUrl());
@@ -1539,7 +1555,16 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 			this.afterUri = afterUri;
 		}
 
+		public boolean undoed;
 		
+		public boolean isUndoed() {
+			return undoed;
+		}
+
+		public void setUndoed(boolean undoed) {
+			this.undoed = undoed;
+		}
+
 		@Override
 		public void undo() {
 			
@@ -1566,6 +1591,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 				}
 			});
 			
+			currentCommand.setUndoed(true);
 		}
 
 		@Override
@@ -1593,7 +1619,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 				}
 			});
 			
-			
+			currentCommand.setUndoed(false);
 		}
 		
 	}
@@ -1952,6 +1978,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 	protected void initialize() {
 		drawShape=true;
 		penSize=16;
+		inpaintRadius=5;
 		
 		manager.getTextureOrderSystem().addListener(new DataChangeListener<List<String>>() {
 			@Override

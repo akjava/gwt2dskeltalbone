@@ -1386,7 +1386,12 @@ if(modeAnimation){
 		
 		imageDataSelectionOnCanvas=null;
 		
-		
+		//current selection first;
+		if(drawingDataObjects.getSelection()!=null && drawingDataObjects.getSelection().collision(x, y)){
+			
+			imageDataSelectionOnCanvas=drawingDataObjects.getSelection();
+			
+		}else{
 		
 		//detect last first,last image are draw at top
 		for(int i=drawingDataObjects.getDatas().size()-1;i>=0;i--){
@@ -1397,6 +1402,7 @@ if(modeAnimation){
 			}
 		}
 		
+		}
 		
 		if(imageDataSelectionOnCanvas!=null){
 			drawingDataObjects.setSelected(imageDataSelectionOnCanvas, true);

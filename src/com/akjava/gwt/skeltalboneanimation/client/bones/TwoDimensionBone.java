@@ -69,6 +69,14 @@ public boolean isRoot(){
 	return parent==null;
 }
 
+public void changeChildrenScale(double scale){
+	List<TwoDimensionBone> children=getChildrenAll();
+	for(TwoDimensionBone bone:children){
+		bone.x*=scale;
+		bone.y*=scale;
+	}
+}
+
 //not test yet
 public void rotateChildrens(double angle){
 	List<TwoDimensionBone> children=BoneUtils.getAllBone(this);

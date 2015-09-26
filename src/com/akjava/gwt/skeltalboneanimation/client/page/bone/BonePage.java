@@ -614,6 +614,15 @@ settings.setBone(newRoot);
 			activeDataControler.onWhelled(delta, shiftDown);
 			updateCanvas();
 		}
+		
+		if(boneSelectedOnCanvas!=null){
+			double scale=0.01;
+			if(delta>0){
+				scale*=-1;
+			}
+			boneSelectedOnCanvas.changeChildrenScale(1.0+scale);
+			updateBoneDatas();
+		}
 	}
 
 	@Override

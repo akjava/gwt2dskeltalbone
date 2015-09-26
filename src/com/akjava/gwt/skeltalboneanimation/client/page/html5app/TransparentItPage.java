@@ -777,7 +777,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 		controler.add(exbuttons);
 		
 		//TODO below
-		CheckBox drawShapeCheck=new CheckBox("these not undo supported yet draw-shape");
+		CheckBox drawShapeCheck=new CheckBox("draw-shape");
 		drawShapeCheck.setValue(true);
 		drawShapeCheck.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
 
@@ -797,8 +797,10 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 			@Override
 			public void onClick(ClickEvent event) {
 				if(selection!=null){
+					startCreateCommand();
 					selection.getPointShape().stroke("#000", canvas);
-					updateCurrentSelectionDataUrl(canvas.toDataUrl());//
+					updateCurrentSelectionDataUrl(canvas.toDataUrl());
+					endCreateCommand(canvas.toDataUrl());
 				}
 			}
 		});
@@ -1003,6 +1005,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 	
 	protected void doInpaint(final boolean clip) {
 		if(selection!=null){
+			startCreateCommand();
 			InpaintEngine engine=new InpaintEngine();
 			ImageElement image=ImageElementUtils.create(selection.getDataUrl());
 			List<MaskData> masks=Lists.newArrayList(new MaskData());
@@ -1039,7 +1042,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 					
 				}
 			});
-			
+			endCreateCommand(canvas.toDataUrl());
 		}
 	}
 	protected void doSyncAsTexture() {

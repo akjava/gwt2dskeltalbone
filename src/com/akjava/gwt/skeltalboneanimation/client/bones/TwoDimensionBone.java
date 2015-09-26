@@ -3,9 +3,7 @@ package com.akjava.gwt.skeltalboneanimation.client.bones;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.lib.client.game.PointD;
-import com.akjava.gwt.lib.client.game.PointXY;
 import com.akjava.gwt.skeltalboneanimation.client.BoneUtils;
 import com.google.common.collect.Lists;
 

@@ -18,6 +18,7 @@ import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.lib.client.experimental.CanvasDragMoveControler;
 import com.akjava.gwt.lib.client.experimental.CanvasMoveListener;
 import com.akjava.gwt.lib.client.experimental.ReplaceEachOther;
+import com.akjava.gwt.lib.client.widget.cell.ButtonColumn;
 import com.akjava.gwt.lib.client.widget.cell.EasyCellTableObjects;
 import com.akjava.gwt.lib.client.widget.cell.SimpleCellTable;
 import com.akjava.gwt.skeltalboneanimation.client.Background;
@@ -81,7 +82,6 @@ import com.google.gwt.user.client.ui.ToggleButton;
 import com.google.gwt.user.client.ui.ValueListBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
-import com.google.web.bindery.autobean.shared.AutoBeanFactory.NoWrap;
 
 public class TexturePage extends AbstractPage implements HasSelectionName, DataOwner{
 	
@@ -1560,7 +1560,27 @@ if(modeAnimation){
 					    }
 					  }
 					);
-					  table.addColumn(activeColumn,"Active");
+					  table.addColumn(activeColumn,"Show");
+					  
+					  
+					  ButtonColumn<ImageDrawingData> removeBtColumn=new ButtonColumn<ImageDrawingData>() {
+							@Override
+							public void update(int index, ImageDrawingData object,
+									String value) {
+								
+								for(ImageDrawingData original:manager.getTextureData().findDataById(object.getId()).asSet()){
+									original.copyTo(object);
+									updateCanvas();
+								}
+								//possible not found if modified after
+									
+							}
+							@Override
+							public String getValue(ImageDrawingData object) {
+								 return "Reset";
+							}
+						};
+						table.addColumn(removeBtColumn);
 					
 			}
 		};

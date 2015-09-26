@@ -1,8 +1,5 @@
 package com.akjava.gwt.skeltalboneanimation.client;
 
-import com.akjava.gwt.skeltalboneanimation.client.page.SimpleAnimationEditorPage2;
-import com.akjava.gwt.skeltalboneanimation.client.page.SimpleBoneEditorPage2;
-import com.akjava.gwt.skeltalboneanimation.client.page.SimpleTextureEditorPage2;
 import com.akjava.gwt.skeltalboneanimation.client.page.animation.AnimationPage;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.BonePage;
 import com.akjava.gwt.skeltalboneanimation.client.page.clippage.ClipImagePage;

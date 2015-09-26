@@ -16,7 +16,6 @@ import com.akjava.gwt.skeltalboneanimation.client.TextureData;
 import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
 import com.akjava.lib.common.io.FileType;
 import com.akjava.lib.common.utils.CSVUtils;
-import com.akjava.lib.common.utils.FileNames;
 import com.google.common.base.Converter;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;

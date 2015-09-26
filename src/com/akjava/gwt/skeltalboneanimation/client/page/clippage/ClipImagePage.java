@@ -38,7 +38,6 @@ import com.akjava.gwt.skeltalboneanimation.client.page.AbstractPage;
 import com.akjava.gwt.skeltalboneanimation.client.page.ListenerSystem.DataChangeListener;
 import com.akjava.gwt.skeltalboneanimation.client.page.ListenerSystem.DataOwner;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.BoneControler;
-import com.akjava.gwt.skeltalboneanimation.client.page.html5app.ImageElementData2;
 import com.akjava.gwt.skeltalboneanimation.client.page.html5app.TransparentItPage;
 import com.akjava.lib.common.graphics.Rect;
 import com.google.common.base.Function;

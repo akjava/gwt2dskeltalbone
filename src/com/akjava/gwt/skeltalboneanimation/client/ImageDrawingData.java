@@ -3,12 +3,9 @@ package com.akjava.gwt.skeltalboneanimation.client;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.Nullable;
-
 import com.akjava.gwt.lib.client.CanvasUtils;
 import com.akjava.gwt.lib.client.ImageElementUtils;
 import com.akjava.gwt.lib.client.LogUtils;
-import com.akjava.gwt.lib.client.ValueUtils;
 import com.akjava.gwt.lib.client.game.PointXY;
 import com.akjava.lib.common.graphics.Rect;
 import com.akjava.lib.common.utils.ValuesUtils;
@@ -342,20 +339,27 @@ public boolean collision(int screenX,int screenY){
  */
 public ImageDrawingData copy(){
 	ImageDrawingData data=new ImageDrawingData(getId(),ImageElementUtils.copy(getImageElement()));
+	 copyTo(data);
+	 return data;
+}
+public void copyTo(ImageDrawingData container){
+	if(container==this){
+		//no need to copy
+		return;
+	}
+	container.setImageName(imageName);
+	container.setBoneName(getBoneName());
+	container.setX(x);
+	container.setY(y);
+	container.setAngle(angle);
+	container.setScaleX(scaleX);
+	container.setScaleY(scaleY);
+	container.setAlpha(alpha);
 	
-	data.setImageName(imageName);
-	data.setBoneName(getBoneName());
-	data.setX(x);
-	data.setY(y);
-	data.setAngle(angle);
-	data.setScaleX(scaleX);
-	data.setScaleY(scaleY);
-	data.setAlpha(alpha);
+	container.setFlipHorizontal(flipHorizontal);
+	container.setFlipVertical(flipVertical);
+	container.setVisible(visible);
 	
-	data.setFlipHorizontal(flipHorizontal);
-	data.setFlipVertical(flipVertical);
-	data.setVisible(visible);
-	return data;
 }
 
 public Rect calculateBounds(){

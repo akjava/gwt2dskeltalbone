@@ -6,8 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.akjava.gwt.lib.client.LogUtils;
-import com.akjava.gwt.skeltalboneanimation.client.InnerBoneAnimationData;
 import com.akjava.gwt.skeltalboneanimation.client.BoneUtils;
+import com.akjava.gwt.skeltalboneanimation.client.InnerBoneAnimationData;
 import com.akjava.lib.common.graphics.Rect;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;

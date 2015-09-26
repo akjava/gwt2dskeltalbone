@@ -3,7 +3,6 @@ package com.akjava.gwt.skeltalboneanimation.client.page.clippage;
 import java.util.List;
 
 import com.akjava.gwt.lib.client.game.PointXY;
-import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
 import com.akjava.lib.common.graphics.Rect;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;

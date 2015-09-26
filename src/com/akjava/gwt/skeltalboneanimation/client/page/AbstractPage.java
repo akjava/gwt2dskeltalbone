@@ -12,7 +12,6 @@ import com.akjava.gwt.skeltalboneanimation.client.UploadedFileManager.Background
 import com.akjava.gwt.skeltalboneanimation.client.UploadedFileManager.BoneAndAnimationChangeListener;
 import com.akjava.gwt.skeltalboneanimation.client.UploadedFileManager.TextureDataChangeListener;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneAndAnimationData;
-import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.event.dom.client.MouseWheelEvent;

@@ -1,6 +1,5 @@
 package com.akjava.gwt.skeltalboneanimation.client;
 
-import com.akjava.gwt.lib.client.LogUtils;
 
 public class ImageDrawingDataControler implements DrawingDataControler{
 

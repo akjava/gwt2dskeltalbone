@@ -1597,7 +1597,7 @@ if(modeAnimation){
 	}
 
 	@Override
-	public String getName() {
+	public String getOwnerName() {
 		return "Texture-Editor";
 	}
 

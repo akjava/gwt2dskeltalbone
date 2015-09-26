@@ -45,6 +45,6 @@ public class ListenerSystem<T> {
 		}
 		
 		public static interface DataOwner{
-			public String getName();
+			public String getOwnerName();
 		}
 }

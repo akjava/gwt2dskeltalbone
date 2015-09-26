@@ -1283,10 +1283,12 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 	    return panel;
 	}
 	protected void doSaveData() {
-		
-		JSZip zip=new ClipImageDataConverter().reverse().convert(generateSaveData());
+		ClipImageData data=generateSaveData();
+		JSZip zip=new ClipImageDataConverter().reverse().convert(data);
 		downloadLinks.clear();
 		downloadLinks.add(JSZipUtils.createDownloadAnchor(zip, "2dbone-clips.zip", "download", true));
+		
+		manager.getFileManagerBar().setClipImageData(getOwnerName(), data);
 	}
 	private ClipImageData generateSaveData(){
 		ClipImageData data=new ClipImageData();
@@ -1552,7 +1554,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 
 
 	@Override
-	public String getName() {
+	public String getOwnerName() {
 		// TODO Auto-generated method stub
 		return "Clip-Editor";
 	}

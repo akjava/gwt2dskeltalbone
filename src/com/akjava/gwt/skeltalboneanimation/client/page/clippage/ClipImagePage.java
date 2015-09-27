@@ -518,6 +518,8 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 				doTransparent(getSelection());
 				//added data's order is invalid,fix it
 				doSyncTextureOrder();
+				
+				manager.selectTab(MainManager.TransparentPageIndex);
 			}else{
 				LogUtils.log("clip-data not selected.skipped");
 			}
@@ -642,6 +644,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 			}
 			PointShape pointShape=new ClipDataToShapeFunction().apply(clip);
 			transparentItPage.addItem(data, src,pointShape);
+			manager.selectTab(MainManager.TransparentPageIndex);
 		}
 		
 	}

@@ -1,5 +1,6 @@
 package com.akjava.gwt.skeltalboneanimation.client.page.colorpick;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,10 +32,16 @@ import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.MouseDownEvent;
 import com.google.gwt.event.dom.client.MouseDownHandler;
+import com.google.gwt.event.logical.shared.ValueChangeEvent;
+import com.google.gwt.event.logical.shared.ValueChangeHandler;
+import com.google.gwt.text.shared.Renderer;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.ui.Button;
-import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.HorizontalPanel;
+import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.RadioButton;
+import com.google.gwt.user.client.ui.ScrollPanel;
+import com.google.gwt.user.client.ui.ValueListBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 
@@ -46,7 +53,7 @@ import com.google.gwt.user.client.ui.Widget;
 public class ColorPickPage extends AbstractPage{
 	private Canvas inputCanvas;
 	private Canvas resultCanvas;
-	private CheckBox positiveCheck;
+
 
 	private List<VolRGB> positives;
 	private List<VolRGB> negatives;
@@ -110,8 +117,8 @@ public class ColorPickPage extends AbstractPage{
 
 	@Override
 	protected void initialize() {
-
-		
+		scale=1;
+		isPositive=true;
 		initDatas();
 		
 	}
@@ -125,6 +132,8 @@ public class ColorPickPage extends AbstractPage{
 		imageData = inputCanvas.getContext2d().getImageData(0, 0, inputCanvas.getCoordinateSpaceWidth(), inputCanvas.getCoordinateSpaceHeight());
 	
 		CanvasUtils.copyToSizeOnly(inputCanvas, resultCanvas);
+		
+		updateScale(scale);
 		updateCanvas();	
 	}
 	
@@ -147,25 +156,62 @@ public class ColorPickPage extends AbstractPage{
 		public void sendBack(String dataId,String dataUrl);
 	}
 
+	private boolean isPositive;
 	@Override
 	protected Widget createCenterPanel() {
 		VerticalPanel root=new VerticalPanel();
+		
+		VerticalPanel topPanel=new VerticalPanel();
+		root.add(topPanel);
 		
 		HorizontalPanel panel=new HorizontalPanel();
 		root.add(panel);
 		
 		VerticalPanel leftPanel=new VerticalPanel();
-		panel.add(leftPanel);
+		
+		ScrollPanel scroll=new ScrollPanel();
+		scroll.setHeight("600px");
+		panel.add(scroll);
+		
 		int canvasW=400;
 		int canvasH=400;
 		
 		inputCanvas = CanvasUtils.createCanvas(canvasW, canvasH);
 		inputCanvas.setStylePrimaryName("transparent_bg");
-		leftPanel.add(inputCanvas);
+		scroll.add(inputCanvas);
 		
-		positiveCheck = new CheckBox("draw-color positive");
+		
+		HorizontalPanel h0=new HorizontalPanel();
+		topPanel.add(h0);
+		RadioButton positiveCheck = new RadioButton("type","add positive point");
+		positiveCheck.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
+			
+			@Override
+			public void onValueChange(ValueChangeEvent<Boolean> event) {
+				if(event.getValue()){
+					isPositive=true;
+				}
+			}
+		});
 		positiveCheck.setValue(true);
-		leftPanel.add(positiveCheck);
+		
+		
+		h0.add(positiveCheck);
+		
+		RadioButton negativeCheck = new RadioButton("type","add Negative Point");
+		negativeCheck.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
+			
+			@Override
+			public void onValueChange(ValueChangeEvent<Boolean> event) {
+				if(event.getValue()){
+					isPositive=false;
+				}
+			}
+		});
+		h0.add(negativeCheck);
+		
+		HorizontalPanel h1=new HorizontalPanel();
+		topPanel.add(h1);
 		
 		Button doReset=new Button("do reset",new ClickHandler() {
 			
@@ -174,7 +220,16 @@ public class ColorPickPage extends AbstractPage{
 				doReset();
 			}
 		});
-		leftPanel.add(doReset);
+		h0.add(doReset);
+		
+		Button doRemove=new Button("remove last added",new ClickHandler() {
+			
+			@Override
+			public void onClick(ClickEvent event) {
+				doRemove();
+			}
+		});
+		h1.add(doRemove);
 		
 		Button repeat=new Button("do repeat train",new ClickHandler() {
 			
@@ -183,7 +238,7 @@ public class ColorPickPage extends AbstractPage{
 				doRepeatTrain();
 			}
 		});
-		leftPanel.add(repeat);
+		h1.add(repeat);
 		
 		Button sendBack=new Button("sendback result",new ClickHandler() {
 			
@@ -192,24 +247,26 @@ public class ColorPickPage extends AbstractPage{
 				doSendBack();
 			}
 		});
-		leftPanel.add(sendBack);
+		h0.add(sendBack);
 		
 		
-Button repeat2=new Button("do repeat train",new ClickHandler() {
+		/*
+		Button repeat2=new Button("do repeat train",new ClickHandler() {
 			
 			@Override
 			public void onClick(ClickEvent event) {
 				doRepeatTrain2();
 			}
 		});
+		*/
 		//leftPanel.add(repeat2);
 		
 		inputCanvas.addMouseDownHandler(new MouseDownHandler() {
 			
 			@Override
 			public void onMouseDown(MouseDownEvent event) {
-				int x=event.getX();
-				int y=event.getY();
+				int x=event.getX()/scale;
+				int y=event.getY()/scale;
 				
 					if(imageData.getAlphaAt(x, y)==255){
 					VolRGB rgb=new VolRGB(
@@ -227,12 +284,13 @@ Button repeat2=new Button("do repeat train",new ClickHandler() {
 					rgb.setY(y);
 					
 					int index=0;
-					if(!positiveCheck.getValue()){
+					if(!isPositive){
 						index=1;
 						negatives.add(rgb);
 						}else{
 							positives.add(rgb);	
 						}
+					lastOne=rgb;
 					rgb.setIndex(index);
 					Stats stat=trainer.train(rgb.getVol(), index);
 					LogUtils.log(stat);
@@ -250,7 +308,7 @@ Button repeat2=new Button("do repeat train",new ClickHandler() {
 				onLoadImage(file.getFileName(),text);
 			}
 		});
-		leftPanel.add(imageUpload);
+		h0.add(imageUpload);
 		
 		//loadImage();
 		
@@ -262,8 +320,50 @@ Button repeat2=new Button("do repeat train",new ClickHandler() {
 		resultCanvas.setStylePrimaryName("transparent_bg");
 		rightPanel.add(resultCanvas);
 		
+		
+		ValueListBox<Integer> scaleBox=new ValueListBox<Integer>(new Renderer<Integer>() {
+
+			@Override
+			public String render(Integer object) {
+	
+				return ""+object;
+			}
+
+			@Override
+			public void render(Integer object, Appendable appendable) throws IOException {
+				
+			}
+		});
+		
+		
+		scaleBox.setValue(1);
+		scaleBox.setAcceptableValues(Lists.newArrayList(1,2,4,8));
+		h0.add(new Label("scale:"));
+		h0.add(scaleBox);
+		scaleBox.addValueChangeHandler(new ValueChangeHandler<Integer>() {
+			@Override
+			public void onValueChange(ValueChangeEvent<Integer> event) {
+				updateScale(event.getValue());
+			}
+		});
+		
+		
 		updateCanvas();
 		return root;
+	}
+	private int scale;
+	protected void updateScale(Integer value) {
+		CanvasUtils.scaleViewerSize(inputCanvas,value);
+		scale=value;
+	}
+
+	private VolRGB lastOne;
+	protected void doRemove() {
+		if(lastOne!=null){
+			positives.remove(lastOne);
+			negatives.remove(lastOne);
+		}
+		updateCanvas();
 	}
 
 	protected void doReset() {
@@ -291,12 +391,12 @@ Button repeat2=new Button("do repeat train",new ClickHandler() {
 			CanvasUtils.copyTo(imageData, inputCanvas);
 		}
 		for(VolRGB pt:positives){
-			Rect rect=Rect.fromCenterPoint(pt.x, pt.y, 4, 4);
+			Rect rect=Rect.fromCenterPoint(pt.x, pt.y, 1, 1);
 			RectCanvasUtils.fill(rect, inputCanvas, "#0f0");
 		}
 		
 		for(VolRGB pt:negatives){
-			Rect rect=Rect.fromCenterPoint(pt.x, pt.y, 4, 4);
+			Rect rect=Rect.fromCenterPoint(pt.x, pt.y, 1, 1);
 			RectCanvasUtils.fill(rect, inputCanvas, "#f00");
 		}
 	}

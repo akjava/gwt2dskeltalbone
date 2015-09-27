@@ -182,6 +182,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 		final ImageElementData2 data=new ImageElementData2(drawingData.getId(),drawingData,dataUrl,pointShape);
 		
 		easyCellTableObjects.addItem(data);
+		easyCellTableObjects.setSelected(data, true);
 		
 		/*
 		//stack on mobile,maybe because of called async method

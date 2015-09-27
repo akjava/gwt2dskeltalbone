@@ -117,7 +117,7 @@ public class ColorPickPage extends AbstractPage{
 	}
 
 	private ImageSender imageSender;
-	private String fileName;
+	private String senderDataId;
 	protected void onLoadImage(String fileName, String text) {
 		initDatas();
 		//not resize yet
@@ -128,13 +128,15 @@ public class ColorPickPage extends AbstractPage{
 		updateCanvas();	
 	}
 	
-	public void sendImage(ImageSender sender,String fileName,String dataUrl){
+	public void sendImage(ImageSender sender,String dataId,String dataUrl){
+		this.senderDataId=dataId;
 		this.imageSender=sender;
-		onLoadImage(fileName, dataUrl);
+		onLoadImage(dataId, dataUrl);
 	}
 	private void doSendBack(){
 		if(imageSender!=null){
-			imageSender.sendBack(fileName, resultCanvas.toDataUrl());
+			imageSender.sendBack(senderDataId, resultCanvas.toDataUrl());
+			manager.selectTab(3);
 		}else{
 			LogUtils.log("no imageSender");
 		}
@@ -142,7 +144,7 @@ public class ColorPickPage extends AbstractPage{
 	
 	
 	public static interface ImageSender{
-		public void sendBack(String fileName,String dataUrl);
+		public void sendBack(String dataId,String dataUrl);
 	}
 
 	@Override

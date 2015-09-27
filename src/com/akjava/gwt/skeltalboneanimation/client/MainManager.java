@@ -16,7 +16,8 @@ import com.google.gwt.user.client.ui.Widget;
 
 public class MainManager {
 private TabLayoutPanel tab;
-
+public static final int TransparentPageIndex=3;
+public static final int ColorPickPageIndex=5;
 public MainManager(final TabLayoutPanel tab) {
 	super();
 	this.tab = tab;

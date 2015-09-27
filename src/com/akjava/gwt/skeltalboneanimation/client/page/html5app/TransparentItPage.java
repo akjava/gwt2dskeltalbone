@@ -1058,16 +1058,24 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 				
 				@Override
 				public void sendBack(String fileName, final String dataUrl) {
+					LogUtils.log("send backed");
+					Optional<ImageElementData2> optional=findDataByName(fileName);
 					
-					for(final ImageElementData2 data2:findDataByName(fileName).asSet()){
+					if(!optional.isPresent()){
+						LogUtils.log("can't find data:"+fileName);
+					}
+					
+					for(final ImageElementData2 data2:optional.asSet()){
 						easyCellTableObjects.setSelected(data2, true);
 						Scheduler.get().scheduleFinally(new ScheduledCommand() {
 							@Override
 							public void execute() {
 								if(getSelection()==data2){
+									LogUtils.log("paint");
 								startCreateCommand();
 								CanvasUtils.clear(canvas);
 								CanvasUtils.drawDataUrl(canvas, dataUrl);
+								updateCurrentSelectionDataUrl(canvas.toDataUrl());
 								endCreateCommand(dataUrl);
 								}else{
 									LogUtils.log("invalidly selection not changed");
@@ -1078,6 +1086,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 					}
 				}
 			},getSelection().getFileName(),  dataUrl);
+			LogUtils.log("sended:"+getSelection().getFileName());
 			manager.selectTab(5);
 		
 	}

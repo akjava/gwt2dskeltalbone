@@ -101,6 +101,6 @@ public class GWT2DSkeltalBoneAnimation implements EntryPoint {
 		*/
 		
 		
-		tab.selectTab(5);
+		tab.selectTab(0);
 	}
 }

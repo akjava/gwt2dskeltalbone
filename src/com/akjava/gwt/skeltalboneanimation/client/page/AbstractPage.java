@@ -12,6 +12,7 @@ import com.akjava.gwt.skeltalboneanimation.client.UploadedFileManager.Background
 import com.akjava.gwt.skeltalboneanimation.client.UploadedFileManager.BoneAndAnimationChangeListener;
 import com.akjava.gwt.skeltalboneanimation.client.UploadedFileManager.TextureDataChangeListener;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneAndAnimationData;
+import com.akjava.gwt.skeltalboneanimation.client.page.ListenerSystem.DataOwner;
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.event.dom.client.MouseWheelEvent;
@@ -19,13 +20,12 @@ import com.google.gwt.event.dom.client.MouseWheelHandler;
 import com.google.gwt.user.client.ui.DockLayoutPanel;
 import com.google.gwt.user.client.ui.Widget;
 
-public abstract class AbstractPage extends DockLayoutPanel implements SkeltalBonePage{
+public abstract class AbstractPage extends DockLayoutPanel implements TabItem,DataOwner{
 protected MainManager manager;
 protected int westPanelWidth=300;
 	public AbstractPage(final MainManager manager){
 		super(Unit.PX);
 		this.manager=manager;
-		manager.addPage(this);
 		
 		initialize();
 		
@@ -45,10 +45,11 @@ protected int westPanelWidth=300;
 		manager.getUploadedFileManager().addBackgroundChangeListener(new BackgroundChangeListener() {
 			
 			@Override
-			public void backgroundChanged(ImageDrawingData backgroundDat) {
+			public void backgroundChanged(ImageDrawingData backgroundData) {
+				
 				
 				if(manager.isSelected(AbstractPage.this)){
-					onBackgroundChanged(backgroundDat);
+					onBackgroundChanged(backgroundData);
 				}else{
 					needBackgroundUpdate=true;
 				}
@@ -168,7 +169,7 @@ protected int westPanelWidth=300;
 	protected boolean needTextureUpdate;
 	protected Canvas canvas;
 	@Override
-	public void onSelection() {
+	public void onSelectedFromTab() {
 		if(needBoneAndAnimationUpdate){
 			onBoneAndAnimationChanged(manager.getUploadedFileManager().getBoneAndAnimation().copy());
 			needBoneAndAnimationUpdate=false;

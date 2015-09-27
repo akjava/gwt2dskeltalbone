@@ -1205,6 +1205,11 @@ upper.add(extractImageBt);
 		
 		updateCanvas();
 	}
+	@Override
+	public String getOwnerName() {
+		// TODO Auto-generated method stub
+		return "Animation-Page";
+	}
 
 
 }

@@ -35,6 +35,8 @@ import com.akjava.gwt.skeltalboneanimation.client.bones.BoneAndAnimationData;
 import com.akjava.gwt.skeltalboneanimation.client.page.ListenerSystem.DataChangeListener;
 import com.akjava.gwt.skeltalboneanimation.client.page.ListenerSystem.DataOwner;
 import com.akjava.gwt.skeltalboneanimation.client.page.clippage.PointShape;
+import com.akjava.gwt.skeltalboneanimation.client.page.colorpick.ColorPickPage;
+import com.akjava.gwt.skeltalboneanimation.client.page.colorpick.ColorPickPage.ImageSender;
 import com.akjava.gwt.skeltalboneanimation.client.page.html5app.InpaintEngine.InpaintListener;
 import com.akjava.gwt.skeltalboneanimation.client.ui.LabeledInputRangeWidget;
 import com.akjava.lib.common.utils.ColorUtils;
@@ -758,6 +760,15 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 		};
 		buttons.add(syncBt);
 		
+		Button sendBt=new ExecuteButton("Send") {
+			
+			@Override
+			public void executeOnClick() {
+				doSendImage();
+			}
+		};
+		buttons.add(sendBt);
+		
 		saveBt = new Button(textConstants.Save());
 		saveBt.addClickHandler(new ClickHandler() {
 			@Override
@@ -1020,6 +1031,57 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 		
 		return root;
 	}
+	private ColorPickPage colorPickPage;
+	public ColorPickPage getColorPickPage() {
+		return colorPickPage;
+	}
+
+	public void setColorPickPage(ColorPickPage colorPickPage) {
+		this.colorPickPage = colorPickPage;
+	}
+
+	protected void doSendImage() {
+		if(colorPickPage==null){
+			LogUtils.log("doSendImage: colorPickPage not setted");
+		return;
+		}
+		
+		if(getSelection()==null){
+			LogUtils.log("doSendImage: no selection");
+				return;
+			
+		}
+		
+		String dataUrl=getSelection().getDataUrl();
+		
+			colorPickPage.sendImage(new ImageSender() {
+				
+				@Override
+				public void sendBack(String fileName, final String dataUrl) {
+					
+					for(final ImageElementData2 data2:findDataByName(fileName).asSet()){
+						easyCellTableObjects.setSelected(data2, true);
+						Scheduler.get().scheduleFinally(new ScheduledCommand() {
+							@Override
+							public void execute() {
+								if(getSelection()==data2){
+								startCreateCommand();
+								CanvasUtils.clear(canvas);
+								CanvasUtils.drawDataUrl(canvas, dataUrl);
+								endCreateCommand(dataUrl);
+								}else{
+									LogUtils.log("invalidly selection not changed");
+								}
+								
+							}
+						});
+					}
+				}
+			},getSelection().getFileName(),  dataUrl);
+			manager.selectTab(5);
+		
+	}
+
 	int inpaintRadius;
 	
 	protected void doInpaint(final boolean clip) {
@@ -2035,5 +2097,11 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 	}
 	
 	private boolean drawShape;
+
+
+	@Override
+	public String getOwnerName() {
+		return "TransparentIt";
+	}
 	
 }

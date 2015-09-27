@@ -4,27 +4,38 @@ import java.util.List;
 
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneAndAnimationData;
 import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
+import com.akjava.gwt.skeltalboneanimation.client.page.AbstractPage;
 import com.akjava.gwt.skeltalboneanimation.client.page.ListenerSystem;
 import com.akjava.gwt.skeltalboneanimation.client.page.ListenerSystem.DataOwner;
-import com.akjava.gwt.skeltalboneanimation.client.page.SkeltalBonePage;
+import com.akjava.gwt.skeltalboneanimation.client.page.TabItem;
 import com.google.common.collect.Lists;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.user.client.ui.TabLayoutPanel;
+import com.google.gwt.user.client.ui.Widget;
 
 public class MainManager {
 private TabLayoutPanel tab;
 
-public MainManager(TabLayoutPanel tab) {
+public MainManager(final TabLayoutPanel tab) {
 	super();
 	this.tab = tab;
 	tab.addSelectionHandler(new SelectionHandler<Integer>() {
 		@Override
 		public void onSelection(SelectionEvent<Integer> event) {
-			MainManager.this.getPageAt(event.getSelectedItem()).onSelection();
+			//casting widget is not smart.
+			AbstractPage page=(AbstractPage)tab.getWidget(event.getSelectedItem());
+			page.onSelectedFromTab();
 		}
 	});
 
+}
+
+public int getTabIndex(Widget child){
+	return tab.getWidgetIndex(child);
+}
+public void selectTab(int index){
+	tab.selectTab(index);
 }
 
 private UploadedFileManager uploadedFileManager=new UploadedFileManager();
@@ -46,6 +57,7 @@ public void setUploadedFileManager(UploadedFileManager uploadedFileManager) {
 	this.uploadedFileManager = uploadedFileManager;
 }
 
+/*
 private List<SkeltalBonePage> pages=Lists.newArrayList();
 public  void addPage(SkeltalBonePage page){
 	pages.add(page);
@@ -53,9 +65,11 @@ public  void addPage(SkeltalBonePage page){
 public SkeltalBonePage getPageAt(int index){
 	return pages.get(index);
 }
+*/
 
-public boolean isSelected(SkeltalBonePage page){
-	int index=pages.indexOf(page);
+public boolean isSelected(AbstractPage page){
+	int index=getTabIndex(page);
+	
 	return index==tab.getSelectedIndex();
 }
 

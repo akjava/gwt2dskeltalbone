@@ -3,6 +3,7 @@ package com.akjava.gwt.skeltalboneanimation.client;
 import com.akjava.gwt.skeltalboneanimation.client.page.animation.AnimationPage;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.BonePage;
 import com.akjava.gwt.skeltalboneanimation.client.page.clippage.ClipImagePage;
+import com.akjava.gwt.skeltalboneanimation.client.page.colorpick.ColorPickPage;
 import com.akjava.gwt.skeltalboneanimation.client.page.html5app.TransparentItPage;
 import com.akjava.gwt.skeltalboneanimation.client.page.texture.TexturePage;
 import com.google.gwt.core.client.EntryPoint;
@@ -53,11 +54,14 @@ public class GWT2DSkeltalBoneAnimation implements EntryPoint {
 		textureDock.add(texturePage);
 		*/
 		
+		
+		
 		final MainManager manager=new MainManager(tab);
 		
 		FileManagerBar bar=new FileManagerBar(manager);
 		root.addNorth(bar, 32);
 		
+		ColorPickPage colorPickPage=new ColorPickPage(manager);
 		
 		tab.add(new BonePage(manager),"Bone");
 		tab.add(new AnimationPage(manager),"Animation");
@@ -66,12 +70,14 @@ public class GWT2DSkeltalBoneAnimation implements EntryPoint {
 		ClipImagePage clip=new ClipImagePage(manager);
 		tab.add(clip,"Clip");
 		
-		TransparentItPage trasparent=new TransparentItPage(manager);
-		tab.add(trasparent,"Transparent");
-		clip.setTransparentItPage(trasparent);
+		TransparentItPage transparentPage=new TransparentItPage(manager);
+		tab.add(transparentPage,"Transparent");
+		clip.setTransparentItPage(transparentPage);
+		transparentPage.setColorPickPage(colorPickPage);
 		
 		//add everything inside
 		tab.add(new TexturePage(manager),"Texture");
+		tab.add(colorPickPage,"ColorPick");
 		
 		root.add(tab);
 		//advanced
@@ -95,6 +101,6 @@ public class GWT2DSkeltalBoneAnimation implements EntryPoint {
 		*/
 		
 		
-		tab.selectTab(4);
+		tab.selectTab(5);
 	}
 }

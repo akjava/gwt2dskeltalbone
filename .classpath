@@ -12,5 +12,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/html5gwt"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/GWTJSZip"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/inpaintTest"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/GWTConvNetJs"/>
 	<classpathentry kind="output" path="war/WEB-INF/classes"/>
 </classpath>

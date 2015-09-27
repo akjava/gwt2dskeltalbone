@@ -12,6 +12,7 @@
   <inherits name='com.akjava.gwt.common.Common'/>
   <inherits name='com.akjava.gwt.jszip.GWTJSZip'/>
   <inherits name="com.akjava.gwt.inpaint.Inpaint" />
+  	<inherits name="com.akjava.gwt.comvnetjs.ConvNetJs" />
   	
   <!-- Inherit the default GWT style sheet.  You can change       -->
   <!-- the theme of your GWT application by uncommenting          -->

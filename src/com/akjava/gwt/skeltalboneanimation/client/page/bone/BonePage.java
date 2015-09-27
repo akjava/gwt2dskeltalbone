@@ -10,6 +10,7 @@ import java.util.Map;
 import com.akjava.gwt.html5.client.download.HTML5Download;
 import com.akjava.gwt.lib.client.CanvasUtils;
 import com.akjava.gwt.lib.client.GWTHTMLUtils;
+import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.lib.client.experimental.CanvasDragMoveControler;
 import com.akjava.gwt.lib.client.experimental.CanvasMoveListener;
 import com.akjava.gwt.lib.client.game.PointD;
@@ -619,6 +620,7 @@ settings.setBone(newRoot);
 
 	@Override
 	protected void onBackgroundChanged(ImageDrawingData bg) {
+		
 		background.setBackgroundData(bg);
 		//not select
 		updateCanvas();
@@ -1036,6 +1038,12 @@ settings.setBone(newRoot);
 	protected void onTextureDataChanged(TextureData textureData) {
 		// TODO Auto-generated method stub
 		
+	}
+
+
+	@Override
+	public String getOwnerName() {
+		return "Bone-Editor";
 	}
 
 

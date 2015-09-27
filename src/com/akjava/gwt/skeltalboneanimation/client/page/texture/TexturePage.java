@@ -83,7 +83,7 @@ import com.google.gwt.user.client.ui.ValueListBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 
-public class TexturePage extends AbstractPage implements HasSelectionName, DataOwner{
+public class TexturePage extends AbstractPage implements HasSelectionName{
 	
 private Canvas canvas;
 private CanvasDragMoveControler canvasControler;

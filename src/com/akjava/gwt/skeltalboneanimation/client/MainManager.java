@@ -77,6 +77,9 @@ public boolean isSelected(AbstractPage page){
 public void setTextureData(String fileName,TextureData textureData){
 	getFileManagerBar().setTexture(fileName, textureData);
 }
+/*
+ * this auto replace newer bone
+ */
 public TextureData getTextureData(){
 	TextureData data= getUploadedFileManager().getTextureData();
 	if(data!=null){

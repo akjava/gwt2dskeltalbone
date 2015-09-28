@@ -1221,6 +1221,8 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 				
 				
 			}
+			//TODO merge already exist textures.
+			
 			TextureData textureData=new TextureData();
 			//textureData.setBone(boneControler.getBone());
 			textureData.setImageDrawingDatas(datas);

@@ -510,6 +510,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		public void executeOnClick() {
 			
 			doTransparent();
+			doSaveData();
 		}
 		 
 	 };
@@ -528,6 +529,8 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 				doTransparent(getSelection());
 				//added data's order is invalid,fix it
 				doSyncTextureOrder();
+				
+				doSaveData();
 				
 				manager.selectTab(MainManager.TransparentPageIndex);
 			}else{

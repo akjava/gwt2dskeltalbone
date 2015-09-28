@@ -1166,7 +1166,8 @@ upper.add(extractImageBt);
 	
 	protected void doSaveAll() {
 		
-		TextureData textureData=manager.getUploadedFileManager().getTextureData();
+		//set new-bone
+		TextureData textureData=manager.getTextureData();
 		ClipImageData clipData=manager.getUploadedFileManager().getClipImageData();
 		
 		if(textureData==null ){

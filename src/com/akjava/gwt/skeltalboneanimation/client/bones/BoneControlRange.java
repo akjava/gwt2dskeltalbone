@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nullable;
+
 import com.akjava.gwt.skeltalboneanimation.client.BoneUtils;
 import com.akjava.gwt.skeltalboneanimation.client.ui.LabeledInputRangeWidget;
 import com.google.common.base.MoreObjects;
@@ -41,7 +43,7 @@ public class BoneControlRange extends VerticalPanel{
 		inputRange.setValue(MoreObjects.firstNonNull(rangeMap.get(selection), 0));
 	}
 
-	public BoneControlRange(TwoDimensionBone rootBone){
+	public BoneControlRange(@Nullable TwoDimensionBone rootBone){
 		HorizontalPanel panel=new HorizontalPanel();
 		panel.setVerticalAlignment(ALIGN_MIDDLE);
 		add(panel);
@@ -114,8 +116,11 @@ public class BoneControlRange extends VerticalPanel{
 		});
 		panel.add(reset);
 		
-		setRootBone(rootBone);
-			
+		//only initial null
+		if(rootBone!=null){
+			setRootBone(rootBone);
+		}	
+		
 		}
 	private BoneControlListener listener;
 		
@@ -131,7 +136,7 @@ public class BoneControlRange extends VerticalPanel{
 		//set-change listener
 		//select(if not found ,select root)
 	public void setRootBone(TwoDimensionBone rootBone){
-		Preconditions.checkNotNull(rootBone);
+		Preconditions.checkNotNull(rootBone,"LabeledInputRangeWidget need rootBone");
 		rangeMap.clear();
 		
 		List<TwoDimensionBone> bones=BoneUtils.getAllBone(rootBone);

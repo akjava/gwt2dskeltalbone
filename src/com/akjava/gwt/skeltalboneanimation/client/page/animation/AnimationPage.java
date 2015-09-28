@@ -1,5 +1,7 @@
 package com.akjava.gwt.skeltalboneanimation.client.page.animation;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -168,15 +170,20 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName{
 	}
 	
 	private void selectOnLoadBone(final TwoDimensionBone bone){
+		checkNotNull(bone,"selectOnLoadBone:need bone");
 		
-		if(getRootBone().isSameStructure(bone, true)){
+		if(bone.isSameStructure(getRootBone(), true)){
 			LogUtils.log("same bone.no need care");
 			//usually happen when clipimage-data loaded
 			return;
 		}
 		
+		if(getRootBone()==null){//no ask
+			setNewRootBone(bone);
+			return;
+		}
 		
-		if(autoReplaceBoneCheck.getValue()){
+		if(autoReplaceBoneCheck.getValue()){//no ask
 			setNewBoneAndAnimation(bone,animationControler.getAnimation());
 			return;
 		}
@@ -369,7 +376,9 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName{
 				for(BoneFrame frame:currentSelectionFrame.getBoneFrames().values()){
 					frame.setAngle(0);
 				}
-				boneControlerRange.getInputRange().setValue(0);
+				
+				//this clear range-map
+				boneControlerRange.setFrame(currentSelectionFrame);
 				
 				bonePositionControler.updateAnimationData(currentSelectionFrame);
 				updateCanvas();
@@ -938,21 +947,26 @@ public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvas
 
 		
 		//default
+		/*
 		TwoDimensionBone rootBone = new TwoDimensionBone("root",0, 0,null);
 		
 		TwoDimensionBone back=rootBone.addBone(new TwoDimensionBone("back",-100,0));
 		TwoDimensionBone chest=back.addBone(new TwoDimensionBone("chest",-100,0));
-		
+		*/
 		
 		animations = new SkeletalAnimation("test", 33.3);
 		 
 		createCanvas();
-		createBoneControls(animations,rootBone,canvas);
+		createBoneControls(animations,null,canvas);
+		
+		
+		
+		/*
 		currentSelectionFrame = BoneUtils.createEmptyAnimationFrame(getRootBone());
 		animations.add(currentSelectionFrame);
 		animations.add(BoneUtils.createEmptyAnimationFrame(getRootBone()));
 		bonePositionControler.updateBoth(currentSelectionFrame);
-		
+		*/
 	
 	}
 	@Override
@@ -1085,11 +1099,14 @@ upper.add(extractImageBt);
 		
 		
 		panel.add(createZeroColumnButtons(animations));    
+		
 		panel.add(createFirstColumnButtons());
+		
 		panel.add(createBonesColumnButtons());
+		
 		panel.add(createTextureColumnButtons());
 		panel.add(createBackground2ColumnButtons());
-	    
+		
 	    
 	panel.add(canvas);
 	

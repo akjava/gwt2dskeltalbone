@@ -1,7 +1,7 @@
 package com.akjava.gwt.skeltalboneanimation.client;
 
 
-public class ImageDrawingDataControler implements DrawingDataControler{
+public class ImageDrawingDataControler implements CanvasDrawingDataControler{
 
 	private ImageDrawingDataOwner owner;
 	

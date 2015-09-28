@@ -17,7 +17,7 @@ import com.akjava.gwt.lib.client.game.PointD;
 import com.akjava.gwt.skeltalboneanimation.client.Background;
 import com.akjava.gwt.skeltalboneanimation.client.BoneTextCell;
 import com.akjava.gwt.skeltalboneanimation.client.BoneUtils;
-import com.akjava.gwt.skeltalboneanimation.client.DrawingDataControler;
+import com.akjava.gwt.skeltalboneanimation.client.CanvasDrawingDataControler;
 import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingData;
 import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingDataControler;
 import com.akjava.gwt.skeltalboneanimation.client.MainManager;
@@ -504,8 +504,8 @@ settings.setBone(newRoot);
 	@Override
 	protected void onCanvasTouchStart(int sx, int sy) {
 		
-		DrawingDataControler active=null;
-		for(DrawingDataControler data:drawingDataControlers){
+		CanvasDrawingDataControler active=null;
+		for(CanvasDrawingDataControler data:drawingDataControlers){
 			if(data.onTouchStart(sx, sy)){
 				active=data;
 				break;
@@ -953,8 +953,8 @@ settings.setBone(newRoot);
 		return selectionModel.getSelectedObject()!=null?selectionModel.getSelectedObject().getName():null;
 	}
 
-	List<DrawingDataControler> drawingDataControlers;
-	private DrawingDataControler activeDataControler;
+	List<CanvasDrawingDataControler> drawingDataControlers;
+	private CanvasDrawingDataControler activeDataControler;
 	private Background background;
 	@Override
 	protected void initialize() {

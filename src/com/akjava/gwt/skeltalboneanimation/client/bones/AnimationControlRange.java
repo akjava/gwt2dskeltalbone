@@ -1,5 +1,7 @@
 package com.akjava.gwt.skeltalboneanimation.client.bones;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.skeltalboneanimation.client.ui.LabeledInputRangeWidget;
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -66,18 +68,23 @@ public class AnimationControlRange extends VerticalPanel{
 		return animation.getFrames().get(index);
 	}
 	public AnimationControlRange(final SkeletalAnimation animation){
+		checkNotNull("AnimationControlRange:need animation");
 		this.animation=animation;
 		HorizontalPanel panel=new HorizontalPanel();
 		panel.setVerticalAlignment(ALIGN_MIDDLE);
 		add(panel);
 		
-		inputRange = new LabeledInputRangeWidget("1 of "+ animation.getFrames().size(), 1, animation.getFrames().size(), 1);
+		int animationFrameSize=animation.getFrames().size();
+		int min=animationFrameSize>0?1:1;//must be 1 here
+		int max=animationFrameSize>0?animationFrameSize:1;
+		inputRange = new LabeledInputRangeWidget("1 of "+max , min, max, 1);
 		inputRange.addtRangeListener(new ValueChangeHandler<Number>() {
 			
 			@Override
 			public void onValueChange(ValueChangeEvent<Number> event) {
 				
-				inputRange.getNameLabel().setText(event.getValue().intValue()+" of "+animation.getFrames().size());
+				//inputRange.getNameLabel().setText(event.getValue().intValue()+" of "+animation.getFrames().size());
+				
 				
 				AnimationFrame frame=getSelection();
 				if(listener!=null){
@@ -85,7 +92,10 @@ public class AnimationControlRange extends VerticalPanel{
 				}
 			}
 		});
-		inputRange.setValue(1);
+		if(animationFrameSize>0){
+			inputRange.setValue(1);
+		}
+		updateNameLabel();
 		
 		panel.add(inputRange);
 		
@@ -165,11 +175,13 @@ public class AnimationControlRange extends VerticalPanel{
 		return (int)inputRange.getValue()-1;
 	}
 	public void setSelection(AnimationFrame frame,boolean fireEvent) {
+		checkNotNull(frame,"setSelection:need frame");
 		int index=animation.getFrames().indexOf(frame);
 		
 		if(index!=-1){
 			inputRange.setValue(index+1,fireEvent);
 		}
+		updateNameLabel();
 	}
 	
 	

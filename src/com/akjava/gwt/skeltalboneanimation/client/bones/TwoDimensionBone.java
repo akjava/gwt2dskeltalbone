@@ -3,6 +3,8 @@ package com.akjava.gwt.skeltalboneanimation.client.bones;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import com.akjava.gwt.lib.client.game.PointD;
 import com.akjava.gwt.skeltalboneanimation.client.BoneUtils;
 import com.google.common.collect.Lists;
@@ -174,7 +176,10 @@ public String toString(){
 }
 
 
-public boolean isSameStructure(TwoDimensionBone bone,boolean recursive) {
+public boolean isSameStructure(@Nullable TwoDimensionBone bone,boolean recursive) {
+	if(bone==null){
+		return false;
+	}
 	if(!isSameStructure(this,bone,recursive)){
 		return false;
 	}

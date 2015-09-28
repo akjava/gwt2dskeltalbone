@@ -23,7 +23,7 @@ import com.akjava.gwt.lib.client.widget.cell.SimpleCellTable;
 import com.akjava.gwt.skeltalboneanimation.client.Background;
 import com.akjava.gwt.skeltalboneanimation.client.BoneUtils;
 import com.akjava.gwt.skeltalboneanimation.client.BoxPoints;
-import com.akjava.gwt.skeltalboneanimation.client.DrawingDataControler;
+import com.akjava.gwt.skeltalboneanimation.client.CanvasDrawingDataControler;
 import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingData;
 import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingDataControler;
 import com.akjava.gwt.skeltalboneanimation.client.MainManager;
@@ -320,8 +320,15 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		
 		background = new Background();
 		background.setEditable(false);
+		
+		
+		clipDrawingDataControler = new ClipDrawingDataControler();
+		drawingDataControlers.add(clipDrawingDataControler);
+		
+		//modify background
 		ImageDrawingDataControler controler=new ImageDrawingDataControler(background);
 		drawingDataControlers.add(controler);
+		
 		
 		
 		return panel;
@@ -336,6 +343,9 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		getSelection().addPoint(pt);
 		
 		selectionPt=pt;
+		
+		//TODO method setActive
+		activeDataControler=clipDrawingDataControler;
 		
 		updateCanvas();			
 		}
@@ -954,17 +964,17 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 
 
 
-	PointXY selectionPt;
+	PointXY selectionPt; //need insertPoint;
 	private ClipDataEditor editor;
 
-	List<DrawingDataControler> drawingDataControlers;
-	private DrawingDataControler activeDataControler;
+	List<CanvasDrawingDataControler> drawingDataControlers;
+	private CanvasDrawingDataControler activeDataControler;
 	private Background background;
 	@Override
 	protected void onCanvasTouchStart(int sx, int sy) {
 		
-		DrawingDataControler active=null;
-		for(DrawingDataControler data:drawingDataControlers){
+		CanvasDrawingDataControler active=null;
+		for(CanvasDrawingDataControler data:drawingDataControlers){
 			if(data.onTouchStart(sx, sy)){
 				active=data;
 				break;
@@ -978,13 +988,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		//updateCanvas();
 		
 		
-		if(!isClipDataSelected()){
-			selectionPt=null;
-			return;
-		}
 		
-		selectionPt=getSelection().collision(sx, sy);
-		updateCanvas();
 	}
 
 
@@ -1000,6 +1004,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		
 		
 		//TODO 
+		/*
 		if(!isClipDataSelected()){
 			return;
 		}
@@ -1009,10 +1014,101 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 			selectionPt.incrementY(vectorY);
 			updateCanvas();
 		}
-		
+		*/
 	}
 
 
+	public class ClipDrawingDataControler implements CanvasDrawingDataControler{
+
+		@Override
+		public void onWhelled(int delta, boolean shiftDowned) {
+			
+			if(!isClipDataSelected()){
+				
+				return;
+			}
+			
+			if(getSelection().getPoints().isEmpty()){
+				return;
+			}
+			
+			int direction=1;
+			if(delta<0){
+				direction=-1;
+			}
+			PointXY pt=null;
+			if(selectionPt==null){//sadly never happen,so far .CanvasDrawingDataControler selected when clicked.
+				//LogUtils.log("select first");
+				pt=getSelection().getPoints().get(0);//select first
+			}else{
+				int index=getSelection().getPoints().indexOf(selectionPt);
+				if(index==-1){
+					LogUtils.log("somehow invalid selection.");
+					return;
+				}
+				index+=direction;
+				if(index<0){
+					index=getSelection().getPoints().size()-1;
+				}else if(index>=getSelection().getPoints().size()){
+					index=0;
+				}
+				pt=getSelection().getPoints().get(index);
+			}
+			selectionPt=pt;
+		}
+
+		@Override
+		public void onTouchDragged(int vectorX, int vectorY, boolean rightButton) {
+			if(!isClipDataSelected()){
+				return;
+			}
+			
+			if(selectionPt!=null){
+				selectionPt.incrementX(vectorX);
+				selectionPt.incrementY(vectorY);
+			}
+		}
+
+		@Override
+		public boolean onTouchStart(int mx, int my) {
+			if(!isClipDataSelected()){
+				selectionPt=null;
+				return false;
+			}
+			
+			boolean rightMouse=canvasControler.isRightMouse();
+			if(rightMouse){
+				if(selectionPt==null){
+					return false;
+				}
+				
+				for(PointXY pt:execInsertPoint(getSelection(),selectionPt,new PointXY(mx,my)).asSet()){
+					selectionPt=pt;
+					return true;
+				}
+				
+				LogUtils.log("somehow can't insert point");
+				return false;//
+				
+			}else{
+			
+			selectionPt=getSelection().collision(mx, my);
+			
+			return selectionPt!=null;
+			}
+		}
+
+		@Override
+		public void onTouchEnd(int mx, int my) {
+			//do nothing
+		}
+
+		@Override
+		public String getName() {
+			return "ClipImagePage";
+		}
+		
+	}
 
 
 
@@ -1211,6 +1307,29 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 				
 			}
 	}
+	
+	private Optional<PointXY> execInsertPoint(ClipData value,PointXY target,@Nullable PointXY newPoint){
+		int index=value.getPoints().indexOf(target);
+		if(index!=-1 && index<value.getPoints().size()){
+			int at=index+1;
+			
+			if(index == value.getPoints().size()-1){
+				at=0;
+			}
+			
+			if(newPoint==null){//center point
+			int x=selectionPt.x + value.getPoints().get(at).x;
+			int y=selectionPt.y + value.getPoints().get(at).y;
+			newPoint=new PointXY(x/2, y/2);
+			}
+			
+			value.getPoints().add(index+1, newPoint);
+			
+			return Optional.of(newPoint);
+		}
+		return Optional.absent();
+	}
+	
 	protected void doSyncTextureOrder() {
 		List<String> names=FluentIterable.from(cellObjects.getDatas()).transform(new Function<ClipData,String>(){
 			@Override
@@ -1500,6 +1619,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 	private static final int OUTSIDE=2;
 	private int drawMode=BOTH;
 	private boolean showClipedAreaOnly;
+	private ClipDrawingDataControler clipDrawingDataControler;
 	
 	public String generateBackgroundImage(){
 		Canvas extractCanvas=CanvasUtils.copyToSizeOnly(canvas,null);

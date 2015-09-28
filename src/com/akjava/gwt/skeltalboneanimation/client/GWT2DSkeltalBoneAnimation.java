@@ -1,13 +1,22 @@
 package com.akjava.gwt.skeltalboneanimation.client;
 
+import com.akjava.gwt.lib.client.LogUtils;
+import com.akjava.gwt.skeltalboneanimation.client.bones.BoneAndAnimationData;
+import com.akjava.gwt.skeltalboneanimation.client.converters.BoneAndAnimationConverter;
 import com.akjava.gwt.skeltalboneanimation.client.page.animation.AnimationPage;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.BonePage;
 import com.akjava.gwt.skeltalboneanimation.client.page.clippage.ClipImagePage;
 import com.akjava.gwt.skeltalboneanimation.client.page.colorpick.ColorPickPage;
 import com.akjava.gwt.skeltalboneanimation.client.page.html5app.TransparentItPage;
 import com.akjava.gwt.skeltalboneanimation.client.page.texture.TexturePage;
+import com.akjava.lib.common.utils.CSVUtils;
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.dom.client.Style.Unit;
+import com.google.gwt.http.client.Request;
+import com.google.gwt.http.client.RequestBuilder;
+import com.google.gwt.http.client.RequestCallback;
+import com.google.gwt.http.client.RequestException;
+import com.google.gwt.http.client.Response;
 import com.google.gwt.user.client.ui.DockLayoutPanel;
 import com.google.gwt.user.client.ui.RootLayoutPanel;
 import com.google.gwt.user.client.ui.TabLayoutPanel;
@@ -102,5 +111,29 @@ public class GWT2DSkeltalBoneAnimation implements EntryPoint {
 		
 		
 		tab.selectTab(0);
+		
+		//initial bone
+		final String fileName="2dbones-belly-stomach.txt";
+		RequestBuilder builder=new RequestBuilder(RequestBuilder.GET, fileName);
+		try {
+			builder.sendRequest(null, new RequestCallback() {
+				
+				@Override
+				public void onResponseReceived(Request request, Response response) {
+					String text=response.getText();
+					BoneAndAnimationData data=new BoneAndAnimationConverter().reverse().convert(CSVUtils.splitLinesWithGuava(text));
+					manager.getFileManagerBar().setBoneAndAnimation(fileName, data);
+				}
+				
+				@Override
+				public void onError(Request request, Throwable exception) {
+					LogUtils.log(exception);
+				}
+			});
+		} catch (RequestException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 	}
 }

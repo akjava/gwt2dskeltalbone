@@ -3,6 +3,7 @@ package com.akjava.gwt.skeltalboneanimation.client.page.html5app;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import com.akjava.gwt.html5.client.HTML5InputRange;
 import com.akjava.gwt.html5.client.InputRangeListener;
@@ -41,6 +42,7 @@ import com.akjava.gwt.skeltalboneanimation.client.page.html5app.InpaintEngine.In
 import com.akjava.gwt.skeltalboneanimation.client.ui.LabeledInputRangeWidget;
 import com.akjava.lib.common.utils.ColorUtils;
 import com.google.common.base.Optional;
+import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.canvas.dom.client.Context2d.Composite;
@@ -1110,25 +1112,32 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 				
 				@Override
 				public void sendBack(String fileName, final String dataUrl) {
-					LogUtils.log("send backed");
+					//final Stopwatch watch=Stopwatch.createStarted();
+					//LogUtils.log("send backed");
 					Optional<ImageElementData2> optional=findDataByName(fileName);
 					
 					if(!optional.isPresent()){
 						LogUtils.log("can't find data:"+fileName);
+						
 					}
 					
 					for(final ImageElementData2 data2:optional.asSet()){
+						//LogUtils.log("set-selected:");
 						easyCellTableObjects.setSelected(data2, true);
 						Scheduler.get().scheduleFinally(new ScheduledCommand() {
 							@Override
 							public void execute() {
 								if(getSelection()==data2){
-									LogUtils.log("paint");
+							 
 								startCreateCommand();
+								
+								// i wonder send back is slow?but it's ok
+								//LogUtils.log("paint:"+"start-paint:"+watch.elapsed(TimeUnit.MILLISECONDS));
 								CanvasUtils.clear(pixelCanvas);
 								CanvasUtils.drawDataUrl(pixelCanvas, dataUrl);
 								updateCurrentSelectionDataUrl(pixelCanvas.toDataUrl());
 								endCreateCommand(dataUrl);
+								updateCanvas();
 								}else{
 									LogUtils.log("invalidly selection not changed");
 								}
@@ -1252,7 +1261,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 	StyleElement bgElement;
 	private void updateBgStyle(){
 		if(isTransparent()){
-			pixelCanvas.setStylePrimaryName("transparent_bg");
+			canvas.setStylePrimaryName("transparent_bg");
 		}else{
 			if(bgElement!=null){
 				bgElement.removeFromParent();
@@ -1261,7 +1270,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 			LogUtils.log(css);
 			bgElement = StyleInjector.injectStylesheet(css);
 			
-			pixelCanvas.setStylePrimaryName("colorbg");
+			canvas.setStylePrimaryName("colorbg");
 			
 		}
 	}
@@ -1907,6 +1916,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 
 	
 	public void doSelect(ImageElementData2 selection) {
+		//Stopwatch watch=Stopwatch.createStarted();
 		this.selection=selection;
 		if(selection==null){
 			canvas.setVisible(false);
@@ -1919,7 +1929,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 			updateDrawingCanvas(false);
 			startCreateCommand();
 		}
-		
+		//LogUtils.log("selection-change-time-ms:"+watch.elapsed(TimeUnit.MILLISECONDS));
 	}
 
 	private ImageElement bgImage;

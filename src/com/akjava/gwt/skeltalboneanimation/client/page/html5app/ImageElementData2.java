@@ -2,6 +2,7 @@ package com.akjava.gwt.skeltalboneanimation.client.page.html5app;
 
 import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingData;
 import com.akjava.gwt.skeltalboneanimation.client.page.clippage.PointShape;
+import com.google.common.base.Optional;
 import com.google.gwt.dom.client.ImageElement;
 import com.google.gwt.user.client.DOM;
 
@@ -11,8 +12,8 @@ import com.google.gwt.user.client.DOM;
 public class ImageElementData2 implements HasImageUrl{
 
 		private PointShape pointShape;
-		public PointShape getPointShape() {
-			return pointShape;
+		public Optional<PointShape> getPointShape() {
+			return Optional.fromNullable(pointShape);
 		}
 		public void setPointShape(PointShape pointShape) {
 			this.pointShape = pointShape;
@@ -28,8 +29,8 @@ public class ImageElementData2 implements HasImageUrl{
 
 		private ImageDrawingData imageDrawingData;
 		
-		public ImageDrawingData getImageDrawingData() {
-			return imageDrawingData;
+		public Optional<ImageDrawingData> getImageDrawingData() {
+			return Optional.fromNullable(imageDrawingData);
 		}
 		public void setImageDrawingData(ImageDrawingData imageDrawingData) {
 			this.imageDrawingData = imageDrawingData;
@@ -48,6 +49,7 @@ public class ImageElementData2 implements HasImageUrl{
 			this.fileName = fileName;
 			this.imageElement=imageElement;
 			this.dataUrl = dataUrl;
+			this.initialDataUrl=dataUrl;
 		}
 		
 		public ImageElementData2(String fileName,ImageDrawingData imageDrawingData ,String dataUrl,PointShape pointShape) {

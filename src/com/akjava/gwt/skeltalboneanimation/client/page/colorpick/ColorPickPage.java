@@ -10,6 +10,7 @@ import com.akjava.gwt.comvnetjs.client.Net;
 import com.akjava.gwt.comvnetjs.client.Stats;
 import com.akjava.gwt.comvnetjs.client.Trainer;
 import com.akjava.gwt.comvnetjs.client.Vol;
+import com.akjava.gwt.html5.client.download.HTML5Download;
 import com.akjava.gwt.html5.client.file.File;
 import com.akjava.gwt.html5.client.file.FileUploadForm;
 import com.akjava.gwt.html5.client.file.FileUtils;
@@ -25,6 +26,7 @@ import com.akjava.gwt.skeltalboneanimation.client.TextureData;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneAndAnimationData;
 import com.akjava.gwt.skeltalboneanimation.client.page.AbstractPage;
 import com.akjava.lib.common.graphics.Rect;
+import com.akjava.lib.common.utils.ColorUtils;
 import com.google.common.collect.Lists;
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.canvas.dom.client.ImageData;
@@ -36,7 +38,9 @@ import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.text.shared.Renderer;
 import com.google.gwt.user.client.Timer;
+import com.google.gwt.user.client.ui.Anchor;
 import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.RadioButton;
@@ -113,6 +117,11 @@ public class ColorPickPage extends AbstractPage{
 		trainer = ConvnetJs.createTrainer2(net);
 		positives=Lists.newArrayList();
 		negatives=Lists.newArrayList();
+		
+		if(positivePanel!=null){
+			positivePanel.clear();
+			negativePanel.clear();
+		}
 	}
 
 	@Override
@@ -170,7 +179,7 @@ public class ColorPickPage extends AbstractPage{
 		VerticalPanel leftPanel=new VerticalPanel();
 		
 		ScrollPanel scroll=new ScrollPanel();
-		scroll.setHeight("600px");
+		scroll.setHeight("800px");
 		panel.add(scroll);
 		
 		int canvasW=400;
@@ -180,10 +189,16 @@ public class ColorPickPage extends AbstractPage{
 		inputCanvas.setStylePrimaryName("transparent_bg");
 		scroll.add(inputCanvas);
 		
+		positivePanel = new HorizontalPanel();
+		HorizontalPanel pPanel=new HorizontalPanel();
+		topPanel.add(pPanel);
+		
+		HorizontalPanel nPanel=new HorizontalPanel();
+		topPanel.add(nPanel);
 		
 		HorizontalPanel h0=new HorizontalPanel();
 		topPanel.add(h0);
-		RadioButton positiveCheck = new RadioButton("type","add positive point");
+		RadioButton positiveCheck = new RadioButton("type","add Positive point");
 		positiveCheck.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
 			
 			@Override
@@ -196,7 +211,8 @@ public class ColorPickPage extends AbstractPage{
 		positiveCheck.setValue(true);
 		
 		
-		h0.add(positiveCheck);
+		pPanel.add(positiveCheck);
+		pPanel.add(positivePanel);
 		
 		RadioButton negativeCheck = new RadioButton("type","add Negative Point");
 		negativeCheck.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
@@ -208,10 +224,15 @@ public class ColorPickPage extends AbstractPage{
 				}
 			}
 		});
-		h0.add(negativeCheck);
 		
-		HorizontalPanel h1=new HorizontalPanel();
-		topPanel.add(h1);
+		
+		negativePanel = new HorizontalPanel();
+		
+		nPanel.add(negativeCheck);
+		nPanel.add(negativePanel);
+		
+		HorizontalPanel mainColumn=new HorizontalPanel();
+		topPanel.add(mainColumn);
 		
 		Button doReset=new Button("do reset",new ClickHandler() {
 			
@@ -229,7 +250,7 @@ public class ColorPickPage extends AbstractPage{
 				doRemove();
 			}
 		});
-		h1.add(doRemove);
+		h0.add(doRemove);
 		
 		Button repeat=new Button("do repeat train",new ClickHandler() {
 			
@@ -238,7 +259,7 @@ public class ColorPickPage extends AbstractPage{
 				doRepeatTrain();
 			}
 		});
-		h1.add(repeat);
+		mainColumn.add(repeat);
 		
 		Button sendBack=new Button("sendback result",new ClickHandler() {
 			
@@ -248,6 +269,8 @@ public class ColorPickPage extends AbstractPage{
 			}
 		});
 		h0.add(sendBack);
+		
+		//
 		
 		
 		/*
@@ -286,12 +309,16 @@ public class ColorPickPage extends AbstractPage{
 					int index=0;
 					if(!isPositive){
 						index=1;
+						rgb.setIndex(index);
+						
 						negatives.add(rgb);
+						addLabel(rgb);
 						}else{
 							positives.add(rgb);	
+							addLabel(rgb);
 						}
 					lastOne=rgb;
-					rgb.setIndex(index);
+					
 					Stats stat=trainer.train(rgb.getVol(), index);
 					LogUtils.log(stat);
 					
@@ -347,10 +374,36 @@ public class ColorPickPage extends AbstractPage{
 			}
 		});
 		
+		final HorizontalPanel downloadlink=new HorizontalPanel();
+		Button dump=new Button("dump image",new ClickHandler() {
+			
+			@Override
+			public void onClick(ClickEvent event) {
+				downloadlink.clear();
+				Anchor a=HTML5Download.get().generateBase64DownloadLink(inputCanvas.toDataUrl(), "image/png", "color-pick-dump.png", "download image", true);
+				downloadlink.add(a);
+			}
+		});
+		h0.add(dump);
+		h0.add(downloadlink);
+		
 		
 		updateCanvas();
 		return root;
 	}
+	protected void addLabel(VolRGB rgb) {
+		 boolean positive=rgb.isPositive();
+		HTML html=new HTML("&nbsp;");
+		html.setWidth("20px");
+		String value=ColorUtils.toCssColor(rgb.r, rgb.g, rgb.b);
+		html.getElement().getStyle().setBackgroundColor(value);
+		if(positive){
+			positivePanel.add(html);
+		}else{
+			negativePanel.add(html);
+		}
+	}
+
 	private int scale;
 	protected void updateScale(Integer value) {
 		CanvasUtils.scaleViewerSize(inputCanvas,value);
@@ -360,9 +413,20 @@ public class ColorPickPage extends AbstractPage{
 	private VolRGB lastOne;
 	protected void doRemove() {
 		if(lastOne!=null){
-			positives.remove(lastOne);
-			negatives.remove(lastOne);
+			
+			
+		
+			if(lastOne.isPositive()){
+				positives.remove(lastOne);
+				int index=positivePanel.getWidgetCount();
+				positivePanel.remove(index-1);
+			}else {
+				negatives.remove(lastOne);
+				int index=negativePanel.getWidgetCount();
+				negativePanel.remove(index-1);
+			}
 		}
+		
 		updateCanvas();
 	}
 
@@ -444,7 +508,7 @@ public class ColorPickPage extends AbstractPage{
 		}
 		paintResult();
 		double avloss=loss/(100*(positives.size()+negatives.size()));
-		LogUtils.log(System.currentTimeMillis()-t);
+		//LogUtils.log(System.currentTimeMillis()-t);
 		return avloss;
 	}
 
@@ -528,7 +592,8 @@ public class ColorPickPage extends AbstractPage{
 	
 	
 	private ImageData imageData;
-	
+	private HorizontalPanel positivePanel;
+	private HorizontalPanel negativePanel;
 
 
 	public Vol createVol(int r,int g,int b){
@@ -546,6 +611,9 @@ public class ColorPickPage extends AbstractPage{
 		int index;
 		public int getX() {
 			return x;
+		}
+		public boolean isPositive() {
+			return index==0;
 		}
 		public void setX(int x) {
 			this.x = x;

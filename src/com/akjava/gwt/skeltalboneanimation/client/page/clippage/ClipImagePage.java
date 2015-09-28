@@ -915,7 +915,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 				int x1=data.getPoints().get(0).getX();
 				int y1=data.getPoints().get(0).getY();
 			
-				CanvasUtils.drawPoint(canvas, x1, y1);
+				CanvasUtils.fillPoint(canvas, x1, y1);
 			}
 			}
 			

@@ -142,7 +142,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 	private int penMode=MODE_ERASE;
 	private boolean mouseMoved;
 	
-	private Canvas canvas;
+	private Canvas pixelCanvas;
 	
 	
 	
@@ -166,6 +166,9 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 
 
 	private ColorBox bgColorPicker;
+
+
+	protected Boolean drawShape;
 
 	
 	public void removeItemById(String id){
@@ -378,7 +381,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 						startCreateCommand();
 						
 						//convert to imagedata
-						ImageData imageData=CanvasUtils.getImageData(canvas, true);
+						ImageData imageData=CanvasUtils.getImageData(pixelCanvas, true);
 						//do transparnet
 						int[] rgb=ColorUtils.toRGB(colorPicker.getValue());
 						
@@ -392,10 +395,10 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 							}
 						}
 						//set imagedata
-						CanvasUtils.copyTo(imageData, canvas);
+						CanvasUtils.copyTo(imageData, pixelCanvas);
 						
 						//store
-						String dataUrl=canvas.toDataUrl();
+						String dataUrl=pixelCanvas.toDataUrl();
 						endCreateCommand(dataUrl);
 						updateCurrentSelectionDataUrl(dataUrl);
 						execTransparentBt.setEnabled(true);
@@ -479,7 +482,9 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 		
 		
 		
-		canvas = Canvas.createIfSupported();
+		pixelCanvas = Canvas.createIfSupported();//pixel handling
+		
+		canvas=Canvas.createIfSupported();//final mixed result
 		
 		canvas.setStylePrimaryName("transparent_bg");
 		
@@ -731,6 +736,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 				currentCommand.redo();
 				undoBt.setEnabled(true);
 				redoBt.setEnabled(false);
+				
 			}
 		});
 		redoBt.setEnabled(false);
@@ -794,9 +800,12 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 		HorizontalPanel exbuttons=new HorizontalPanel();
 		exbuttons.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
 		controler.add(exbuttons);
+		HorizontalPanel exbuttons1=new HorizontalPanel();
+		exbuttons1.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
+		controler.add(exbuttons1);
 		
 		//TODO below
-		CheckBox drawShapeCheck=new CheckBox("draw-shape");
+		CheckBox drawShapeCheck=new CheckBox("show shape-line");
 		drawShapeCheck.setValue(true);
 		drawShapeCheck.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
 
@@ -807,7 +816,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 			}
 			
 		});
-		//exbuttons.add(drawShapeCheck);
+		exbuttons.add(drawShapeCheck);
 		//TODO as canvas-layer,this is just draw line can't hide
 		
 		//this is temporaly and not wrap command
@@ -817,9 +826,16 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 			public void onClick(ClickEvent event) {
 				if(selection!=null){
 					startCreateCommand();
-					selection.getPointShape().stroke("#000", canvas);
-					updateCurrentSelectionDataUrl(canvas.toDataUrl());
-					endCreateCommand(canvas.toDataUrl());
+					Optional<PointShape> optional=selection.getPointShape();
+					if(optional.isPresent()){
+						optional.get().stroke(colorPicker.getValue(), pixelCanvas);
+					updateCurrentSelectionDataUrl(pixelCanvas.toDataUrl());
+					endCreateCommand(pixelCanvas.toDataUrl());
+					
+					updateCanvas();
+					}else{
+						LogUtils.log("this selection has no pointShape");
+					}
 				}
 			}
 		});
@@ -832,7 +848,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 				doInpaint(true);
 			}
 		});
-		exbuttons.add(inpaintBt);
+		exbuttons1.add(inpaintBt);
 		
 		Button inpaintAllBt=new Button("Inpaint-All",new ClickHandler() {
 			
@@ -841,10 +857,10 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 				doInpaint(false);
 			}
 		});
-		exbuttons.add(inpaintAllBt);
+		exbuttons1.add(inpaintAllBt);
 		
 		LabeledInputRangeWidget range=new LabeledInputRangeWidget("radius",1,20,1);
-		exbuttons.add(range);
+		exbuttons1.add(range);
 		range.setValue(3);
 		range.getRange().addValueChangeHandler(new ValueChangeHandler<Number>() {
 
@@ -854,6 +870,36 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 			}
 		});
 		range.setWidgetWidthPx(40,80,20);
+		
+		HorizontalPanel exbuttons2=new HorizontalPanel();
+		exbuttons2.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
+		controler.add(exbuttons2);
+		
+		LabeledInputRangeWidget expandRange=new LabeledInputRangeWidget("expand",0,40,1);
+		exbuttons2.add(expandRange);
+		expandRange.setValue(0);
+		expandRange.getRange().addValueChangeHandler(new ValueChangeHandler<Number>() {
+
+			@Override
+			public void onValueChange(ValueChangeEvent<Number> event) {
+				expand=event.getValue().intValue();
+			}
+		});
+		expandRange.setWidgetWidthPx(40,100,20);
+		expandRange.setTitle("just expand edge");
+		
+		LabeledInputRangeWidget fadeRange=new LabeledInputRangeWidget("fade",0,40,1);
+		exbuttons2.add(fadeRange);
+		fadeRange.setValue(0);
+		fadeRange.getRange().addValueChangeHandler(new ValueChangeHandler<Number>() {
+
+			@Override
+			public void onValueChange(ValueChangeEvent<Number> event) {
+				fade=event.getValue().intValue();
+			}
+		});
+		fadeRange.setWidgetWidthPx(40,100,20);
+		fadeRange.setTitle("almost same expand.but mix original later");
 		
 		//controler,fist,pre,next,auto-play + time,clear
 		
@@ -990,7 +1036,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 		};
 		
 		DockLayoutPanel eastPanel=new DockLayoutPanel(Unit.PX);
-		eastPanel.addNorth(controler, 200);
+		eastPanel.addNorth(controler, 250);
 		
 		ScrollPanel cellScroll=new ScrollPanel();
 		cellScroll.setSize("100%", "100%");
@@ -1023,8 +1069,11 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 		canvasScroll.setWidth("100%");
 		canvasScroll.setHeight("100%");
 		dock.add(canvasScroll);
-		canvasScroll.add(canvas);
 		
+		
+		
+		
+		canvasScroll.add(canvas);
 		canvas.setVisible(false);
 		/*
 		
@@ -1032,6 +1081,8 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 		
 		return root;
 	}
+	private Canvas canvas;
+	
 	private ColorPickPage colorPickPage;
 	public ColorPickPage getColorPickPage() {
 		return colorPickPage;
@@ -1074,9 +1125,9 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 								if(getSelection()==data2){
 									LogUtils.log("paint");
 								startCreateCommand();
-								CanvasUtils.clear(canvas);
-								CanvasUtils.drawDataUrl(canvas, dataUrl);
-								updateCurrentSelectionDataUrl(canvas.toDataUrl());
+								CanvasUtils.clear(pixelCanvas);
+								CanvasUtils.drawDataUrl(pixelCanvas, dataUrl);
+								updateCurrentSelectionDataUrl(pixelCanvas.toDataUrl());
 								endCreateCommand(dataUrl);
 								}else{
 									LogUtils.log("invalidly selection not changed");
@@ -1100,20 +1151,23 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 			startCreateCommand();
 			InpaintEngine engine=new InpaintEngine();
 			ImageElement image=ImageElementUtils.create(selection.getDataUrl());
-			List<MaskData> masks=Lists.newArrayList(new MaskData().fade(0).expand(0));
+			List<MaskData> masks=Lists.newArrayList(new MaskData().fade(fade).expand(expand));
 			engine.doInpaint(image, inpaintRadius, masks, new InpaintListener() {
 				
 				@Override
 				public void createMixedImage(String dataUrl) {
-					canvas.getContext2d().save();
+					pixelCanvas.getContext2d().save();
 					if(clip){
-						selection.getPointShape().clip(canvas);
+						for(PointShape pointShape:selection.getPointShape().asSet()){
+							pointShape.clip(pixelCanvas);
+						}
+						
 					}
-					CanvasUtils.drawCenter(canvas, ImageElementUtils.create(dataUrl));
+					CanvasUtils.drawCenter(pixelCanvas, ImageElementUtils.create(dataUrl));
 					
-					updateCurrentSelectionDataUrl(canvas.toDataUrl());
+					updateCurrentSelectionDataUrl(pixelCanvas.toDataUrl());
 					
-					canvas.getContext2d().restore();
+					pixelCanvas.getContext2d().restore();
 				}
 				
 				@Override
@@ -1134,7 +1188,9 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 					
 				}
 			});
-			endCreateCommand(canvas.toDataUrl());
+			endCreateCommand(pixelCanvas.toDataUrl());
+			
+			updateCanvas();
 		}
 	}
 	protected void doSyncAsTexture() {
@@ -1145,11 +1201,15 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 		
 			List<ImageDrawingData> datas=Lists.newArrayList();
 			for(ImageElementData2 element:easyCellTableObjects.getDatas()){
-				ImageDrawingData data=element.getImageDrawingData();
+				Optional<ImageDrawingData> optional=element.getImageDrawingData();
+				if(optional.isPresent()){
+					ImageDrawingData data=optional.get();
+					data.setImageElement(ImageElementUtils.create(element.getDataUrl()));
+					datas.add(data);
+				}else{
+					LogUtils.log(element.getFileName()+" has no ImageDrawingData.skipped");
+				}
 				
-				data.setImageElement(ImageElementUtils.create(element.getDataUrl()));
-				
-				datas.add(data);
 				
 			}
 			TextureData textureData=new TextureData();
@@ -1159,7 +1219,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 		}
 	
 	private void updateBgImage(ImageElement bgImage){
-		canvas.removeStyleName("newbg");
+		pixelCanvas.removeStyleName("newbg");
 		if(injectedBgCss!=null){
 			injectedBgCss.removeFromParent();
 		}
@@ -1170,9 +1230,9 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 			String css=".newbg{"+"background-image: url(\""+bgImage.getSrc()+"\");background-size:"+w+"px "+h+"px;"+"}";
 			injectedBgCss = StyleInjector.injectStylesheet(css);
 			
-			canvas.addStyleName("newbg");
+			pixelCanvas.addStyleName("newbg");
 			
-			updateCanvas(false);
+			updateDrawingCanvas(false);
 		}
 	}
 	
@@ -1192,7 +1252,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 	StyleElement bgElement;
 	private void updateBgStyle(){
 		if(isTransparent()){
-			canvas.setStylePrimaryName("transparent_bg");
+			pixelCanvas.setStylePrimaryName("transparent_bg");
 		}else{
 			if(bgElement!=null){
 				bgElement.removeFromParent();
@@ -1201,7 +1261,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 			LogUtils.log(css);
 			bgElement = StyleInjector.injectStylesheet(css);
 			
-			canvas.setStylePrimaryName("colorbg");
+			pixelCanvas.setStylePrimaryName("colorbg");
 			
 		}
 	}
@@ -1212,7 +1272,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 		//zoomSize=value;
 		if(selection!=null){
 			updateBgImage(bgImage);
-			updateCanvas(false);
+			updateDrawingCanvas(false);
 		}
 	}
 	private StyleElement injectedBgCss;
@@ -1223,8 +1283,8 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 		//JsArray<Touch> touchs=event.getTouches();
 		if(touchs.length()>0){
 			Touch touch=touchs.get(0);
-			int x=touch.getRelativeX(canvas.getElement());
-			int y=touch.getRelativeY(canvas.getElement());
+			int x=touch.getRelativeX(pixelCanvas.getElement());
+			int y=touch.getRelativeY(pixelCanvas.getElement());
 			return new int[]{x,y};
 		}
 		
@@ -1271,7 +1331,11 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 			lastAvatorUpdate=c;
 			
 			}
+		
+		updateCanvas();
 		}
+		
+		
 	}
 	
 	private void perfomeDownEvent(int x,int y){
@@ -1366,10 +1430,12 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 		mouseDown=false;
 		lastPoint=null;
 	
-		String dataUrl=canvas.toDataUrl("image/png");
+		String dataUrl=pixelCanvas.toDataUrl("image/png");
 		endCreateCommand(dataUrl);
 		updateCurrentSelectionDataUrl(dataUrl);
 		
+		
+		updateCanvas();
 	}
 	
 	private void doPick(int cx, int cy) {
@@ -1377,7 +1443,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 		cy/=currentScale;
 		
 		//LogUtils.log(cx+","+cy);
-		ImageData data=canvas.getContext2d().getImageData(cx, cy, 1, 1);
+		ImageData data=pixelCanvas.getContext2d().getImageData(cx, cy, 1, 1);
 		int r=data.getRedAt(0, 0);
 		int g=data.getGreenAt(0, 0);
 		int b=data.getBlueAt(0, 0);
@@ -1395,11 +1461,11 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 	
 	protected void doReset() {
 		if(selection==null){
-			canvas.setVisible(false);
+			pixelCanvas.setVisible(false);
 			return;
 		}
 		currentCommand=new DataUriCommand();
-		currentCommand.setBeforeUri(canvas.toDataUrl("image/png"));
+		currentCommand.setBeforeUri(pixelCanvas.toDataUrl("image/png"));
 		
 		
 		
@@ -1407,19 +1473,19 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 		//canvas.getContext2d().setGlobalCompositeOperation(Composite.COPY);//seems broken in Chrome32
 		//canvas.getContext2d().translate(originImage.getCoordinateSpaceWidth(), 0); //flip horizontal
 		//canvas.getContext2d().scale(-1, 1);
-		canvas.getContext2d().clearRect(0, 0, canvas.getCoordinateSpaceWidth(), canvas.getCoordinateSpaceHeight());
+		pixelCanvas.getContext2d().clearRect(0, 0, pixelCanvas.getCoordinateSpaceWidth(), pixelCanvas.getCoordinateSpaceHeight());
 		//no need to flip
 		//canvas.getContext2d().translate(originImage.getCoordinateSpaceWidth(), 0); //flip horizontal
 		//canvas.getContext2d().scale(-1, 1);
 		//canvas.getContext2d().transform(-1, 0, 0, 1, 0, 0);
 		
 		//need size,for some buggy case
-		ImageElementUtils.copytoCanvas(ImageElementUtils.create(selection.getInitialDataUrl()), canvas);
+		ImageElementUtils.copytoCanvas(ImageElementUtils.create(selection.getInitialDataUrl()), pixelCanvas);
 		
 		//canvas.getContext2d().drawImage(imageElement), 0, 0);
 		//canvas.getContext2d().restore();
 		
-		String dataUrl=canvas.toDataUrl("image/png");
+		String dataUrl=pixelCanvas.toDataUrl("image/png");
 		currentCommand.setAfterUri(dataUrl);
 		
 		
@@ -1429,7 +1495,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 		
 		updateScale((int)currentScale);
 		
-		LogUtils.log("after-reset:"+canvas.getContext2d().getGlobalCompositeOperation());
+		//LogUtils.log("after-reset:"+drawingCanvas.getContext2d().getGlobalCompositeOperation());
 	}
 
 
@@ -1461,20 +1527,20 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 	}
 	
 	private void erase(XYPoint p1,XYPoint p2){
-		canvas.getContext2d().save();
-		canvas.getContext2d().setLineWidth(penSize);
-		canvas.getContext2d().setLineJoin(LineJoin.ROUND);
-		canvas.getContext2d().setStrokeStyle("#000");
-		canvas.getContext2d().setGlobalCompositeOperation("destination-out");
+		pixelCanvas.getContext2d().save();
+		pixelCanvas.getContext2d().setLineWidth(penSize);
+		pixelCanvas.getContext2d().setLineJoin(LineJoin.ROUND);
+		pixelCanvas.getContext2d().setStrokeStyle("#000");
+		pixelCanvas.getContext2d().setGlobalCompositeOperation("destination-out");
 		
-		canvas.getContext2d().beginPath();
+		pixelCanvas.getContext2d().beginPath();
 		
-		canvas.getContext2d().moveTo(p1.getX(),p1.getY());
-		canvas.getContext2d().lineTo(p2.getX(),p2.getY());
+		pixelCanvas.getContext2d().moveTo(p1.getX(),p1.getY());
+		pixelCanvas.getContext2d().lineTo(p2.getX(),p2.getY());
 		
-		canvas.getContext2d().closePath();
-		canvas.getContext2d().stroke();
-		canvas.getContext2d().restore();
+		pixelCanvas.getContext2d().closePath();
+		pixelCanvas.getContext2d().stroke();
+		pixelCanvas.getContext2d().restore();
 	}
 	
 	private void unerase(XYPoint p1,XYPoint p2){
@@ -1502,27 +1568,27 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 		
 		overlayCanvas.getContext2d().restore();
 		
-		canvas.getContext2d().save();
-		canvas.getContext2d().drawImage(overlayCanvas.getCanvasElement(), 0, 0);
-		canvas.getContext2d().restore();
+		pixelCanvas.getContext2d().save();
+		pixelCanvas.getContext2d().drawImage(overlayCanvas.getCanvasElement(), 0, 0);
+		pixelCanvas.getContext2d().restore();
 	}
 	
 	private void drawLine(XYPoint p1,XYPoint p2,String color){
 		//LogUtils.log("drawLine-before:"+canvas.getContext2d().getGlobalCompositeOperation());
-		canvas.getContext2d().save();
-		canvas.getContext2d().setLineWidth(penSize);
-		canvas.getContext2d().setLineJoin(LineJoin.ROUND);
-		canvas.getContext2d().setStrokeStyle(color);
-		canvas.getContext2d().setGlobalCompositeOperation(Composite.SOURCE_OVER);
+		pixelCanvas.getContext2d().save();
+		pixelCanvas.getContext2d().setLineWidth(penSize);
+		pixelCanvas.getContext2d().setLineJoin(LineJoin.ROUND);
+		pixelCanvas.getContext2d().setStrokeStyle(color);
+		pixelCanvas.getContext2d().setGlobalCompositeOperation(Composite.SOURCE_OVER);
 		
-		canvas.getContext2d().beginPath();
+		pixelCanvas.getContext2d().beginPath();
 		
-		canvas.getContext2d().moveTo(p1.getX(),p1.getY());
-		canvas.getContext2d().lineTo(p2.getX(),p2.getY());
+		pixelCanvas.getContext2d().moveTo(p1.getX(),p1.getY());
+		pixelCanvas.getContext2d().lineTo(p2.getX(),p2.getY());
 		
-		canvas.getContext2d().closePath();
-		canvas.getContext2d().stroke();
-		canvas.getContext2d().restore();
+		pixelCanvas.getContext2d().closePath();
+		pixelCanvas.getContext2d().stroke();
+		pixelCanvas.getContext2d().restore();
 		//LogUtils.log("drawLine-after:"+canvas.getContext2d().getGlobalCompositeOperation());
 	}
 
@@ -1565,7 +1631,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 		try{
 		
 		//need for some transparent image
-		canvas.getContext2d().clearRect(0, 0, canvas.getCoordinateSpaceWidth(), canvas.getCoordinateSpaceHeight());
+		pixelCanvas.getContext2d().clearRect(0, 0, pixelCanvas.getCoordinateSpaceWidth(), pixelCanvas.getCoordinateSpaceHeight());
 		
 		//canvas.getContext2d().save();
 		
@@ -1573,7 +1639,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 		//canvas.getContext2d().translate(originImage.getCoordinateSpaceWidth(), 0); //flip horizontal
 		//canvas.getContext2d().scale(-1, 1);
 		//canvas.getContext2d().transform(-1, 0, 0, 1, 0, 0);
-		canvas.getContext2d().drawImage(selection.getImageElement(), 0, 0);
+		pixelCanvas.getContext2d().drawImage(selection.getImageElement(), 0, 0);
 		//canvas.getContext2d().restore();
 		
 		}catch(Exception e){
@@ -1649,12 +1715,13 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 			loader.load(beforeUri, new ImageElementListener() {
 				@Override
 				public void onLoad(ImageElement element) {
-					canvas.getContext2d().save();
-					canvas.getContext2d().setGlobalCompositeOperation(Composite.COPY);
-					canvas.getContext2d().drawImage(element,0,0);
-					canvas.getContext2d().restore();
+					pixelCanvas.getContext2d().save();
+					pixelCanvas.getContext2d().setGlobalCompositeOperation(Composite.COPY);
+					pixelCanvas.getContext2d().drawImage(element,0,0);
+					pixelCanvas.getContext2d().restore();
 				
 					updateCurrentSelectionDataUrl(beforeUri);
+					updateCanvas();
 				}
 				
 				@Override
@@ -1677,12 +1744,13 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 			loader.load(afterUri, new ImageElementListener() {
 				@Override
 				public void onLoad(ImageElement element) {
-					canvas.getContext2d().save();
-					canvas.getContext2d().setGlobalCompositeOperation(Composite.COPY);
-					canvas.getContext2d().drawImage(element,0,0);
-					canvas.getContext2d().restore();
+					pixelCanvas.getContext2d().save();
+					pixelCanvas.getContext2d().setGlobalCompositeOperation(Composite.COPY);
+					pixelCanvas.getContext2d().drawImage(element,0,0);
+					pixelCanvas.getContext2d().restore();
 					
 					updateCurrentSelectionDataUrl(afterUri);
+					updateCanvas();
 				}
 				
 				@Override
@@ -1718,6 +1786,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 				unerase(positions.get(i), positions.get(i+1));
 			}
 			
+			updateCanvas();
 		}
 
 		@Override
@@ -1729,6 +1798,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 				erase(positions.get(i), positions.get(i+1));
 			}
 			
+			updateCanvas();
 		}
 	}
 	
@@ -1744,9 +1814,9 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 		downloadArea.clear();
 		
 		
-		updateCanvas(withBg);//anway bg
+		updateDrawingCanvas(withBg);//anway bg
 		
-		blob=Blob.createBase64Blob(canvas.toDataUrl(),"image/png");//for IE keep blob
+		blob=Blob.createBase64Blob(pixelCanvas.toDataUrl(),"image/png");//for IE keep blob
 		
 		Anchor a=null;
 		if(GWTUtils.isIE()){
@@ -1760,7 +1830,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 		a.setStylePrimaryName("bt");
 		downloadArea.add(a);
 		
-		updateCanvas(false);//clear invalid
+		updateDrawingCanvas(false);//clear invalid
 	}
 	
 	
@@ -1846,7 +1916,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 			//ImageElementUtils.copytoCanvas(element, canvas);
 			undoBt.setEnabled(false);
 			redoBt.setEnabled(false);
-			updateCanvas(false);
+			updateDrawingCanvas(false);
 			startCreateCommand();
 		}
 		
@@ -1866,47 +1936,55 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 
 	private Button execTransparentBt;
 
+
+	private int expand;
+
+
+	private int fade;
+
 	/**
 	 * only need when export,usually css draw backgorund
 	 * @param withBg
 	 */
-	public void updateCanvas(boolean withBg){
+	public void updateDrawingCanvas(boolean withBg){
 		if(selection==null){
 			return;
 		}
 		ImageElement selectionImage=ImageElementUtils.create(selection.getDataUrl());
-		ImageElementUtils.copytoCanvas(selectionImage, canvas,false);//just same size
+		ImageElementUtils.copytoCanvas(selectionImage, pixelCanvas,false);//just same size
+		
+		CanvasUtils.copyToSizeOnly(pixelCanvas, canvas);
 		
 		//change scale
 		if(currentScale!=1){
-			canvas.setWidth((canvas.getCoordinateSpaceWidth()*currentScale)+"px");
-			canvas.setHeight((canvas.getCoordinateSpaceHeight()*currentScale)+"px");
+			canvas.setWidth((pixelCanvas.getCoordinateSpaceWidth()*currentScale)+"px");
+			canvas.setHeight((pixelCanvas.getCoordinateSpaceHeight()*currentScale)+"px");
 		}
 		
-		CanvasUtils.clear(canvas);
+		CanvasUtils.clear(pixelCanvas);
 		CanvasUtils.clear(overlayCanvas);//should clear for old bg
 		
 		if(withBg){
 		if(bgImage!=null){
 			//bugs,not effect on bgcolor with bgimage,bgimage not repeated like css
-			CanvasUtils.drawImage(canvas, bgImage);
+			CanvasUtils.drawImage(pixelCanvas, bgImage);
 		}else{
 			if(!isTransparent()){
-				canvas.getContext2d().setFillStyle(getBgColor());
+				pixelCanvas.getContext2d().setFillStyle(getBgColor());
 				
-				canvas.getContext2d().fillRect(0, 0, canvas.getCoordinateSpaceWidth(), canvas.getCoordinateSpaceHeight());
+				pixelCanvas.getContext2d().fillRect(0, 0, pixelCanvas.getCoordinateSpaceWidth(), pixelCanvas.getCoordinateSpaceHeight());
 			}
 		}
 		}
 		
 		
 		
-		CanvasUtils.drawImage(canvas, selectionImage);
+		CanvasUtils.drawImage(pixelCanvas, selectionImage);
 		
 		
 		ImageElementUtils.copytoCanvas(selectionImage, overlayCanvas,false);
 		
-		
+		updateCanvas();
 	}
 
 	public abstract class HtmlColumn<T> extends Column<T,SafeHtml>{
@@ -2051,6 +2129,8 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 		drawShape=true;
 		penSize=16;
 		inpaintRadius=5;
+		expand=0;
+		fade=0;
 		
 		manager.getTextureOrderSystem().addListener(new DataChangeListener<List<String>>() {
 			@Override
@@ -2102,12 +2182,26 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 
 	@Override
 	protected void updateCanvas() {
-		//don't call updateCanvas is specially for this page
-		//updateCanvas(true);
+		//LogUtils.log("canvas-updated");
+		CanvasUtils.clear(canvas);
+		
+		//this style extreamlly slow ,todo fix later
+		canvas.getContext2d().drawImage(pixelCanvas.getCanvasElement(), 0, 0);
+		
+		
+		if(selection==null){
+			return;
+		}
+		if(drawShape ){
+			//TODO draw dot
+			//
+			for(PointShape pointShape:selection.getPointShape().asSet()){
+				pointShape.stroke("#888", canvas);
+			}
+		}
 	}
 	
-	private boolean drawShape;
-
+	
 
 	@Override
 	public String getOwnerName() {

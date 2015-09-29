@@ -30,4 +30,5 @@ public List<ClipData> getClips() {
 public void setClips(List<ClipData> clips) {
 	this.clips = clips;
 }
+
 }

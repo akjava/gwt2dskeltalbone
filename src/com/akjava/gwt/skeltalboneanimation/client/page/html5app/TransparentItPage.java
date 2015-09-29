@@ -172,6 +172,11 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 
 	protected Boolean drawShape;
 
+
+	protected int resetMode;
+	private static final int RESET_MODE_TEXTURE=0;
+	private static final int RESET_MODE_BACKGROUND_CLIP=1;
+	private static final int RESET_MODE_BACKGROUND_ALL=2;
 	
 	public void removeItemById(String id){
 		for(ImageElementData2 data:findDataByName(id).asSet()){
@@ -685,6 +690,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 		
 		
 		HorizontalPanel buttons=new HorizontalPanel();
+		buttons.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
 		controler.add(buttons);
 		
 	
@@ -758,16 +764,31 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 			}
 		});
 		buttons.add(reset);
+		buttons.add(new Label("Mode:"));
+		final ListBox resetModeList=new ListBox();
+		resetModeList.addItem("Texture");
+		resetModeList.addItem("BG(Clip)");
+		resetModeList.addItem("BG(All)");
+		buttons.add(resetModeList);
+		resetModeList.addChangeHandler(new ChangeHandler() {
+			
+			@Override
+			public void onChange(ChangeEvent event) {
+				resetMode=resetModeList.getSelectedIndex();
+			}
+		});
 		
+		HorizontalPanel buttons2=new HorizontalPanel();
+		controler.add(buttons2);
 		
-		Button syncBt=new ExecuteButton("Syn as Texture") {
+		Button syncBt=new ExecuteButton("Transfer as Texture") {
 			
 			@Override
 			public void executeOnClick() {
 				doSyncAsTexture();
 			}
 		};
-		buttons.add(syncBt);
+		buttons2.add(syncBt);
 		
 		Button sendBt=new ExecuteButton("Send") {
 			
@@ -776,7 +797,11 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 				doSendImage();
 			}
 		};
-		buttons.add(sendBt);
+		buttons2.add(sendBt);
+		
+		buttons2.add(new DownloadButtonAndLink(pixelCanvas,"download","image.png"));
+		
+		//TODO selection?
 		
 		saveBt = new Button(textConstants.Save());
 		saveBt.addClickHandler(new ClickHandler() {
@@ -1037,8 +1062,9 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 			}
 		};
 		
+		
 		DockLayoutPanel eastPanel=new DockLayoutPanel(Unit.PX);
-		eastPanel.addNorth(controler, 250);
+		eastPanel.addNorth(controler, 280);
 		
 		ScrollPanel cellScroll=new ScrollPanel();
 		cellScroll.setSize("100%", "100%");
@@ -1491,8 +1517,23 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 		//canvas.getContext2d().transform(-1, 0, 0, 1, 0, 0);
 		
 		//need size,for some buggy case
+		if(resetMode==RESET_MODE_TEXTURE){
 		ImageElementUtils.copytoCanvas(ImageElementUtils.create(selection.getInitialDataUrl()), pixelCanvas);
-		
+		}else if(resetMode==RESET_MODE_BACKGROUND_CLIP){
+			CanvasUtils.resizeCanvasFrom(selection.getImageElement(), pixelCanvas);
+			pixelCanvas.getContext2d().save();
+			
+			for(PointShape shape:selection.getPointShape().asSet()){
+				shape.clip(pixelCanvas);
+				CanvasUtils.drawImage(pixelCanvas, selection.getImageElement());
+			}
+			
+			pixelCanvas.getContext2d().restore();
+			
+			
+		}else if(resetMode==RESET_MODE_BACKGROUND_ALL){
+			ImageElementUtils.copytoCanvas(selection.getImageElement(), pixelCanvas);
+		}
 		//canvas.getContext2d().drawImage(imageElement), 0, 0);
 		//canvas.getContext2d().restore();
 		

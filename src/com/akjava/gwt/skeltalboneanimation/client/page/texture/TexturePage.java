@@ -947,7 +947,8 @@ public void setBoneNames(List<String> names){
 		
 		//panel.add(load);
 		
-		Button fromTexture=new Button("from texture-zip-bone",new ClickHandler() {
+		   
+/*		Button fromTexture=new Button("from texture-zip-bone",new ClickHandler() {
 			
 			@Override
 			public void onClick(ClickEvent event) {
@@ -965,7 +966,7 @@ public void setBoneNames(List<String> names){
 				}
 			}
 		});
-		//panel.add(fromTexture);
+		panel.add(fromTexture);*/
 		
 		return panel;
 	}

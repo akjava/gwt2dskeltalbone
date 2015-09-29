@@ -7,8 +7,8 @@ import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
 import com.akjava.gwt.skeltalboneanimation.client.page.AbstractPage;
 import com.akjava.gwt.skeltalboneanimation.client.page.ListenerSystem;
 import com.akjava.gwt.skeltalboneanimation.client.page.ListenerSystem.DataOwner;
-import com.akjava.gwt.skeltalboneanimation.client.page.TabItem;
-import com.google.common.collect.Lists;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.user.client.ui.TabLayoutPanel;
@@ -103,6 +103,19 @@ public ListenerSystem<List<String>> textureOrderSystem=new ListenerSystem<List<S
 
 public ListenerSystem<List<String>> getTextureOrderSystem() {
 	return textureOrderSystem;
+}
+
+/*
+ * return always newest bone
+ */
+public Supplier<TwoDimensionBone> getBoneSupplier(){
+	return Suppliers.memoize(new Supplier<TwoDimensionBone>(){
+		@Override
+		public TwoDimensionBone get() {
+			return getBone();
+		}
+		
+	});
 }
 
 

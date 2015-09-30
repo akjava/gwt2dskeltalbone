@@ -12,7 +12,7 @@ import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationFrame;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneFrame;
 import com.akjava.gwt.skeltalboneanimation.client.bones.SkeletalAnimation;
 import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
-import com.akjava.lib.common.graphics.Rect;
+import com.akjava.lib.common.graphics.IntRect;
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
@@ -125,7 +125,7 @@ public class ThreePointAnimation extends VerticalPanel{
 		
 		LogUtils.log(bone.getName()+","+pt[0]+" x "+pt[1]);
 		//native implement
-		Rect rect=Rect.fromCenterPoint((int)pt[0]+offsetX,(int)pt[1]+offsetY,10,10);
+		IntRect rect=IntRect.fromCenterPoint((int)pt[0]+offsetX,(int)pt[1]+offsetY,10,10);
 		String color=bone.getParent()==null?"#00f":"#f00";
 		canvas.getContext2d().setFillStyle(color);
 		RectCanvasUtils.fillCircle(rect, canvas, true);

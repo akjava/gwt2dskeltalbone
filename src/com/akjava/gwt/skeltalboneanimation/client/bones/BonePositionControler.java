@@ -8,7 +8,7 @@ import java.util.List;
 import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.skeltalboneanimation.client.BoneUtils;
 import com.akjava.gwt.skeltalboneanimation.client.InnerBoneAnimationData;
-import com.akjava.lib.common.graphics.Rect;
+import com.akjava.lib.common.graphics.IntRect;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
@@ -180,7 +180,7 @@ public class BonePositionControler {
 		}
 		
 		for(BoneWithXYAngle data:datas){
-			Rect rect=Rect.fromCenterPoint(data.getX(), data.getY(), boneSize/2, boneSize/2);
+			IntRect rect=IntRect.fromCenterPoint(data.getX(), data.getY(), boneSize/2, boneSize/2);
 		//	LogUtils.log(rect+","+screenX+2+"x"+screenY);
 			if(rect.contains(screenX, screenY)){
 				return data.getBone();
@@ -204,7 +204,7 @@ public class BonePositionControler {
 		
 		for(BoneWithXYAngle data:datas){
 			if(data.getBone()==target){
-			Rect rect=Rect.fromCenterPoint(data.getX(), data.getY(), boneSize/2, boneSize/2);
+			IntRect rect=IntRect.fromCenterPoint(data.getX(), data.getY(), boneSize/2, boneSize/2);
 		//	LogUtils.log(rect+","+screenX+2+"x"+screenY);
 			if(rect.contains(screenX, screenY)){
 				return true;
@@ -231,7 +231,7 @@ public class BonePositionControler {
 		}
 		
 		for(BoneWithXYAngle data:datas){
-			Rect rect=Rect.fromCenterPoint(data.getX(), data.getY(), boneSize/2, boneSize/2);
+			IntRect rect=IntRect.fromCenterPoint(data.getX(), data.getY(), boneSize/2, boneSize/2);
 		//	LogUtils.log(rect+","+screenX+2+"x"+screenY);
 			if(rect.contains(screenX, screenY)){
 				return data.getBone();

@@ -3,7 +3,7 @@ package com.akjava.gwt.skeltalboneanimation.client.page.clippage;
 import java.util.List;
 
 import com.akjava.gwt.lib.client.game.PointXY;
-import com.akjava.lib.common.graphics.Rect;
+import com.akjava.lib.common.graphics.IntRect;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 
@@ -32,7 +32,7 @@ public void addPoint(PointXY pt) {
 
 public PointXY collision(int sx,int sy){
 	for(PointXY pt:getPoints()){
-		Rect rect=Rect.fromCenterPoint(pt.getX(), pt.getY(), dotSize/2, dotSize/2);
+		IntRect rect=IntRect.fromCenterPoint(pt.getX(), pt.getY(), dotSize/2, dotSize/2);
 		if(rect.contains(sx, sy)){
 			return pt;
 		}
@@ -40,8 +40,8 @@ public PointXY collision(int sx,int sy){
 	return null;
 }
 
-public Rect getBound(){
-	return Rect.fromPoints(getPoints());
+public IntRect getBound(){
+	return IntRect.fromPoints(getPoints());
 }
 private int expand=DEFAULT_EXPAND;
 public int getExpand() {

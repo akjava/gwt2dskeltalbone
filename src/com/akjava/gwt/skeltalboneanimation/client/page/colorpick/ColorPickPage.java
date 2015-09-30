@@ -25,7 +25,7 @@ import com.akjava.gwt.skeltalboneanimation.client.MainManager;
 import com.akjava.gwt.skeltalboneanimation.client.TextureData;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneAndAnimationData;
 import com.akjava.gwt.skeltalboneanimation.client.page.AbstractPage;
-import com.akjava.lib.common.graphics.Rect;
+import com.akjava.lib.common.graphics.IntRect;
 import com.akjava.lib.common.utils.ColorUtils;
 import com.google.common.collect.Lists;
 import com.google.gwt.canvas.client.Canvas;
@@ -455,12 +455,12 @@ public class ColorPickPage extends AbstractPage{
 			CanvasUtils.copyTo(imageData, inputCanvas);
 		}
 		for(VolRGB pt:positives){
-			Rect rect=Rect.fromCenterPoint(pt.x, pt.y, 1, 1);
+			IntRect rect=IntRect.fromCenterPoint(pt.x, pt.y, 1, 1);
 			RectCanvasUtils.fill(rect, inputCanvas, "#0f0");
 		}
 		
 		for(VolRGB pt:negatives){
-			Rect rect=Rect.fromCenterPoint(pt.x, pt.y, 1, 1);
+			IntRect rect=IntRect.fromCenterPoint(pt.x, pt.y, 1, 1);
 			RectCanvasUtils.fill(rect, inputCanvas, "#f00");
 		}
 	}

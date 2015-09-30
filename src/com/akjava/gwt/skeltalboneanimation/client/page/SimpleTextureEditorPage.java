@@ -37,7 +37,7 @@ import com.akjava.gwt.skeltalboneanimation.client.converters.BoneAndAnimationCon
 import com.akjava.gwt.skeltalboneanimation.client.converters.TextureDataConverter;
 import com.akjava.gwt.skeltalboneanimation.client.page.SimpleBoneEditorPage.FlushTextBox;
 import com.akjava.gwt.skeltalboneanimation.client.ui.LabeledInputRangeWidget;
-import com.akjava.lib.common.graphics.Rect;
+import com.akjava.lib.common.graphics.IntRect;
 import com.akjava.lib.common.utils.CSVUtils;
 import com.akjava.lib.common.utils.FileNames;
 import com.google.common.collect.Lists;
@@ -899,7 +899,7 @@ private LabeledInputRangeWidget alphaRange;
 			
 			@Override
 			public void paintBone(String name, String parent,int startX, int startY, int endX, int endY, double angle,boolean locked) {
-				Rect rect=Rect.fromCenterPoint(endX,endY,10,10);
+				IntRect rect=IntRect.fromCenterPoint(endX,endY,10,10);
 				
 				String color;
 				if(parent!=null){

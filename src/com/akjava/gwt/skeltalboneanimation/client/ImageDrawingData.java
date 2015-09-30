@@ -7,7 +7,7 @@ import com.akjava.gwt.lib.client.CanvasUtils;
 import com.akjava.gwt.lib.client.ImageElementUtils;
 import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.lib.client.game.PointXY;
-import com.akjava.lib.common.graphics.Rect;
+import com.akjava.lib.common.graphics.IntRect;
 import com.akjava.lib.common.utils.ValuesUtils;
 import com.google.common.base.Joiner;
 import com.google.gwt.canvas.client.Canvas;
@@ -241,7 +241,7 @@ public Canvas convertToCanvas(){
 		convertedCanvas=Canvas.createIfSupported();
 	}
 	
-	Rect bounds=getBounds();
+	IntRect bounds=getBounds();
 	
 	CanvasUtils.setSize(convertedCanvas, bounds.getWidth(), bounds.getHeight());
 	
@@ -265,7 +265,7 @@ public void incrementAngle(int vectorX) {
 	}
 }
 PointXY[] result;
-Rect rect;
+IntRect rect;
 public PointXY[] getCornerPoint(){
 	if(result==null){
 		result=new PointXY[4];
@@ -297,15 +297,15 @@ public PointXY[] getCornerPoint(){
 	
 	return result;
 }
-private Rect bounds;
-public Rect getBounds() {
+private IntRect bounds;
+public IntRect getBounds() {
 	if(bounds==null){
 		updateBounds();
 	}
 	return bounds;
 }
 
-public void setBounds(Rect bounds) {
+public void setBounds(IntRect bounds) {
 	this.bounds = bounds;
 }
 public void updateBounds(){
@@ -328,7 +328,7 @@ public boolean collision(int screenX,int screenY){
 		int ih=imageElement.getHeight();
 		int iws=(int) (scaleX*iw);
 		int ihs=(int) (scaleY*ih);
-		Rect r=new Rect(x-iws/2,y-ihs/2,iws,ihs);
+		IntRect r=new IntRect(x-iws/2,y-ihs/2,iws,ihs);
 		return r.contains((int)turnedCordinates[0]+x, (int)turnedCordinates[1]+y);
 	}
 }
@@ -362,9 +362,9 @@ public void copyTo(ImageDrawingData container){
 	
 }
 
-public Rect calculateBounds(){
+public IntRect calculateBounds(){
 	if(rect==null){
-		rect=new Rect();
+		rect=new IntRect();
 	}
 	int minX=Integer.MAX_VALUE;int minY=Integer.MAX_VALUE;int maxX=Integer.MIN_VALUE;int maxY=Integer.MIN_VALUE;
 	

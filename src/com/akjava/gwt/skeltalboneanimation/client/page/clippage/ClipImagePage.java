@@ -39,7 +39,7 @@ import com.akjava.gwt.skeltalboneanimation.client.page.ListenerSystem.DataChange
 import com.akjava.gwt.skeltalboneanimation.client.page.ListenerSystem.DataOwner;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.BoneControler;
 import com.akjava.gwt.skeltalboneanimation.client.page.html5app.TransparentItPage;
-import com.akjava.lib.common.graphics.Rect;
+import com.akjava.lib.common.graphics.IntRect;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Stopwatch;
@@ -681,7 +681,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 
 
 	public ImageDrawingData convertToImageDrawingData(ClipData clip){
-		Rect rect=clip.getBound();
+		IntRect rect=clip.getBound();
 		rect.expandSelf(clip.getExpand(), clip.getExpand());
 		PointD pt=rect.getCenterPoint();
 		ImageElement element=ImageElementUtils.create(generateClippedImage(clip));
@@ -710,7 +710,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		//int expand=64;
 		
 		
-		Rect rect=selection.getBound();
+		IntRect rect=selection.getBound();
 		rect.expandSelf(selection.getExpand(), selection.getExpand());
 		Canvas clipCanvas=CanvasUtils.createCanvas(rect.getWidth(), rect.getHeight());
 		Context2d context=clipCanvas.getContext2d();
@@ -869,7 +869,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 					if(pt==data.getPoints().get(data.getPoints().size()-1)){
 						rectColor="#0f0";
 					}
-					Rect rect=Rect.fromCenterPoint(pt.getX(), pt.getY(), dotSize/2, dotSize/2);
+					IntRect rect=IntRect.fromCenterPoint(pt.getX(), pt.getY(), dotSize/2, dotSize/2);
 					RectCanvasUtils.fill(rect, canvas, rectColor);
 					
 					if(pt==selectionPt){
@@ -890,7 +890,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 							int y=selectionPt.y + data.getPoints().get(at).y;
 							PointXY insertPt=new PointXY(x/2, y/2);
 							
-							Rect insertRect=Rect.fromCenterPoint(insertPt.getX(), insertPt.getY(), dotSize/2, dotSize/2);
+							IntRect insertRect=IntRect.fromCenterPoint(insertPt.getX(), insertPt.getY(), dotSize/2, dotSize/2);
 							RectCanvasUtils.stroke(insertRect, canvas, "#888");
 						}
 						
@@ -935,7 +935,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 			//stroke bounds
 			if(data==selection || !drawSelectionOnly){
 			if(data.getPoints().size()>2 && drawBounds){
-			Rect boundRect=Rect.fromPoints(data.getPoints());
+			IntRect boundRect=IntRect.fromPoints(data.getPoints());
 			int expand=data.getExpand();
 			boundRect.expandSelf(expand, expand);
 			RectCanvasUtils.stroke(boundRect, canvas, "#444");

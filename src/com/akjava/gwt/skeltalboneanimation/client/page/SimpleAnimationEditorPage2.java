@@ -34,7 +34,7 @@ import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
 import com.akjava.gwt.skeltalboneanimation.client.converters.BoneAndAnimationConverter;
 import com.akjava.gwt.skeltalboneanimation.client.converters.BoneConverter;
 import com.akjava.gwt.skeltalboneanimation.client.converters.TextureDataConverter;
-import com.akjava.lib.common.graphics.Rect;
+import com.akjava.lib.common.graphics.IntRect;
 import com.akjava.lib.common.utils.CSVUtils;
 import com.google.common.base.Joiner;
 import com.google.gwt.canvas.client.Canvas;
@@ -739,7 +739,7 @@ private BoneControlRange boneControlerRange;
 		canvas.getContext2d().setStrokeStyle("#00f");
 		
 		//int distance=getDistance(parentX, parentY, boneX, boneY);
-		Rect rect=Rect.fromCenterPoint(parentX, parentY, distance, distance);
+		IntRect rect=IntRect.fromCenterPoint(parentX, parentY, distance, distance);
 		RectCanvasUtils.strokeCircle(rect, canvas, true);
 		
 		/*

@@ -27,7 +27,7 @@ import com.akjava.gwt.skeltalboneanimation.client.bones.BoneWithXYAngle;
 import com.akjava.gwt.skeltalboneanimation.client.bones.CanvasBoneSettings;
 import com.akjava.gwt.skeltalboneanimation.client.bones.SkeletalAnimation;
 import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
-import com.akjava.lib.common.graphics.Rect;
+import com.akjava.lib.common.graphics.IntRect;
 import com.akjava.lib.common.utils.ListUtils;
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.dom.client.CanvasElement;
@@ -325,7 +325,7 @@ Button remove=new Button("remove",new ClickHandler() {
 			
 			@Override
 			public void paintBone(String name, String parent,int startX, int startY, int endX, int endY, double angle,boolean locked) {
-				Rect rect=Rect.fromCenterPoint(endX,endY,10,10);
+				IntRect rect=IntRect.fromCenterPoint(endX,endY,10,10);
 				
 				String color;
 				if(parent!=null){

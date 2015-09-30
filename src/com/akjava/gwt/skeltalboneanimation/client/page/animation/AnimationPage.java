@@ -51,7 +51,7 @@ import com.akjava.gwt.skeltalboneanimation.client.page.AbstractPage;
 import com.akjava.gwt.skeltalboneanimation.client.page.CircleLineBonePainter;
 import com.akjava.gwt.skeltalboneanimation.client.page.HasSelectionName;
 import com.akjava.gwt.skeltalboneanimation.client.page.clippage.ClipImageData;
-import com.akjava.lib.common.graphics.Rect;
+import com.akjava.lib.common.graphics.IntRect;
 import com.akjava.lib.common.utils.CSVUtils;
 import com.akjava.lib.common.utils.FileNames;
 import com.google.common.base.Joiner;
@@ -728,7 +728,7 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName{
 		canvas.getContext2d().setStrokeStyle("#00f");
 		
 		//int distance=getDistance(parentX, parentY, boneX, boneY);
-		Rect rect=Rect.fromCenterPoint(parentX, parentY, distance, distance);
+		IntRect rect=IntRect.fromCenterPoint(parentX, parentY, distance, distance);
 		RectCanvasUtils.strokeCircle(rect, canvas, true);
 		
 		/*

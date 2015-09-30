@@ -15,7 +15,7 @@ import com.akjava.gwt.skeltalboneanimation.client.bones.BonePositionControler;
 import com.akjava.gwt.skeltalboneanimation.client.bones.CanvasBoneSettings;
 import com.akjava.gwt.skeltalboneanimation.client.bones.SkeletalAnimation;
 import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
-import com.akjava.lib.common.graphics.Rect;
+import com.akjava.lib.common.graphics.IntRect;
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
@@ -192,7 +192,7 @@ private BonePositionControler bonePositionControler;
 			
 			@Override
 			public void paintBone(String name, String parent,int startX, int startY, int endX, int endY, double angle,boolean locked) {
-				Rect rect=Rect.fromCenterPoint(endX,endY,10,10);
+				IntRect rect=IntRect.fromCenterPoint(endX,endY,10,10);
 				
 				String color;
 				if(parent!=null){

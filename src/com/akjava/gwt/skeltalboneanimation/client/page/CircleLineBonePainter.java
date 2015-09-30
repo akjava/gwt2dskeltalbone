@@ -4,7 +4,7 @@ import com.akjava.gwt.lib.client.CanvasUtils;
 import com.akjava.gwt.lib.client.experimental.RectCanvasUtils;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BonePositionControler;
 import com.akjava.gwt.skeltalboneanimation.client.bones.CanvasBonePainter;
-import com.akjava.lib.common.graphics.Rect;
+import com.akjava.lib.common.graphics.IntRect;
 import com.google.gwt.canvas.client.Canvas;
 
 public class CircleLineBonePainter extends CanvasBonePainter{
@@ -32,7 +32,7 @@ private HasSelectionName hasSelectionName;
 	public void paintBone(String name, String parent, int startX, int startY, int endX, int endY, double angle,boolean locked) {
 		
 		int boneSize=positionControler.getBoneSize();
-		Rect rect=Rect.fromCenterPoint(endX,endY,boneSize/2,boneSize/2);
+		IntRect rect=IntRect.fromCenterPoint(endX,endY,boneSize/2,boneSize/2);
 		
 		String color;
 		if(parent!=null){

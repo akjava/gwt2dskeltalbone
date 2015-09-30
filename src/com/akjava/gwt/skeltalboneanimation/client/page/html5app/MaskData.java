@@ -1,6 +1,6 @@
 package com.akjava.gwt.skeltalboneanimation.client.page.html5app;
 
-import com.akjava.lib.common.graphics.Rect;
+import com.akjava.lib.common.graphics.IntRect;
 
 /**
  * copy from html5app
@@ -14,7 +14,7 @@ private int expand=2;
 private int fade=5;
 private boolean similarColor;
 private int maxLength=16;
-private Rect clipRect=new Rect(0,0,0,0);
+private IntRect clipRect=new IntRect(0,0,0,0);
 private boolean useClip;
 
 public MaskData fade(int fade){
@@ -27,10 +27,10 @@ public MaskData expand(int expand){
 	return this;
 }
 
-public Rect getClipRect() {
+public IntRect getClipRect() {
 	return clipRect;
 }
-public void setClipRect(Rect clipRect) {
+public void setClipRect(IntRect clipRect) {
 	this.clipRect = clipRect;
 }
 public boolean isUseClip() {

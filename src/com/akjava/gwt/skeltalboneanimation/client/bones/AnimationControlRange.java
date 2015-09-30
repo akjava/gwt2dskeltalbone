@@ -89,9 +89,14 @@ public class AnimationControlRange extends VerticalPanel{
 				AnimationFrame frame=getSelection();
 				if(listener!=null){
 					listener.changed(frame);//TODO support move
+					
 				}
+				updateNameLabel();
 			}
 		});
+		inputRange.setValue(1);
+		inputRange.getTextBox().setVisible(false);
+		
 		if(animationFrameSize>0){
 			inputRange.setValue(1);
 		}
@@ -181,7 +186,7 @@ public class AnimationControlRange extends VerticalPanel{
 		if(index!=-1){
 			inputRange.setValue(index+1,fireEvent);
 		}
-		updateNameLabel();
+		//updateNameLabel();
 	}
 	
 	

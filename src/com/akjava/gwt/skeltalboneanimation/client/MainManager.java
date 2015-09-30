@@ -7,6 +7,7 @@ import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
 import com.akjava.gwt.skeltalboneanimation.client.page.AbstractPage;
 import com.akjava.gwt.skeltalboneanimation.client.page.ListenerSystem;
 import com.akjava.gwt.skeltalboneanimation.client.page.ListenerSystem.DataOwner;
+import com.akjava.gwt.skeltalboneanimation.client.page.clippage.ClipImageData;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.gwt.event.logical.shared.SelectionEvent;
@@ -84,6 +85,15 @@ public TextureData getTextureData(){
 	TextureData data= getUploadedFileManager().getTextureData();
 	if(data!=null){
 		data.setBone(getBone());//replace latest bone
+	}
+	return data;
+}
+
+//replace newer-bone
+public ClipImageData getClipImageData(){
+	ClipImageData data=getUploadedFileManager().getClipImageData();
+	if(data!=null){
+		data.setBone(getBone());
 	}
 	return data;
 }

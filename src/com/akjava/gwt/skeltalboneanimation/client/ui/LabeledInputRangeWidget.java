@@ -23,6 +23,9 @@ public class LabeledInputRangeWidget extends HorizontalPanel{
 			return range;
 		}
 		private TextBox textBox;
+		public TextBox getTextBox() {
+			return textBox;
+		}
 		private Map<ValueChangeHandler<Number>,HandlerRegistration> registMap=new HashMap<ValueChangeHandler<Number>, HandlerRegistration>();
 		private Label nameLabel;
 		public Label getNameLabel() {

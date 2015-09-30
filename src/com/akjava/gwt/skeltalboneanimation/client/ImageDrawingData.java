@@ -8,11 +8,18 @@ import com.akjava.gwt.lib.client.ImageElementUtils;
 import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.lib.client.game.PointXY;
 import com.akjava.lib.common.graphics.IntRect;
+import com.akjava.lib.common.graphics.Point;
+import com.akjava.lib.common.graphics.Rect;
 import com.akjava.lib.common.utils.ValuesUtils;
 import com.google.common.base.Joiner;
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.dom.client.ImageElement;
 
+/**
+ * TODO change int to double
+ * @author aki
+ *
+ */
 public class ImageDrawingData {
 private ImageElement imageElement;
 private boolean flipVertical;
@@ -70,8 +77,8 @@ public void setId(String id) {
 	this.id = id;
 }
 private double alpha=1;
-private int x;
-private int y;
+private double x;
+private double y;
 private double angle;
 
 private String boneName;
@@ -149,28 +156,38 @@ public void setAlpha(double alpha) {
 	this.alpha = alpha;
 }
 
-public int incrementX(int mx){
+public Point incrementXY(Point pt){
+	return incrementXY((int)pt.x,(int)pt.y);
+}
+
+public Point incrementXY(int mx,int my){
+	this.x+=mx;
+	this.y+=my;
+	return new Point(x,y);
+}
+
+public double incrementX(double mx){
 	this.x+=mx;
 	return this.x;
 }
-public int incrementY(int my){
+public double incrementY(double my){
 	this.y+=my;
 	return this.y;
 }
 
-public int getX() {
-	return x;
+public int getIntX() {
+	return (int)x;
 }
 
-public void setX(int x) {
+public void setX(double x) {
 	this.x = x;
 }
 
-public int getY() {
-	return y;
+public int getIntY() {
+	return (int)y;
 }
 
-public void setY(int y) {
+public void setY(double y) {
 	this.y = y;
 }
 
@@ -241,9 +258,9 @@ public Canvas convertToCanvas(){
 		convertedCanvas=Canvas.createIfSupported();
 	}
 	
-	IntRect bounds=getBounds();
+	Rect bounds=getBounds();
 	
-	CanvasUtils.setSize(convertedCanvas, bounds.getWidth(), bounds.getHeight());
+	CanvasUtils.setSize(convertedCanvas, (int)bounds.getWidth(), (int)bounds.getHeight());
 	
 	//draw(canvas);
 	if(flipHorizontal || flipVertical){
@@ -264,13 +281,13 @@ public void incrementAngle(int vectorX) {
 		angle=360+angle;
 	}
 }
-PointXY[] result;
-IntRect rect;
-public PointXY[] getCornerPoint(){
+Point[] result;
+Rect rect;
+public Point[] getCornerPoint(){
 	if(result==null){
-		result=new PointXY[4];
+		result=new Point[4];
 		for(int i=0;i<4;i++){
-			result[i]=new PointXY(0, 0);
+			result[i]=new Point(0, 0);
 		}
 	}
 	int iw=imageElement.getWidth();
@@ -297,15 +314,15 @@ public PointXY[] getCornerPoint(){
 	
 	return result;
 }
-private IntRect bounds;
-public IntRect getBounds() {
+private Rect bounds;
+public Rect getBounds() {
 	if(bounds==null){
 		updateBounds();
 	}
 	return bounds;
 }
 
-public void setBounds(IntRect bounds) {
+public void setBounds(Rect bounds) {
 	this.bounds = bounds;
 }
 public void updateBounds(){
@@ -318,8 +335,8 @@ public boolean collision(int screenX,int screenY){
 	return getBounds().contains(screenX, screenY);
 	}else{
 		
-		int offx=screenX-x;
-		int offy=screenY-y;
+		double offx=screenX-x;
+		double offy=screenY-y;
 		
 		double[] turnedCordinates=BoneUtils.turnedAngle(offx,offy, -angle);
 		
@@ -328,7 +345,7 @@ public boolean collision(int screenX,int screenY){
 		int ih=imageElement.getHeight();
 		int iws=(int) (scaleX*iw);
 		int ihs=(int) (scaleY*ih);
-		IntRect r=new IntRect(x-iws/2,y-ihs/2,iws,ihs);
+		Rect r=new Rect(x-iws/2,y-ihs/2,iws,ihs);
 		return r.contains((int)turnedCordinates[0]+x, (int)turnedCordinates[1]+y);
 	}
 }
@@ -362,14 +379,14 @@ public void copyTo(ImageDrawingData container){
 	
 }
 
-public IntRect calculateBounds(){
+public Rect calculateBounds(){
 	if(rect==null){
-		rect=new IntRect();
+		rect=new Rect();
 	}
-	int minX=Integer.MAX_VALUE;int minY=Integer.MAX_VALUE;int maxX=Integer.MIN_VALUE;int maxY=Integer.MIN_VALUE;
+	double minX=Double.MAX_VALUE;double minY=Double.MAX_VALUE;double maxX=Double.MIN_VALUE;double maxY=Double.MIN_VALUE;
 	
-	PointXY[] corners=getCornerPoint();
-	for(PointXY pt:corners){
+	Point[] corners=getCornerPoint();
+	for(Point pt:corners){
 		if(pt.getX()<minX){
 			minX=pt.getX();
 		}
@@ -383,8 +400,8 @@ public IntRect calculateBounds(){
 			maxY=pt.getY();
 		}
 	}
-	int w=maxX-minX;
-	int h= maxY-minY;
+	double w=maxX-minX;
+	double h= maxY-minY;
 	
 	rect.set(minX, minY, w,h);
 	return rect;

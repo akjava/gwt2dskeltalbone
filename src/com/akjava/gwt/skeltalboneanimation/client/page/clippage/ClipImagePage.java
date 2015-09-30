@@ -18,6 +18,7 @@ import com.akjava.gwt.lib.client.experimental.ImageBuilder;
 import com.akjava.gwt.lib.client.experimental.RectCanvasUtils;
 import com.akjava.gwt.lib.client.game.PointD;
 import com.akjava.gwt.lib.client.game.PointXY;
+import com.akjava.gwt.lib.client.graphics.Graphics;
 import com.akjava.gwt.lib.client.widget.cell.EasyCellTableObjects;
 import com.akjava.gwt.lib.client.widget.cell.SimpleCellTable;
 import com.akjava.gwt.skeltalboneanimation.client.Background;
@@ -395,6 +396,17 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 				}
 			};
 			table.addColumn(nameColumn);
+			
+			TextColumn<ClipData> hasLinkColumn=new TextColumn<ClipData>() {
+				@Override
+				public String getValue(ClipData object) {
+					for(ImageDrawingData data:object.getLinkedImageDrawingData().asSet()){
+						return "yes";
+					}
+					return "";
+				}
+			};
+			table.addColumn(hasLinkColumn,"has texture");
 		}
 	};
 	
@@ -551,10 +563,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		return panel;
 	}
 	
-	//TODO find create uniq-id-way
-	public String getClipDataId(ClipData data){
-		return data.getBone()!=null?data.getBone():"";
-	}
+
 	
 	public class TransparentData{
 		ImageDrawingData imageDrawingData;
@@ -579,6 +588,27 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 			
 			String notClippedSrc=generateClippedImage(clip,false);
 			imageDrawingData.getImageElement().setSrc(notClippedSrc);//in here imagedrawing using data need clipping but transparent need not clippling data.
+			
+			//linked data is set by loading compare both id.FUTURE change by editor
+			for(ImageDrawingData linked:clip.getLinkedImageDrawingData().asSet()){
+				IntRect clipBound=clip.getBounds();
+				if(clip.getBounds().equals(linked.getBounds())){
+					LogUtils.log("same no need convert");
+					//same size,no need care
+					clippedImageSrc=linked.getImageElement().getSrc();
+				}else{
+					
+					Canvas canvas=Graphics.createCanvas().copyToSizeOnly(clip.getBounds().toRect()).getCanvas();
+					//offset
+					ImageDrawingData textureImage=linked.copy();
+					textureImage.incrementXY(clipBound.toRect().getXY().inverse());
+					textureImage.draw(canvas);
+					//LogUtils.log("converted:"+linked.getBounds()+","+clip.getBounds()+",xy:"+textureImage.getX()+","+textureImage.getY());
+					clippedImageSrc=canvas.toDataUrl();
+				}
+			}
+			
+			/*
 			if(textureData!=null){
 				for(ImageDrawingData textureImage:textureData.findDataById(imageDrawingData.getId()).asSet()){
 					if(ImageElementUtils.isSameSize(imageDrawingData.getImageElement(),textureImage.getImageElement())){
@@ -586,7 +616,8 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 						clippedImageSrc=textureImage.getImageElement().getSrc();
 						}
 				}
-			}
+			}*/
+			
 			PointShape pointShape=new ClipDataToShapeFunction().apply(clip);
 			
 			transParentData.imageDrawingData=imageDrawingData;
@@ -598,21 +629,19 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		}
 	}
 	
-	private String getId(ClipData clipData){
-		return clipData.getBone();
-	}
+
 	
 	protected void doTransparent(final ClipData clipData) {
 
 		TextureData textureData=manager.getTextureData();
-		transparentItPage.removeItemById(getClipDataId(clipData));
+		transparentItPage.removeItemById(clipData.getId());
 		TransparentData data=new ClipDataToTransparentDataFunction(textureData).apply(clipData);
 		transparentItPage.addItem(new Supplier<String>() {
 			
 			@Override
 			public String get() {
 				// TODO Auto-generated method stub
-				return getId(clipData);
+				return clipData.getId();
 			}
 		},data.imageDrawingData, data.imageSrc,data.pointShape);
 		
@@ -673,7 +702,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 				@Override
 				public String get() {
 					// TODO Auto-generated method stub
-					return  getId(clip);
+					return  clip.getId();
 				}
 			},data, src,pointShape);
 			manager.selectTab(MainManager.TransparentPageIndex);
@@ -688,6 +717,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		for(ClipData clip:cellObjects.getDatas()){
 			ImageDrawingData data=convertToImageDrawingData(clip);
 			datas.add(data);
+			
 			//TODO change uniq id & name.id not empty
 			data.setImageName(data.getId()+".png");
 		}
@@ -700,13 +730,13 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 
 
 	public ImageDrawingData convertToImageDrawingData(ClipData clip){
-		IntRect rect=clip.getBound();
+		IntRect rect=clip.getPointBound();
 		rect.expandSelf(clip.getExpand(), clip.getExpand());
 		PointD pt=rect.getCenterPoint();
 		ImageElement element=ImageElementUtils.create(generateClippedImage(clip));
 		
 		
-		ImageDrawingData data=new ImageDrawingData(getClipDataId(clip), element);
+		ImageDrawingData data=new ImageDrawingData(clip.getId(), element);
 		data.setBoneName(clip.getBone());
 		data.setX((int)pt.getX());
 		data.setY((int)pt.getY());
@@ -729,7 +759,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		//int expand=64;
 		
 		
-		IntRect rect=selection.getBound();
+		IntRect rect=selection.getPointBound();
 		rect.expandSelf(selection.getExpand(), selection.getExpand());
 		Canvas clipCanvas=CanvasUtils.createCanvas(rect.getWidth(), rect.getHeight());
 		Context2d context=clipCanvas.getContext2d();

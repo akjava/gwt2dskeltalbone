@@ -62,7 +62,7 @@ public void stroke(Canvas canvas,String style){
 	
 	//CanvasUtils.drawLine(canvas, points.get(0).x, points.get(0).y,points.get(1).x,points.get(1).y);
 	//CanvasUtils.drawLine(canvas, points.get(2).x, points.get(2).y,points.get(3).x,points.get(3).y);
-	CanvasUtils.draw(canvas, points, true, style);
+	CanvasUtils.drawPoint(canvas, points, true, style);
 }
 
 }

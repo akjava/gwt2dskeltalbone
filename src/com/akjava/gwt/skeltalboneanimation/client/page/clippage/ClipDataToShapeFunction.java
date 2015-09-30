@@ -7,7 +7,7 @@ public class ClipDataToShapeFunction implements Function<ClipData,PointShape>{
 
 	@Override
 	public PointShape apply(ClipData input) {
-		IntRect rect=input.getBound();
+		IntRect rect=input.getPointBound();
 		rect.expandSelf(input.getExpand(), input.getExpand());
 		
 		PointShape shape=PointShape.createFromPointXY(input.getPoints());

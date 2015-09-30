@@ -10,7 +10,7 @@ import com.akjava.gwt.lib.client.MultiImageElementLoader.MultiImageElementListen
 import com.akjava.gwt.lib.client.experimental.CanvasDragMoveControler;
 import com.akjava.gwt.lib.client.experimental.CanvasMoveListener;
 import com.akjava.gwt.lib.client.experimental.RectCanvasUtils;
-import com.akjava.gwt.lib.client.game.PointXY;
+import com.akjava.lib.common.graphics.Point;
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.dom.client.ImageElement;
 import com.google.gwt.event.dom.client.MouseWheelEvent;
@@ -105,7 +105,7 @@ private CanvasDragMoveControler controler;
 		data.draw(canvas);
 		
 		canvas.getContext2d().setFillStyle("#f00");
-		for(PointXY pt:data.getCornerPoint()){
+		for(Point pt:data.getCornerPoint()){
 			LogUtils.log(pt);
 			if(pt!=null){
 				CanvasUtils.fillPoint(canvas, pt.getX(), pt.getY());

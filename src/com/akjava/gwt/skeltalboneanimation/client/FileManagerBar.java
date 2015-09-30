@@ -12,6 +12,7 @@ import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneAndAnimationData;
 import com.akjava.gwt.skeltalboneanimation.client.converters.BoneAndAnimationConverter;
 import com.akjava.gwt.skeltalboneanimation.client.converters.TextureDataConverter;
+import com.akjava.gwt.skeltalboneanimation.client.page.clippage.ClipData;
 import com.akjava.gwt.skeltalboneanimation.client.page.clippage.ClipImageData;
 import com.akjava.lib.common.utils.CSVUtils;
 import com.google.gwt.user.client.ui.HorizontalPanel;
@@ -144,6 +145,18 @@ public class FileManagerBar extends VerticalPanel{
 	//TODO clip
 	public void setClipImageData(String fileName,ClipImageData data){
 		clipNameLabel.setText(fileName);
+		
+	
+		
+		//link texture and clip using texture-id & clip-id
+		TextureData textures=uploadedFileManager.getTextureData();
+		for(ImageDrawingData drawing:textures.getImageDrawingDatas()){
+			for(ClipData clip:data.findDataById(drawing.getId()).asSet()){
+				clip.setLinkedImageDrawingData(drawing);
+			}
+		}
+		
+		
 		uploadedFileManager.setClipImageData(data);
 		
 		if(data.getImageDrawingData()!=null){
@@ -152,6 +165,10 @@ public class FileManagerBar extends VerticalPanel{
 		}else{
 			LogUtils.log("clip-data has no background");
 		}
+		
+		//link with textures
+		
+		
 		
 		if(data.getBone()!=null){
 			BoneAndAnimationData baa=new BoneAndAnimationData();

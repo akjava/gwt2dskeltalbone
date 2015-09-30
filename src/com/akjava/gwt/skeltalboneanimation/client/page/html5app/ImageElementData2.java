@@ -64,7 +64,7 @@ public class ImageElementData2 implements HasImageUrl{
 		public ImageElementData2(Supplier<String> idSupplier,ImageDrawingData imageDrawingData ,String dataUrl,PointShape pointShape) {
 			super();
 			//this.fileName = fileName;
-			;
+			this.idSupplier=idSupplier;
 			this.imageDrawingData=imageDrawingData;
 			this.imageElement=imageDrawingData.getImageElement();
 			this.dataUrl = dataUrl;

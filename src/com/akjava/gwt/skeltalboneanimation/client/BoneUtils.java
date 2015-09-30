@@ -8,6 +8,7 @@ import com.akjava.gwt.lib.client.game.PointXY;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationFrame;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneFrame;
 import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
+import com.akjava.lib.common.graphics.Point;
 import com.akjava.lib.common.utils.FileNames;
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
@@ -170,9 +171,24 @@ public class BoneUtils {
 		double turnedY=Math.cos(radian)*y+Math.sin(radian)*x;
 		return new double[]{turnedX, turnedY};
 	}
+/**
+ * @deprecated use Point
+ * @param point
+ * @param angle
+ * @return
+ */
 	public static PointXY turnedAngle(PointXY point,double angle){
 		int x=point.getX();
 		int y=point.getY();
+		double radian=Math.toRadians(angle);
+		double turnedX=Math.cos(radian)*x-Math.sin(radian)*y;
+		double turnedY=Math.cos(radian)*y+Math.sin(radian)*x;
+		 point.set((int)turnedX, (int)turnedY);
+		 return point;
+	}
+	public static Point turnedAngle(Point point,double angle){
+		double x=point.getX();
+		double y=point.getY();
 		double radian=Math.toRadians(angle);
 		double turnedX=Math.cos(radian)*x-Math.sin(radian)*y;
 		double turnedY=Math.cos(radian)*y+Math.sin(radian)*x;

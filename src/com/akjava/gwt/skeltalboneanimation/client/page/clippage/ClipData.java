@@ -3,8 +3,10 @@ package com.akjava.gwt.skeltalboneanimation.client.page.clippage;
 import java.util.List;
 
 import com.akjava.gwt.lib.client.game.PointXY;
+import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingData;
 import com.akjava.lib.common.graphics.IntRect;
 import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 
 //TODO need id otherwise can't multi clip on bone.
@@ -40,8 +42,19 @@ public PointXY collision(int sx,int sy){
 	return null;
 }
 
-public IntRect getBound(){
+//TODO find create uniq-id-way
+public String getId(){
+	
+	String boneName= this.getBone()!=null?this.getBone():"";
+
+	return (boneName+","+this.getBounds().toKanmaString()).replace(',', '_');
+}
+
+public IntRect getPointBound(){
 	return IntRect.fromPoints(getPoints());
+}
+public IntRect getBounds(){
+	return IntRect.fromPoints(getPoints()).expandSelf(expand, expand);
 }
 private int expand=DEFAULT_EXPAND;
 public int getExpand() {
@@ -59,5 +72,13 @@ public String toString(){
 		values.add(pt.toString());
 	}
 	return Joiner.on(",").join(values);
+}
+
+private ImageDrawingData linkedImageDrawingData;//load from initial same id
+public Optional<ImageDrawingData> getLinkedImageDrawingData() {
+	return Optional.fromNullable(linkedImageDrawingData);
+}
+public void setLinkedImageDrawingData(ImageDrawingData linkedImageDrawingData) {
+	this.linkedImageDrawingData = linkedImageDrawingData;
 }
 }

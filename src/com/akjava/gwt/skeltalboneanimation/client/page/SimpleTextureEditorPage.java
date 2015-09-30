@@ -336,8 +336,8 @@ private LabeledInputRangeWidget alphaRange;
 			flipVerticalCheck.setValue(value.isFlipVertical());
 			visibleCheck.setValue(value.isVisible());
 			
-			xLabel.setText(String.valueOf(value.getX()));
-			yLabel.setText(String.valueOf(value.getY()));
+			xLabel.setText(String.valueOf(value.getIntX()));
+			yLabel.setText(String.valueOf(value.getIntY()));
 			angleLabel.setText(String.valueOf(value.getAngle()));
 			scaleLabel.setText(String.valueOf(value.getScaleX()));
 		
@@ -569,7 +569,7 @@ private LabeledInputRangeWidget alphaRange;
 		newData.setId(getUniqDrawingName(newData.getId()));
 		
 		
-		newData.setX(calcurateFlip(centerX,selection.getX()));
+		newData.setX(calcurateFlip(centerX,selection.getIntX()));
 		
 		newData.setFlipHorizontal(!selection.isFlipHorizontal());
 		newData.setAngle(360-selection.getAngle());
@@ -589,7 +589,7 @@ private LabeledInputRangeWidget alphaRange;
 		newData.setId(getUniqDrawingName(newData.getId()));
 		
 		
-		newData.setY(calcurateFlip(centerY,selection.getY()));
+		newData.setY(calcurateFlip(centerY,selection.getIntY()));
 		
 		newData.setFlipVertical(!selection.isFlipVertical());
 		newData.setAngle(360-selection.getAngle());
@@ -1054,12 +1054,12 @@ if(modeAnimation){
 			}
 			Canvas converted=convertedDatas.get(i);
 			
-			int diffX=(boneX+offsetX)-(data.getX()-converted.getCoordinateSpaceWidth()/2);
-			int diffY=(boneY+offsetY)-(data.getY()-converted.getCoordinateSpaceHeight()/2);
+			int diffX=(boneX+offsetX)-(data.getIntX()-converted.getCoordinateSpaceWidth()/2);
+			int diffY=(boneY+offsetY)-(data.getIntY()-converted.getCoordinateSpaceHeight()/2);
 			
 			
-			int imageX=(int)(data.getX()-converted.getCoordinateSpaceWidth()/2)-(boneX+offsetX); //
-			int imageY=(int)(data.getY()-converted.getCoordinateSpaceHeight()/2)-(boneY+offsetY);//
+			int imageX=(int)(data.getIntX()-converted.getCoordinateSpaceWidth()/2)-(boneX+offsetX); //
+			int imageY=(int)(data.getIntY()-converted.getCoordinateSpaceHeight()/2)-(boneY+offsetY);//
 			//LogUtils.log(imageX+","+imageY);
 			
 			drawImageAt(canvas,converted.getCanvasElement(),movedX+offsetX-diffX,movedY+offsetY-diffY,diffX,diffY,angle);

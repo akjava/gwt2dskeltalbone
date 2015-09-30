@@ -825,12 +825,12 @@ private void drawTextureData(Canvas canvas){
 		
 		Canvas converted=convertedDatas.get(i);
 		
-		int diffX=(boneX+offsetX)-(data.getX()-converted.getCoordinateSpaceWidth()/2);
-		int diffY=(boneY+offsetY)-(data.getY()-converted.getCoordinateSpaceHeight()/2);
+		int diffX=(boneX+offsetX)-(data.getIntX()-converted.getCoordinateSpaceWidth()/2);
+		int diffY=(boneY+offsetY)-(data.getIntY()-converted.getCoordinateSpaceHeight()/2);
 		
 		
-		int imageX=(int)(data.getX()-converted.getCoordinateSpaceWidth()/2)-(boneX+offsetX); //
-		int imageY=(int)(data.getY()-converted.getCoordinateSpaceHeight()/2)-(boneY+offsetY);//
+		int imageX=(int)(data.getIntX()-converted.getCoordinateSpaceWidth()/2)-(boneX+offsetX); //
+		int imageY=(int)(data.getIntY()-converted.getCoordinateSpaceHeight()/2)-(boneY+offsetY);//
 		//LogUtils.log(imageX+","+imageY);
 		
 		drawImageAt(canvas,converted.getCanvasElement(),movedX+offsetX-diffX,movedY+offsetY-diffY,diffX,diffY,angle);

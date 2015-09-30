@@ -19,8 +19,8 @@ public class ImageDrawingDataConverter extends Converter<ImageDrawingData,String
 		values.add(data.getImageName()==null?"":data.getImageName()); //[0]
 		values.add(data.getBoneName()==null?"":data.getBoneName()); 
 		
-		values.add(String.valueOf(data.getX()));//[3]
-		values.add(String.valueOf(data.getY()));
+		values.add(String.valueOf(data.getIntX()));//[3]
+		values.add(String.valueOf(data.getIntY()));
 		values.add(String.valueOf(data.getScaleX()));
 		values.add(String.valueOf(data.getScaleY()));
 		values.add(String.valueOf(data.getAngle()));

@@ -44,6 +44,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
+import com.google.common.base.Supplier;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
 import com.google.gwt.canvas.client.Canvas;
@@ -597,12 +598,23 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		}
 	}
 	
-	protected void doTransparent(ClipData clipData) {
+	private String getId(ClipData clipData){
+		return clipData.getBone();
+	}
+	
+	protected void doTransparent(final ClipData clipData) {
 
 		TextureData textureData=manager.getTextureData();
 		transparentItPage.removeItemById(getClipDataId(clipData));
 		TransparentData data=new ClipDataToTransparentDataFunction(textureData).apply(clipData);
-		transparentItPage.addItem(data.imageDrawingData, data.imageSrc,data.pointShape);
+		transparentItPage.addItem(new Supplier<String>() {
+			
+			@Override
+			public String get() {
+				// TODO Auto-generated method stub
+				return getId(clipData);
+			}
+		},data.imageDrawingData, data.imageSrc,data.pointShape);
 		
 	}
 	
@@ -629,7 +641,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		
 		//idea should do id with bone-name + bounds?
 		
-		for(ClipData clip:cellObjects.getDatas()){
+		for(final ClipData clip:cellObjects.getDatas()){
 			//now only one image per bone support.
 			ImageDrawingData data=convertToImageDrawingData(clip);
 			datas.add(data);
@@ -656,7 +668,14 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 				}
 			}
 			PointShape pointShape=new ClipDataToShapeFunction().apply(clip);
-			transparentItPage.addItem(data, src,pointShape);
+			transparentItPage.addItem(new Supplier<String>() {
+				
+				@Override
+				public String get() {
+					// TODO Auto-generated method stub
+					return  getId(clip);
+				}
+			},data, src,pointShape);
 			manager.selectTab(MainManager.TransparentPageIndex);
 		}
 		

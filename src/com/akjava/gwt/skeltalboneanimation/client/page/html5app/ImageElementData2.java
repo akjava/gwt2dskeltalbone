@@ -3,6 +3,8 @@ package com.akjava.gwt.skeltalboneanimation.client.page.html5app;
 import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingData;
 import com.akjava.gwt.skeltalboneanimation.client.page.clippage.PointShape;
 import com.google.common.base.Optional;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import com.google.gwt.dom.client.ImageElement;
 import com.google.gwt.user.client.DOM;
 
@@ -46,15 +48,23 @@ public class ImageElementData2 implements HasImageUrl{
 		}
 		public ImageElementData2(String fileName,ImageElement imageElement ,String dataUrl) {
 			super();
-			this.fileName = fileName;
+			this.idSupplier = Suppliers.ofInstance(fileName);
 			this.imageElement=imageElement;
 			this.dataUrl = dataUrl;
 			this.initialDataUrl=dataUrl;
 		}
 		
-		public ImageElementData2(String fileName,ImageDrawingData imageDrawingData ,String dataUrl,PointShape pointShape) {
+		private Supplier<String> idSupplier;
+		public Supplier<String> getIdSupplier() {
+			return idSupplier;
+		}
+		public void setIdSupplier(Supplier<String> idSupplier) {
+			this.idSupplier = idSupplier;
+		}
+		public ImageElementData2(Supplier<String> idSupplier,ImageDrawingData imageDrawingData ,String dataUrl,PointShape pointShape) {
 			super();
-			this.fileName = fileName;
+			//this.fileName = fileName;
+			;
 			this.imageDrawingData=imageDrawingData;
 			this.imageElement=imageDrawingData.getImageElement();
 			this.dataUrl = dataUrl;
@@ -62,13 +72,8 @@ public class ImageElementData2 implements HasImageUrl{
 			this.pointShape=pointShape;
 		}
 		
-		private String fileName;
-		public String getFileName() {
-			return fileName;
-		}
-		public void setFileName(String fileName) {
-			this.fileName = fileName;
-		}
+		//private String fileName;
+		
 		public String getDataUrl() {
 			return dataUrl;
 		}
@@ -78,11 +83,14 @@ public class ImageElementData2 implements HasImageUrl{
 		public String getImageUrl() {
 			return getDataUrl();
 		}
+		public String getId(){
+			return idSupplier.get();
+		}
 		
-		public ImageElementData2 copy(){
+		public ImageElementData2 copyAsFileData(){
 			ImageElement element=ImageElement.as(DOM.createImg());
 			element.setSrc(imageElement.getSrc());
-			ImageElementData2 newData=new ImageElementData2(getFileName(),element,getDataUrl());
+			ImageElementData2 newData=new ImageElementData2(idSupplier.get(),element,getDataUrl());
 			return newData;
 		}
 		

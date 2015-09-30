@@ -3,7 +3,6 @@ package com.akjava.gwt.skeltalboneanimation.client.page.html5app;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import com.akjava.gwt.html5.client.HTML5InputRange;
 import com.akjava.gwt.html5.client.InputRangeListener;
@@ -42,7 +41,7 @@ import com.akjava.gwt.skeltalboneanimation.client.page.html5app.InpaintEngine.In
 import com.akjava.gwt.skeltalboneanimation.client.ui.LabeledInputRangeWidget;
 import com.akjava.lib.common.utils.ColorUtils;
 import com.google.common.base.Optional;
-import com.google.common.base.Stopwatch;
+import com.google.common.base.Supplier;
 import com.google.common.collect.Lists;
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.canvas.dom.client.Context2d.Composite;
@@ -187,9 +186,9 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 	public void clearAll(){
 		easyCellTableObjects.clearAllItems();
 	}
-	public void addItem(ImageDrawingData drawingData,String dataUrl,PointShape pointShape){
+	public void addItem(Supplier<String> idSupplier,ImageDrawingData drawingData,String dataUrl,PointShape pointShape){
 		
-		final ImageElementData2 data=new ImageElementData2(drawingData.getId(),drawingData,dataUrl,pointShape);
+		final ImageElementData2 data=new ImageElementData2(idSupplier,drawingData,dataUrl,pointShape);
 		
 		easyCellTableObjects.addItem(data);
 		easyCellTableObjects.setSelected(data, true);
@@ -1039,7 +1038,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 				    TextColumn<ImageElementData2> fileInfoColumn = new TextColumn<ImageElementData2>() {
 					      public String getValue(ImageElementData2 value) {
 					    	  
-					    	  return value.getFileName();
+					    	  return value.getId();
 					      }
 					    };
 					    table.addColumn(fileInfoColumn,textConstants.Name());
@@ -1049,7 +1048,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 							@Override
 							public void update(int index, ImageElementData2 object,
 									String value) {
-									easyCellTableObjects.addItem(object.copy());
+									easyCellTableObjects.addItem(object.copyAsFileData());
 							}
 							@Override
 							public String getValue(ImageElementData2 object) {
@@ -1172,8 +1171,8 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 						});
 					}
 				}
-			},getSelection().getFileName(),  dataUrl);
-			LogUtils.log("sended:"+getSelection().getFileName());
+			},getSelection().getId(),  dataUrl);
+			LogUtils.log("sended:"+getSelection().getId());
 			manager.selectTab(5);
 		
 	}
@@ -1242,7 +1241,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 					data.setImageElement(ImageElementUtils.create(element.getDataUrl()));
 					datas.add(data);
 				}else{
-					LogUtils.log(element.getFileName()+" has no ImageDrawingData.skipped");
+					LogUtils.log(element.getId()+" has no ImageDrawingData.skipped");
 				}
 				
 				
@@ -2214,7 +2213,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 
 	public Optional<ImageElementData2> findDataByName(String id){
 		for(ImageElementData2 data:easyCellTableObjects.getDatas()){
-			if(data.getFileName().equals(id)){
+			if(data.getId().equals(id)){
 				return Optional.of(data);
 			}
 		}

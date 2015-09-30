@@ -658,14 +658,14 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		boolean duplicateBoneName=false;
 		List<String> names=Lists.newArrayList();
 		for(ClipData clip:cellObjects.getDatas()){
-			if(names.indexOf(clip.getBone())!=-1){
+			if(names.indexOf(clip.getId())!=-1){
 				duplicateBoneName=true;
 				break;
 			}
-			names.add(clip.getBone());
+			names.add(clip.getId());
 		}
 		if(duplicateBoneName){
-			Window.alert("now only suport one bone,one texture.some how duplidated.may this not work correctly");
+			Window.alert("same id exist.maybe something wrong.");
 		}
 		
 		//idea should do id with bone-name + bounds?
@@ -1386,7 +1386,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		List<String> names=FluentIterable.from(cellObjects.getDatas()).transform(new Function<ClipData,String>(){
 			@Override
 			public String apply(ClipData input) {
-				return input.getBone();
+				return input.getId();
 			}}).toList();
 		manager.setTextureOrder(names, this);
 	}
@@ -1692,7 +1692,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 	}
 	public Optional<ClipData> findDataById(String id){
 		for(ClipData clip:cellObjects.getDatas()){
-			if(clip.getBone().equals(id)){
+			if(clip.getId().equals(id)){
 				return Optional.of(clip);
 			}
 		}

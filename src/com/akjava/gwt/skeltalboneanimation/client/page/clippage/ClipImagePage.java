@@ -1009,7 +1009,9 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 	@Override
 	protected void onCanvasTouchEnd(int sx, int sy) {
 		//selectionPt=null;
+		
 		if(activeDataControler!=null){
+			
 			activeDataControler.onTouchEnd(sx, sy,canvasControler.getKeyDownState());
 		}
 	}

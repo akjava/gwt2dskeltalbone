@@ -9,10 +9,7 @@ import java.util.Map;
 
 import com.akjava.gwt.html5.client.download.HTML5Download;
 import com.akjava.gwt.lib.client.CanvasUtils;
-import com.akjava.gwt.lib.client.GWTHTMLUtils;
 import com.akjava.gwt.lib.client.LogUtils;
-import com.akjava.gwt.lib.client.experimental.CanvasDragMoveControler;
-import com.akjava.gwt.lib.client.experimental.CanvasMoveListener;
 import com.akjava.gwt.lib.client.game.PointD;
 import com.akjava.gwt.skeltalboneanimation.client.Background;
 import com.akjava.gwt.skeltalboneanimation.client.BoneTextCell;
@@ -40,7 +37,12 @@ import com.akjava.gwt.skeltalboneanimation.client.page.SimpleBoneEditorPage2.Flu
 import com.akjava.gwt.skeltalboneanimation.client.page.SimpleBoneEditorPage2.FlushTextBox;
 import com.akjava.lib.common.graphics.Point;
 import com.akjava.lib.common.utils.CSVUtils;
+import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
+import com.google.common.base.Predicate;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.core.client.GWT;
@@ -50,8 +52,6 @@ import com.google.gwt.editor.client.SimpleBeanEditorDriver;
 import com.google.gwt.editor.client.ValueAwareEditor;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.event.dom.client.MouseWheelEvent;
-import com.google.gwt.event.dom.client.MouseWheelHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.text.shared.Renderer;
@@ -305,6 +305,13 @@ private void onEditorFlush(){
 			public void setValue(TwoDimensionBone value) {
 				
 				this.value=value;
+				if(value==null){
+					setVisible(false);
+					return;
+				}else{
+					setVisible(true);
+				}
+				
 				nameBox.setText(value.getName());
 				xBox.setValue((int)value.getX());
 				yBox.setValue((int)value.getY());
@@ -323,49 +330,19 @@ private void onEditorFlush(){
 				lockedEditor.setValue(value.isLocked());
 				
 			}
+
+			public boolean hasValue() {
+				return value!=null;
+			}
 	}
 	
-	private Canvas canvas;
-	private CanvasDragMoveControler canvasControler;
+	
+	//private CanvasDragMoveControler canvasControler;
 	private BonePositionControler bonePositionControler;
 
 	private  SingleSelectionModel<TwoDimensionBone> selectionModel ;
 	
-	private void createCanvas(){
-		//canvas
-				canvas = CanvasUtils.createCanvas(800, 800);
-				CanvasUtils.disableSelection(canvas);//can avoid double click
-				GWTHTMLUtils.disableContextMenu(canvas.getElement());
-				GWTHTMLUtils.disableSelectionEnd(canvas.getElement());//not work
-				add(canvas);
-				
-				canvasControler = new CanvasDragMoveControler(canvas,new CanvasMoveListener() {
-					
-					@Override
-					public void start(int sx, int sy) {
-						onCanvasTouchStart(sx,sy);
-						
-					}
-					
-					@Override
-					public void end(int sx, int sy) {//called on mouse out
-						//selection=null; //need selection for zoom
-					}
-					
-					@Override
-					public void dragged(int startX, int startY, int endX, int endY, int vectorX, int vectorY) {
-						onCanvasDragged(vectorX,vectorY);
-						
-					}
-				});
-				canvas.addMouseWheelHandler(new MouseWheelHandler() {
-					@Override
-					public void onMouseWheel(MouseWheelEvent event) {
-						onCanvasWheeled(event.getDeltaY());
-					}
-				});
-	}
-	
+
 	
 	protected void doCreateNewRoot() {
 		boolean confirm=Window.confirm("clear all bone?if not saved data all gone");
@@ -497,8 +474,143 @@ settings.setBone(newRoot);
 		
 		
 
+		boneMoveControler = new BoneMoveControler(){
+
+			private void updateSelection(){
+				Optional<TwoDimensionBone> bone=boneMoveControler.getSelection();
+				if(bone.isPresent()){
+					if(bone.get().equals(selectionModel.getSelectedObject())){
+						driver.edit(bone.get());//for update state
+						updateBoneDatas();
+					}else{
+						selectionModel.setSelected(bone.get(), true);
+					}
+					
+				}else{
+					//basicall never call
+					if(selectionModel.getSelectedObject()!=null){
+						selectionModel.setSelected(selectionModel.getSelectedObject(), false);
+					}
+				}
+			}
+			
+			@Override
+			public void onBoneMoveEnd() {
+				//LogUtils.log("move-end");
+				if(getSelection().isPresent()){
+					//make undo
+					if(posData!=null){
+						//LogUtils.log("selected & started");
+						
+						List<BonePositionData> add=FluentIterable.from(BoneUtils.getAllBone(getRootBone())).transform(new BonePositionDataTransform(posData)).toList();
+						//LogUtils.log(add.size());
+						//LogUtils.log(BoneUtils.getAllBone(getRootBone()).size());
+						for(BonePositionData data:add){
+							//LogUtils.log(data);
+						}
+						
+						
+						
+						List<BonePositionData> changed=FluentIterable.from(BoneUtils.getAllBone(getRootBone())).transform(new BonePositionDataTransform(posData)).filter(new MovedBone()).toList();
+						
+						
+						
+						//LogUtils.log("changed:"+changed.size());
+						if(!changed.isEmpty()){
+							BonePositionChangeCommand command=new BonePositionChangeCommand(changed);
+							undoControler.execute(command);
+						}
+						posData=null;
+					}
+				}
+				updateSelection();
+				//TODO if has selection 
+			}
+
+			List<BonePositionData> posData;
+			private ImmutableList<BonePositionData> wheelPosData;
+			@Override
+			public void onBoneMoveStart() {
+				//LogUtils.log("moveStart");
+				updateSelection();
+				//save current pos
+				posData=FluentIterable.from(BoneUtils.getAllBone(getRootBone())).transform(new BonePositionDataTransform()).toList();
+				for(BonePositionData data:posData){
+				//	LogUtils.log(data);
+				}
+				}
+
+			//can replace supplier?
+			@Override
+			public BonePositionControler getBonePositionControler() {
+				return bonePositionControler;
+			}
+
+			@Override
+			public void onBoneMoveUpdate() {
+				updateSelection();
+			}
+
+			@Override
+			public void onBoneWheelEnd() {
+				Optional<TwoDimensionBone> selection=getSelection();
+				if(!selection.isPresent()){
+					return;
+				}
+				TwoDimensionBone selectedBone=selection.get();
+				
+				Optional<BonePositionChangeCommandByWheel> command=getLastSameWheelUndoCommandIfExist(selection.get());
+				if(command.isPresent()){
+					//re-use
+					//LogUtils.log("re-use-pos");
+					//need dummy output,otherwise optimized & not call transform
+					List<BonePositionData> dummy=FluentIterable.from(BoneUtils.getAllBone(getRootBone())).transform(new BonePositionDataTransform(command.get().getDatas())).toList();
+				}else{
+					//no filter for future modify?
+					List<BonePositionData> datas=FluentIterable.from(BoneUtils.getAllBone(getRootBone())).transform(new BonePositionDataTransform(wheelPosData)).toList();
+					
+					BonePositionChangeCommandByWheel newCommand=new BonePositionChangeCommandByWheel(datas,selectedBone);
+					undoControler.execute(newCommand);
+				}
+				
+			}
+			//nice code
+			private Optional<BonePositionChangeCommandByWheel> getLastSameWheelUndoCommandIfExist(TwoDimensionBone selection){
+				Optional<Command> optional=undoControler.getLastUndoCommand();
+				if(optional.isPresent()){
+					Command command=optional.get();
+					if(command instanceof BonePositionChangeCommandByWheel){
+						BonePositionChangeCommandByWheel bonePosCommand=(BonePositionChangeCommandByWheel)command;
+						if(bonePosCommand.getSelected()==selection){
+							return Optional.of(bonePosCommand);
+						}
+					}
+				}
+				return Optional.absent();
+			}
+
+			@Override
+			public void onBoneWheelStart() {
+				Optional<TwoDimensionBone> selection=getSelection();
+				if(!selection.isPresent()){
+					LogUtils.log("never happen");
+					return;
+				}
+				
+				if(!getLastSameWheelUndoCommandIfExist(selection.get()).isPresent()){
+					wheelPosData=FluentIterable.from(BoneUtils.getAllBone(getRootBone())).transform(new BonePositionDataTransform()).toList();
+				}
+				
+			}
+			
+		};
+		
+		drawingDataControlers.add(boneMoveControler);
 		
 	}
+	
+
+	
 	
 	public BonePage(MainManager manager) {
 		super(manager);
@@ -507,6 +619,7 @@ settings.setBone(newRoot);
 
 	@Override
 	protected void onCanvasTouchEnd(int sx, int sy) {
+		
 		if(activeDataControler!=null){
 			activeDataControler.onTouchEnd(sx, sy,canvasControler.getKeyDownState());
 		}
@@ -514,7 +627,7 @@ settings.setBone(newRoot);
 
 	@Override
 	protected void onCanvasTouchStart(int sx, int sy) {
-		
+		//LogUtils.log("touchStart");
 		CanvasDrawingDataControler active=null;
 		for(CanvasDrawingDataControler data:drawingDataControlers){
 			if(data.onTouchStart(sx, sy,canvasControler.getKeyDownState())){
@@ -528,7 +641,7 @@ settings.setBone(newRoot);
 		
 		
 		
-		TwoDimensionBone newSelection=null;
+	/*	TwoDimensionBone newSelection=null;
 		if(selectionModel.getSelectedObject()!=null){
 			if(bonePositionControler.isCollisionOnInitialData(selectionModel.getSelectedObject(),sx,sy)){
 				
@@ -547,11 +660,11 @@ settings.setBone(newRoot);
 			backgroundSelected=false;
 			boneSelectedOnCanvas=newSelection;
 			selectionModel.setSelected(newSelection, true);//select by click
-		}
+		}*/
 	}
 	
-	private boolean backgroundSelected;
-	private TwoDimensionBone boneSelectedOnCanvas;
+	//private boolean backgroundSelected;
+	//private TwoDimensionBone boneSelectedOnCanvas;
 	
 	@Override
 	protected void onCanvasDragged(int vectorX, int vectorY) {
@@ -561,23 +674,11 @@ settings.setBone(newRoot);
 		}
 		
 		
-		//TODO switch to activeDataControler
+/*		//TODO switch to activeDataControler
 		if(boneSelectedOnCanvas!=null){
 			TwoDimensionBone bone=boneSelectedOnCanvas;
 			
-			/*
-			if(bone==getRootBone()){
-				
-				//rotate root
-				if( canvasControler.isRightMouse()&&vectorX!=0){
-					bone.rotateChildrens(vectorX);
-					updateBoneDatas();
-				}
-				
-				
-				return;//rootBone is fixed,so far.
-			}
-			*/
+		
 			
 			//other bone moving
 			if(canvasControler.isRightMouse()){
@@ -593,18 +694,13 @@ settings.setBone(newRoot);
 			List<BonePositionData> posData=Lists.newArrayList();
 			
 			posData.add(new BonePositionData(bone, bone.getX(), bone.getY(), bone.getX()+vectorX, bone.getY()+vectorY));
-			/*
-			bone.setX(bone.getX()+vectorX);
-			bone.setY(bone.getY()+vectorY);
-			*/
+			
 			
 			//move only selection
 			if(canvasControler.isShiftKeyDown()){
 				for(TwoDimensionBone child:bone.getChildren()){
 					posData.add(new BonePositionData(child, child.getX(), child.getY(), child.getX()-vectorX, child.getY()-vectorY));
-					
-					/*child.setX(child.getX()-vectorX);
-					child.setY(child.getY()-vectorY);*/
+				
 				}
 			}
 			//TODO move to mosue up
@@ -612,7 +708,7 @@ settings.setBone(newRoot);
 			
 			driver.edit(bone);//data is update on editor,but not flash when same
 			updateBoneDatas();
-		}
+		}*/
 	}
 
 	@Override
@@ -740,7 +836,10 @@ settings.setBone(newRoot);
 			public void onSelectionChange(SelectionChangeEvent event) {
 				//LogUtils.log("selection-changed");
 				//LogUtils.log(selectionModel.getSelectedObject());
-				driver.flush();
+				if(twoDimensionBoneEditor.hasValue()){
+					driver.flush();
+				}
+				boneMoveControler.setSelection(selectionModel.getSelectedObject());
 				driver.edit(selectionModel.getSelectedObject());
 			}
 		});
@@ -792,16 +891,18 @@ settings.setBone(newRoot);
 	    
 	updateBoneDatas();//editor call
 	
-	TwoDimensionBoneEditor editor=new TwoDimensionBoneEditor();    
-	driver.initialize(editor);
+	twoDimensionBoneEditor = new TwoDimensionBoneEditor();    
+	driver.initialize(twoDimensionBoneEditor);
 	
 	
-	driver.edit(new TwoDimensionBone("",0,0));//dummy?
+	driver.edit(null);//dummy?
 	
 	selectionModel.setSelected(getRootBone(), true);
 	
-	
-	panel.add(editor);
+	VerticalPanel editorSpace=new VerticalPanel();
+	editorSpace.setHeight("40px");
+	editorSpace.add(twoDimensionBoneEditor);
+	panel.add(editorSpace);
 	panel.add(canvas);
 		
 		return panel;
@@ -983,6 +1084,8 @@ settings.setBone(newRoot);
 	private CanvasDrawingDataControler activeDataControler;
 	private Background background;
 	private UndoControler undoControler;
+	private BoneMoveControler boneMoveControler;
+	private TwoDimensionBoneEditor twoDimensionBoneEditor;
 	@Override
 	protected void initialize() {
 		driver = GWT.create(Driver.class);
@@ -1006,7 +1109,7 @@ settings.setBone(newRoot);
 		drawingDataControlers.add(controler);
 		
 		
-		createCanvas();
+		initializeCanvas();
 		createBoneControls(rootBone,canvas);
 	}
 	
@@ -1114,7 +1217,7 @@ settings.setBone(newRoot);
 		selectionModel.setSelected(target.getParent(), true);//re-select
 	}
 	
-	private class BonePositionData{
+	private static class BonePositionData{
 		private TwoDimensionBone bone;
 		public BonePositionData(TwoDimensionBone bone,double beforeX,double beforeY,double afterX,double afterY) {
 			this(bone,new Point(beforeX,beforeY),new Point(afterX,afterY));
@@ -1127,11 +1230,83 @@ settings.setBone(newRoot);
 		}
 		private Point beforePoint;
 		private Point afterPoint;
+		
+		public String toString(){
+			return bone.getName()+","+beforePoint.toString()+","+afterPoint.toString();
+		}
 	}
 	
+	public static class BonePositionDataTransform implements Function<TwoDimensionBone,BonePositionData>{
+		private Map<TwoDimensionBone,BonePositionData> dataMap;
+		public BonePositionDataTransform(){
+			//LogUtils.log("BonePositionDataTransform");
+		}
+		/**
+		 * somehow iterable working horrible
+		 * @param datas
+		 */
+		public BonePositionDataTransform(List<BonePositionData> datas){
+			//LogUtils.log("BonePositionDataTransform:datas");
+			dataMap=new HashMap<TwoDimensionBone, BonePage.BonePositionData>();
+			for(BonePositionData data:datas){
+				dataMap.put(data.bone, data);
+			}
+		}
+		@Override
+		public BonePositionData apply(TwoDimensionBone input) {
+			if(dataMap!=null){
+			
+				BonePositionData data=dataMap.get(input);
+				
+				if(input.getName().equals("head")){
+				//	LogUtils.log(data);
+				}
+				
+				data.afterPoint.x=input.getX();
+				data.afterPoint.y=input.getY();
+				
+				return data;
+			}else{
+				if(input.getName().equals("head")){
+				//	LogUtils.log("init-head");
+				}
+			double x=input.getX();
+			double y=input.getY();
+			
+			
+			BonePositionData data=new BonePositionData(input,x,y,0,0);
+			
+			return data;
+			}
+		}
+	}
+	
+	
+	public static class MovedBone implements Predicate<BonePositionData> {
+		@Override
+		public boolean apply(BonePositionData input) {
+			return !input.afterPoint.equals(input.beforePoint);
+		}
+	}
+	
+	public class BonePositionChangeCommandByWheel extends BonePositionChangeCommand{
+		private TwoDimensionBone selected;
+		public TwoDimensionBone getSelected() {
+			return selected;
+		}
+		public BonePositionChangeCommandByWheel(List<BonePositionData> datas,TwoDimensionBone selected) {
+			super(datas);
+			this.selected=selected;
+		}
+		
+	}
 	public class BonePositionChangeCommand implements Command{
 
 		List<BonePositionData> datas;
+		public List<BonePositionData> getDatas() {
+			return datas;
+		}
+
 		public BonePositionChangeCommand(List<BonePositionData> datas) {
 			super();
 			this.datas = datas;
@@ -1139,10 +1314,15 @@ settings.setBone(newRoot);
 
 		@Override
 		public void execute() {
+			//usually set by self.
+			
+			/*
 			for(BonePositionData data:datas){
 				data.bone.set(data.afterPoint);
 			}
 			updateCanvas();
+			*/
+			
 		}
 
 		@Override
@@ -1150,7 +1330,7 @@ settings.setBone(newRoot);
 			for(BonePositionData data:datas){
 				data.bone.set(data.beforePoint);
 			}
-			updateCanvas();
+			updateDatas();
 		}
 
 		@Override
@@ -1158,7 +1338,7 @@ settings.setBone(newRoot);
 			for(BonePositionData data:datas){
 				data.bone.set(data.afterPoint);
 			}
-			updateCanvas();
+			updateDatas();
 		}
 		
 	}
@@ -1190,6 +1370,8 @@ settings.setBone(newRoot);
 		}
 		
 	}
+	
+	
 	
 	public class RemoveBoneCommand implements Command{
 

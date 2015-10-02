@@ -2,6 +2,8 @@ package com.akjava.gwt.skeltalboneanimation.client;
 
 import java.util.Stack;
 
+import com.google.common.base.Optional;
+
 public class UndoControler {
 
 	public static interface UndoStateListener{
@@ -67,6 +69,14 @@ public class UndoControler {
 	undoHistory.push(command);
 	
 	 fireUndoState(true,redoHistory.isEmpty()?false:true);
+    }
+    
+    public Optional<Command> getLastUndoCommand(){
+    	if(undoHistory.isEmpty()){
+    		return Optional.absent();
+    	}else{
+    		return Optional.of(undoHistory.get(undoHistory.size()-1));
+    	}
     }
     
     public void clear(){

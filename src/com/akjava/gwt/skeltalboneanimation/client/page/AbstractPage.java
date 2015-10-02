@@ -128,6 +128,7 @@ protected int westPanelWidth=300;
 					@Override
 					public void end(int sx, int sy) {//called on mouse out
 						//selection=null; //need selection for zoom
+						
 						onCanvasTouchEnd(sx,sy);
 					}
 					

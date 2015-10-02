@@ -388,6 +388,11 @@ settings.setBone(newRoot);
 		treeModel.refresh(value);
 	}
 	
+	/**
+	 * update bone position for mouse-event
+	 * redraw canvas
+	 * update tree(seem not stable)
+	 */
 	public void updateBoneDatas(){
 		bonePositionControler.updateInitialData();
 		updateCanvas();
@@ -925,8 +930,7 @@ settings.setBone(newRoot);
 
 	@Override
 	protected void updateDatas() {
-		// TODO Auto-generated method stub
-		
+		updateBoneDatas();
 	}
 	
 

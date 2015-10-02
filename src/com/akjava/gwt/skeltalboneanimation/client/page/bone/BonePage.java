@@ -300,6 +300,9 @@ private void onEditorFlush(){
 				// TODO Auto-generated method stub
 				
 			}
+			public void update(){
+				setValue(value);
+			}
 
 			@Override
 			public void setValue(TwoDimensionBone value) {
@@ -501,8 +504,10 @@ settings.setBone(newRoot);
 			
 			@Override
 			public void onBoneMoveEnd() {
+				//LogUtils.log("moveEnd");
 				//LogUtils.log("move-end");
 				if(getSelection().isPresent()){
+					
 					//make undo
 					if(posData!=null){
 						//LogUtils.log("selected & started");
@@ -558,6 +563,7 @@ settings.setBone(newRoot);
 
 			@Override
 			public void onBoneWheelEnd() {
+				
 				Optional<TwoDimensionBone> selection=getSelection();
 				if(!selection.isPresent()){
 					return;
@@ -931,6 +937,7 @@ settings.setBone(newRoot);
 	@Override
 	protected void updateDatas() {
 		updateBoneDatas();
+		twoDimensionBoneEditor.update();// undo/redo change value
 	}
 	
 

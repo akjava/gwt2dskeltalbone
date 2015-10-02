@@ -2153,7 +2153,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 	}
 
 	@Override
-	protected void onCanvasWheeled(int delta, boolean shiftDown) {
+	protected void onCanvasWheeled(int delta) {
 		// TODO Auto-generated method stub
 		
 	}

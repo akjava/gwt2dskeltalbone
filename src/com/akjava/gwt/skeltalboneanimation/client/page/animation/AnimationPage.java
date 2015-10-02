@@ -488,7 +488,7 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName{
 				canvas.addMouseWheelHandler(new MouseWheelHandler() {
 					@Override
 					public void onMouseWheel(MouseWheelEvent event) {
-						onCanvasWheeled(event.getDeltaY(),event.isShiftKeyDown());;
+						onCanvasWheeled(event.getDeltaY());;
 					}
 				});
 	}
@@ -901,7 +901,7 @@ public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvas
 		
 	}
 	@Override
-	protected void onCanvasWheeled(int delta, boolean shiftDown) {
+	protected void onCanvasWheeled(int delta) {
 		if(!isEnableEdit()){
 			return;
 		}

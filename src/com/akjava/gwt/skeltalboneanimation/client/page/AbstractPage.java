@@ -141,7 +141,7 @@ protected int westPanelWidth=300;
 					@Override
 					public void onMouseWheel(MouseWheelEvent event) {
 						
-						onCanvasWheeled(event.getDeltaY(),event.isShiftKeyDown());
+						onCanvasWheeled(event.getDeltaY());
 					}
 				});
 		
@@ -150,7 +150,7 @@ protected int westPanelWidth=300;
 	protected abstract void  onCanvasTouchEnd(int sx,int sy);
 	protected abstract void  onCanvasTouchStart(int sx,int sy);
 	protected abstract void onCanvasDragged(int vectorX, int vectorY);
-	protected abstract void onCanvasWheeled(int delta,boolean shiftDown);
+	protected abstract void onCanvasWheeled(int delta);
 
 	protected abstract void onBoneAndAnimationChanged(BoneAndAnimationData data);
 	

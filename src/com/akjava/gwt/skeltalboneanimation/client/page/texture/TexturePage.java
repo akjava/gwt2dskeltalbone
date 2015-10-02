@@ -393,11 +393,7 @@ public void setBoneNames(List<String> names){
 
 
 
-	@Override
-	protected void onCanvasWheeled(int delta, boolean shiftDown) {
-		// TODO Auto-generated method stub
-		
-	}
+
 
 	@Override
 	protected void onBoneAndAnimationChanged(BoneAndAnimationData data) {

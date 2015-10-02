@@ -22,6 +22,9 @@ import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingData;
 import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingDataControler;
 import com.akjava.gwt.skeltalboneanimation.client.MainManager;
 import com.akjava.gwt.skeltalboneanimation.client.TextureData;
+import com.akjava.gwt.skeltalboneanimation.client.UndoButtons;
+import com.akjava.gwt.skeltalboneanimation.client.UndoControler;
+import com.akjava.gwt.skeltalboneanimation.client.UndoControler.Command;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationFrame;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneAndAnimationData;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneControlRange;
@@ -35,6 +38,7 @@ import com.akjava.gwt.skeltalboneanimation.client.page.CircleLineBonePainter;
 import com.akjava.gwt.skeltalboneanimation.client.page.HasSelectionName;
 import com.akjava.gwt.skeltalboneanimation.client.page.SimpleBoneEditorPage2.FlushIntegerBox;
 import com.akjava.gwt.skeltalboneanimation.client.page.SimpleBoneEditorPage2.FlushTextBox;
+import com.akjava.lib.common.graphics.Point;
 import com.akjava.lib.common.utils.CSVUtils;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
@@ -357,7 +361,7 @@ private void onEditorFlush(){
 				canvas.addMouseWheelHandler(new MouseWheelHandler() {
 					@Override
 					public void onMouseWheel(MouseWheelEvent event) {
-						onCanvasWheeled(event.getDeltaY(),event.isShiftKeyDown());
+						onCanvasWheeled(event.getDeltaY());
 					}
 				});
 	}
@@ -433,13 +437,16 @@ settings.setBone(newRoot);
 		if(selection==null){
 			return;
 		}
+		undoControler.execute(new AddBoneCommand(selection));
+		/*
 		TwoDimensionBone newBone=new TwoDimensionBone(BoneUtils.createBoneName(selection), 0, 0);
 		selection.addBone(newBone);
 		
 		refreshTree(selection);
 		updateBoneDatas();
 		
-		selectionModel.setSelected(newBone, true);	
+		selectionModel.setSelected(newBone, true);
+		*/	
 	}
 	
 	protected void doRemoveBone(boolean removeChildren) {
@@ -449,6 +456,9 @@ settings.setBone(newRoot);
 			return;
 		}
 		
+		undoControler.execute(new RemoveBoneCommand(removeChildren,selection));
+		
+		/*
 		selection.getParent().getChildren().remove(selection);
 		
 		if(!removeChildren){
@@ -466,6 +476,7 @@ settings.setBone(newRoot);
 		updateBoneDatas();
 		
 		selectionModel.setSelected(selection.getParent(), true);//re-select
+		*/
 	}
 	
 	private CircleLineBonePainter painter;
@@ -497,7 +508,7 @@ settings.setBone(newRoot);
 	@Override
 	protected void onCanvasTouchEnd(int sx, int sy) {
 		if(activeDataControler!=null){
-			activeDataControler.onTouchEnd(sx, sy);
+			activeDataControler.onTouchEnd(sx, sy,canvasControler.getKeyDownState());
 		}
 	}
 
@@ -506,7 +517,7 @@ settings.setBone(newRoot);
 		
 		CanvasDrawingDataControler active=null;
 		for(CanvasDrawingDataControler data:drawingDataControlers){
-			if(data.onTouchStart(sx, sy)){
+			if(data.onTouchStart(sx, sy,canvasControler.getKeyDownState())){
 				active=data;
 				break;
 			}
@@ -545,11 +556,12 @@ settings.setBone(newRoot);
 	@Override
 	protected void onCanvasDragged(int vectorX, int vectorY) {
 		if(activeDataControler!=null){
-			activeDataControler.onTouchDragged(vectorX, vectorY, canvasControler.isRightMouse());
+			activeDataControler.onTouchDragged(vectorX, vectorY, canvasControler.isRightMouse(),canvasControler.getKeyDownState());
 			updateCanvas();
 		}
 		
 		
+		//TODO switch to activeDataControler
 		if(boneSelectedOnCanvas!=null){
 			TwoDimensionBone bone=boneSelectedOnCanvas;
 			
@@ -578,17 +590,25 @@ settings.setBone(newRoot);
 			
 			//normal xy-move
 			
+			List<BonePositionData> posData=Lists.newArrayList();
+			
+			posData.add(new BonePositionData(bone, bone.getX(), bone.getY(), bone.getX()+vectorX, bone.getY()+vectorY));
+			/*
 			bone.setX(bone.getX()+vectorX);
 			bone.setY(bone.getY()+vectorY);
+			*/
 			
 			//move only selection
 			if(canvasControler.isShiftKeyDown()){
 				for(TwoDimensionBone child:bone.getChildren()){
-					child.setX(child.getX()-vectorX);
-					child.setY(child.getY()-vectorY);
+					posData.add(new BonePositionData(child, child.getX(), child.getY(), child.getX()-vectorX, child.getY()-vectorY));
+					
+					/*child.setX(child.getX()-vectorX);
+					child.setY(child.getY()-vectorY);*/
 				}
 			}
-			
+			//TODO move to mosue up
+			//undoControler.execute(new BonePositionChangeCommand(posData));
 			
 			driver.edit(bone);//data is update on editor,but not flash when same
 			updateBoneDatas();
@@ -596,12 +616,12 @@ settings.setBone(newRoot);
 	}
 
 	@Override
-	protected void onCanvasWheeled(int delta, boolean shiftDown) {
+	protected void onCanvasWheeled(int delta) {
 		if(activeDataControler!=null){
-			activeDataControler.onWhelled(delta, shiftDown);
+			activeDataControler.onWhelled(delta, canvasControler.getKeyDownState());
 			updateCanvas();
 		}
-		
+		/*
 		if(boneSelectedOnCanvas!=null){
 			double scale=0.01;
 			if(delta>0){
@@ -610,6 +630,7 @@ settings.setBone(newRoot);
 			boneSelectedOnCanvas.changeChildrenScale(1.0+scale);
 			updateBoneDatas();
 		}
+		*/
 	}
 
 	@Override
@@ -698,6 +719,11 @@ settings.setBone(newRoot);
 	    
 	    downloadLinks = new HorizontalPanel();
 	    panel.add(downloadLinks);
+	    
+	    undoControler = new UndoControler();
+	    UndoButtons undoButtons=new UndoButtons(undoControler);
+	    panel.add(undoButtons);
+	    
 		
 	    return panel;
 	}
@@ -956,6 +982,7 @@ settings.setBone(newRoot);
 	List<CanvasDrawingDataControler> drawingDataControlers;
 	private CanvasDrawingDataControler activeDataControler;
 	private Background background;
+	private UndoControler undoControler;
 	@Override
 	protected void initialize() {
 		driver = GWT.create(Driver.class);
@@ -1045,6 +1072,185 @@ settings.setBone(newRoot);
 	public String getOwnerName() {
 		return "Bone-Editor";
 	}
+	
+	
+	private void execAddBone(TwoDimensionBone parent,TwoDimensionBone bone){
+		parent.addBone(bone);
+		
+		refreshTree(parent);
+		updateBoneDatas();
+		
+		selectionModel.setSelected(bone, true);	
+	}
+	private void execRemoveBone(TwoDimensionBone bone){
+		LogUtils.log("execRemove:"+bone);
+		bone.getParent().getChildren().remove(bone);
+		
+		refreshTree(bone);
+		updateBoneDatas();
+		
+		selectionModel.setSelected(bone.getParent(), true);
+	}
+	
+	private void execRemoveBoneWithoutChildren(TwoDimensionBone target){
+		
+		
+		target.getParent().getChildren().remove(target);
+		
+		
+		TwoDimensionBone newParent=target.getParent();
+		double addOldX=target.getX();
+		double addOldY=target.getY();
+		for(TwoDimensionBone bone:target.getChildren()){
+				bone.setX(bone.getX()+addOldX);
+				bone.setY(bone.getY()+addOldY);
+				newParent.addBone(bone);
+			}
+		
+		
+		refreshTree(target);
+		updateBoneDatas();
+		
+		selectionModel.setSelected(target.getParent(), true);//re-select
+	}
+	
+	private class BonePositionData{
+		private TwoDimensionBone bone;
+		public BonePositionData(TwoDimensionBone bone,double beforeX,double beforeY,double afterX,double afterY) {
+			this(bone,new Point(beforeX,beforeY),new Point(afterX,afterY));
+		}
+		public BonePositionData(TwoDimensionBone bone, Point beforePoint, Point afterPoint) {
+			super();
+			this.bone = bone;
+			this.beforePoint = beforePoint;
+			this.afterPoint = afterPoint;
+		}
+		private Point beforePoint;
+		private Point afterPoint;
+	}
+	
+	public class BonePositionChangeCommand implements Command{
+
+		List<BonePositionData> datas;
+		public BonePositionChangeCommand(List<BonePositionData> datas) {
+			super();
+			this.datas = datas;
+		}
+
+		@Override
+		public void execute() {
+			for(BonePositionData data:datas){
+				data.bone.set(data.afterPoint);
+			}
+			updateCanvas();
+		}
+
+		@Override
+		public void undo() {
+			for(BonePositionData data:datas){
+				data.bone.set(data.beforePoint);
+			}
+			updateCanvas();
+		}
+
+		@Override
+		public void redo() {
+			for(BonePositionData data:datas){
+				data.bone.set(data.afterPoint);
+			}
+			updateCanvas();
+		}
+		
+	}
+	
+	public class AddBoneCommand implements Command{
+
+		TwoDimensionBone parent;
+		TwoDimensionBone newBone;
+		public AddBoneCommand(TwoDimensionBone parent) {
+			super();
+			this.parent = parent;
+		}
+
+		@Override
+		public void execute() {
+			newBone=new TwoDimensionBone(BoneUtils.createBoneName(parent), 0, 0);
+			execAddBone(parent,newBone);
+		}
+
+		@Override
+		public void undo() {
+			//remove
+			execRemoveBone(newBone);
+		}
+
+		@Override
+		public void redo() {
+			execAddBone(parent,newBone);
+		}
+		
+	}
+	
+	public class RemoveBoneCommand implements Command{
+
+		boolean withChildren;
+		TwoDimensionBone bone;
+		public RemoveBoneCommand(boolean withChildren,TwoDimensionBone bone) {
+			super();
+			this.withChildren = withChildren;
+			this.bone=bone;
+		}
+
+		@Override
+		public void execute() {
+			
+			if(withChildren){
+				execRemoveBone(bone);
+			}else{
+				execRemoveBoneWithoutChildren(bone);
+			}
+		}
+
+		@Override
+		public void undo() {
+			if(withChildren){
+				execAddBone(bone.getParent(),bone);
+			}else{
+				List<TwoDimensionBone> children=Lists.newArrayList();
+				
+				for(TwoDimensionBone child:bone.getChildren()){
+					child.getParent().getChildren().remove(child);
+					
+					
+					double insertBoneX=bone.getX();
+					double insertBoneY=bone.getY();
+				
+					child.setX(child.getX()-insertBoneX);
+					child.setY(child.getY()-insertBoneY);
+					
+					children.add(child);
+				}
+				bone.getChildren().clear();
+				
+				for(TwoDimensionBone child:children){
+					bone.addBone(child);
+				}
+				
+				execAddBone(bone.getParent(),bone);
+			}
+		}
+
+		@Override
+		public void redo() {
+			if(withChildren){
+				execRemoveBone(bone);
+			}else{
+				execRemoveBoneWithoutChildren(bone);
+			}
+		}
+		
+	}
+
 
 
 

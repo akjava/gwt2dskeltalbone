@@ -13,6 +13,7 @@ import com.akjava.gwt.jszip.client.JSZipUtils.ZipListener;
 import com.akjava.gwt.lib.client.CanvasUtils;
 import com.akjava.gwt.lib.client.ImageElementUtils;
 import com.akjava.gwt.lib.client.LogUtils;
+import com.akjava.gwt.lib.client.experimental.CanvasDragMoveControler.KeyDownState;
 import com.akjava.gwt.lib.client.experimental.ExecuteButton;
 import com.akjava.gwt.lib.client.experimental.ImageBuilder;
 import com.akjava.gwt.lib.client.experimental.RectCanvasUtils;
@@ -1009,7 +1010,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 	protected void onCanvasTouchEnd(int sx, int sy) {
 		//selectionPt=null;
 		if(activeDataControler!=null){
-			activeDataControler.onTouchEnd(sx, sy);
+			activeDataControler.onTouchEnd(sx, sy,canvasControler.getKeyDownState());
 		}
 	}
 
@@ -1027,7 +1028,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		
 		CanvasDrawingDataControler active=null;
 		for(CanvasDrawingDataControler data:drawingDataControlers){
-			if(data.onTouchStart(sx, sy)){
+			if(data.onTouchStart(sx, sy,canvasControler.getKeyDownState())){
 				active=data;
 				break;
 			}
@@ -1050,7 +1051,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 	@Override
 	protected void onCanvasDragged(int vectorX, int vectorY) {
 		if(activeDataControler!=null){
-			activeDataControler.onTouchDragged(vectorX, vectorY, canvasControler.isRightMouse());
+			activeDataControler.onTouchDragged(vectorX, vectorY, canvasControler.isRightMouse(),canvasControler.getKeyDownState());
 			updateCanvas();
 		}
 		
@@ -1073,7 +1074,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 	public class ClipDrawingDataControler implements CanvasDrawingDataControler{
 
 		@Override
-		public void onWhelled(int delta, boolean shiftDowned) {
+		public void onWhelled(int delta, KeyDownState keydownState) {
 			
 			if(!isClipDataSelected()){
 				
@@ -1110,7 +1111,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		}
 
 		@Override
-		public void onTouchDragged(int vectorX, int vectorY, boolean rightButton) {
+		public void onTouchDragged(int vectorX, int vectorY, boolean rightButton, KeyDownState keydownState) {
 			if(!isClipDataSelected()){
 				return;
 			}
@@ -1122,7 +1123,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		}
 
 		@Override
-		public boolean onTouchStart(int mx, int my) {
+		public boolean onTouchStart(int mx, int my, KeyDownState keydownState) {
 			if(!isClipDataSelected()){
 				selectionPt=null;
 				return false;
@@ -1151,7 +1152,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		}
 
 		@Override
-		public void onTouchEnd(int mx, int my) {
+		public void onTouchEnd(int mx, int my, KeyDownState keydownState) {
 			//do nothing
 		}
 
@@ -1165,9 +1166,9 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 
 
 	@Override
-	protected void onCanvasWheeled(int delta, boolean shiftDown) {
+	protected void onCanvasWheeled(int delta) {
 		if(activeDataControler!=null){
-			activeDataControler.onWhelled(delta, shiftDown);
+			activeDataControler.onWhelled(delta,canvasControler.getKeyDownState());
 			updateCanvas();
 		}
 	}

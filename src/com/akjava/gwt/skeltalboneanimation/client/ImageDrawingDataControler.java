@@ -1,5 +1,7 @@
 package com.akjava.gwt.skeltalboneanimation.client;
 
+import com.akjava.gwt.lib.client.experimental.CanvasDragMoveControler.KeyDownState;
+
 
 public class ImageDrawingDataControler implements CanvasDrawingDataControler{
 
@@ -13,7 +15,7 @@ public class ImageDrawingDataControler implements CanvasDrawingDataControler{
 	private ImageDrawingData collisioned;
 	
 	private int baseRatio=100;
-	public void onWhelled(int delta,boolean shiftDowned){
+	public void onWhelled(int delta,KeyDownState keydownState){
 		if(!owner.isEditable()){
 			return;
 		}
@@ -27,7 +29,7 @@ public class ImageDrawingDataControler implements CanvasDrawingDataControler{
 				vector=-1;
 			}
 			
-			int add=shiftDowned?1:5;
+			int add=keydownState.isShiftKeyDown()?1:5;
 			zoom+=vector*add;
 			if(zoom<5){
 				zoom=5;
@@ -39,7 +41,7 @@ public class ImageDrawingDataControler implements CanvasDrawingDataControler{
 		}
 	}
 	
-	public void onTouchDragged(int vectorX, int vectorY,boolean rightButton){
+	public void onTouchDragged(int vectorX, int vectorY,boolean rightButton,KeyDownState keydownState){
 		//LogUtils.log("dragged");
 		
 		if(collisioned==null){
@@ -56,14 +58,14 @@ public class ImageDrawingDataControler implements CanvasDrawingDataControler{
 		collisioned.updateBounds();
 	}
 	
-	public boolean onTouchStart(int mx,int my){
+	public boolean onTouchStart(int mx,int my,KeyDownState keydownState){
 		collisioned = owner.collision(mx, my);
 		
 		
 		return collisioned!=null;
 	}
 	
-	public void onTouchEnd(int mx,int my){
+	public void onTouchEnd(int mx,int my,KeyDownState keydownState){
 		
 	}
 	//TODO double-click

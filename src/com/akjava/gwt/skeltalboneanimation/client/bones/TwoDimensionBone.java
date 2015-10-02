@@ -7,6 +7,7 @@ import javax.annotation.Nullable;
 
 import com.akjava.gwt.lib.client.game.PointD;
 import com.akjava.gwt.skeltalboneanimation.client.BoneUtils;
+import com.akjava.lib.common.graphics.Point;
 import com.google.common.collect.Lists;
 
 public class TwoDimensionBone {
@@ -46,6 +47,9 @@ public void setChildrens(List<TwoDimensionBone> childrens) {
 public void set(double x,double y){
 	this.x=x;
 	this.y=y;
+}
+public void set(Point pt){
+	set(pt.x,pt.y);
 }
 public double getX() {
 	return x;

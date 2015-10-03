@@ -2233,7 +2233,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 	}
 
 	@Override
-	protected void updateCanvas() {
+	protected void executeUpdateCanvas() {
 		//LogUtils.log("canvas-updated");
 		CanvasUtils.clear(canvas);
 		

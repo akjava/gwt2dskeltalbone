@@ -663,7 +663,7 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName{
 
 
 
-	protected void updateCanvas() {
+	protected void executeUpdateCanvas() {
 		
 		
 		//LogUtils.log("update-canvas");

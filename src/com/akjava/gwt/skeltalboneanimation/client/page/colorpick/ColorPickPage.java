@@ -709,7 +709,7 @@ public class ColorPickPage extends AbstractPage{
 	}
 	
 	@Override
-	protected void updateCanvas() {
+	protected void executeUpdateCanvas() {
 		if(imageData!=null){
 			CanvasUtils.copyTo(imageData, inputCanvas);
 		}else{

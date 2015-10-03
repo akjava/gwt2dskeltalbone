@@ -1022,22 +1022,36 @@ settings.setBone(newRoot);
 		return buttons;
 	}
 
-	protected void updateCanvas() {
+	double lastUpdateCanvas;
+	protected   void executeUpdateCanvas() {
 		checkNotNull(canvas,"somehow canvas is't initialized");
 		
+		
+		
+		double t=System.currentTimeMillis();
+		LogUtils.log("update-canvas:"+t);
+		if(t==lastUpdateCanvas){
+			//LogUtils.log("duplicate-update");
+			//return;
+		}
+		lastUpdateCanvas=t;
 		CanvasUtils.clear(canvas);
+		//LogUtils.log("clear:"+t);
 		
 		background.draw(canvas);
 		
 		
 		if(transparentEditCheck.getValue()){
-			canvas.getContext2d().setGlobalAlpha(0.3);
+			canvas.getContext2d().setGlobalAlpha(0.1);
 		}else{
+			
 			canvas.getContext2d().setGlobalAlpha(1);
 		}
 		
+		//LogUtils.log("paint:"+canvas.getContext2d().getGlobalAlpha()+","+t);
 		painter.paintBone();
 		canvas.getContext2d().setGlobalAlpha(1);
+		
 	}
 
 	//TwoDimensionBone boneSelection;
@@ -1146,6 +1160,7 @@ settings.setBone(newRoot);
 		
 		
 		initializeCanvas();
+		
 		createBoneControls(rootBone,canvas);
 	}
 	

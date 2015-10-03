@@ -898,7 +898,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 	}
 	
 	@Override
-	protected void updateCanvas() {
+	protected void executeUpdateCanvas() {
 		CanvasUtils.clear(canvas);
 		
 		ClipData selection=getSelection();

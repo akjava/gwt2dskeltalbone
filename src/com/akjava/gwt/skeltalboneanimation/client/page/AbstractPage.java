@@ -7,6 +7,7 @@ import com.akjava.gwt.lib.client.experimental.CanvasDragMoveControler;
 import com.akjava.gwt.lib.client.experimental.CanvasMoveListener;
 import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingData;
 import com.akjava.gwt.skeltalboneanimation.client.MainManager;
+import com.akjava.gwt.skeltalboneanimation.client.ScheduleCommand;
 import com.akjava.gwt.skeltalboneanimation.client.TextureData;
 import com.akjava.gwt.skeltalboneanimation.client.UploadedFileManager.BackgroundChangeListener;
 import com.akjava.gwt.skeltalboneanimation.client.UploadedFileManager.BoneAndAnimationChangeListener;
@@ -26,6 +27,18 @@ protected int westPanelWidth=300;
 	public AbstractPage(final MainManager manager){
 		super(Unit.PX);
 		this.manager=manager;
+		
+		/**
+		 * reason why i use this.
+		 * some simple drawing broken if called same millisecond time.even synchronized can't block it.
+		 * this execute bind updateCanvas on called same-time.
+		 */
+		scheduleCommand=new ScheduleCommand() {
+			@Override
+			public void fireExecute() {
+				executeUpdateCanvas();//bind execute
+			}
+		};
 		
 		initialize();
 		
@@ -101,6 +114,8 @@ protected int westPanelWidth=300;
 			}
 		});
 		*/
+		
+
 	}
 	
 	//private boolean needAnimationUpdate;
@@ -146,7 +161,7 @@ protected int westPanelWidth=300;
 						onCanvasWheeled(event.getDeltaY());
 					}
 				});
-		
+
 	}
 	
 	protected abstract void  onCanvasTouchEnd(int sx,int sy);
@@ -200,7 +215,14 @@ protected int westPanelWidth=300;
 	
 	protected abstract void updateDatas();
 
+	protected ScheduleCommand scheduleCommand;
+	public void updateCanvas(){
+		scheduleCommand.scheduleExecute();
+	}
+	
 
-
-	protected abstract void updateCanvas();
+	/**
+	 * called from scedule finally
+	 */
+	protected abstract void executeUpdateCanvas();
 }

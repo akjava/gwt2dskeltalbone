@@ -36,7 +36,7 @@ public void paintBone(){
 
 
 
-	public void paintBone(AnimationFrame frame){
+	public synchronized  void paintBone(AnimationFrame frame){
 		int offsetX=0;
 		int offsetY=0;
 		TwoDimensionBone rootBone=positionControler.getSettings().getBone();

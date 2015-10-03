@@ -1227,7 +1227,7 @@ if(modeAnimation){
 		}
 		return -1;
 	}
-	protected  void updateCanvas(){
+	protected  void executeUpdateCanvas(){
 		CanvasUtils.clear(canvas);
 		if(background.hasBackgroundData() && background.isVisible()){
 			

@@ -1567,7 +1567,7 @@ if(modeAnimation){
 									String value) {
 								
 								for(ImageDrawingData original:manager.getTextureData().findDataById(object.getId()).asSet()){
-									original.copyTo(object);
+									original.copyToWithoutImageElementAndId(object);
 									updateCanvas();
 								}
 								//possible not found if modified after

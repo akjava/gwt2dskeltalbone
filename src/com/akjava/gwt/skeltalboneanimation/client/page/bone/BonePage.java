@@ -64,6 +64,7 @@ import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.ValueListBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
@@ -917,8 +918,25 @@ settings.setBone(newRoot);
 	editorSpace.setHeight("40px");
 	editorSpace.add(twoDimensionBoneEditor);
 	panel.add(editorSpace);
-	panel.add(canvas);
+	//panel.add(canvas);
+	
+	ScrollPanel scroll=new ScrollPanel();
+	scroll.add(canvas);
+	int space=18;
+	scroll.setSize((canvas.getCoordinateSpaceWidth()+space)+"px", (canvas.getCoordinateSpaceHeight()+space)+"px");
+	panel.add(scroll);
+	
+	HorizontalPanel scalePanel=new HorizontalPanel();
+	IntegerValueListBox scaleBox=new IntegerValueListBox(ImmutableList.of(1,2,4),1,new ValueChangeHandler<Integer>() {
 		
+		@Override
+		public void onValueChange(ValueChangeEvent<Integer> event) {
+			canvasControler.setScale(event.getValue());
+		}
+	});
+	scalePanel.add(scaleBox);
+	panel.add(scalePanel);
+	
 		return panel;
 	}
 
@@ -1121,6 +1139,7 @@ settings.setBone(newRoot);
 		background.setEditable(false);
 		
 		ImageDrawingDataControler controler=new ImageDrawingDataControler(background);
+		
 		controler.setUndoControler(undoControler,this);
 		
 		drawingDataControlers.add(controler);

@@ -138,10 +138,11 @@ protected int westPanelWidth=300;
 						
 					}
 				});
+				
 				canvas.addMouseWheelHandler(new MouseWheelHandler() {
 					@Override
 					public void onMouseWheel(MouseWheelEvent event) {
-						
+						event.preventDefault();
 						onCanvasWheeled(event.getDeltaY());
 					}
 				});

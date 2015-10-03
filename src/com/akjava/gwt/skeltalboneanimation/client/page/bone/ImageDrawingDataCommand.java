@@ -1,5 +1,7 @@
 package com.akjava.gwt.skeltalboneanimation.client.page.bone;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingData;
 import com.akjava.gwt.skeltalboneanimation.client.SimpleUndoControler.Command;
 
@@ -10,10 +12,11 @@ public class ImageDrawingDataCommand implements Command{
 	private ImageDrawingDatasUpdater updater;
 	public ImageDrawingDataCommand(ImageDrawingDatasUpdater updater,ImageDrawingData targetData,ImageDrawingData beforeData, ImageDrawingData afterData, boolean collapseCommand) {
 		super();
-		this.beforeData = beforeData;
-		this.afterData = afterData;
-		this.targetData = targetData;
-		this.collapseCommand = collapseCommand;
+		this.beforeData = checkNotNull(beforeData);
+		this.afterData = checkNotNull(afterData);
+		this.targetData = checkNotNull(targetData);
+		this.collapseCommand = collapseCommand;//for wheel-action
+		this.updater=checkNotNull(updater);
 	}
 
 	public ImageDrawingData getBeforeData() {
@@ -57,13 +60,14 @@ public class ImageDrawingDataCommand implements Command{
 
 	@Override
 	public void undo() {
-		beforeData.copyTo(targetData);
+		
+		beforeData.copyToWithoutImageElementAndId(targetData);
 		updater.updateImageDrawingDatas();
 	}
 
 	@Override
 	public void redo() {
-		afterData.copyTo(targetData);
+		afterData.copyToWithoutImageElementAndId(targetData);
 		updater.updateImageDrawingDatas();
 	}
 

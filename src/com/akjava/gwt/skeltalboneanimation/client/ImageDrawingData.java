@@ -175,6 +175,15 @@ public double incrementY(double my){
 	return this.y;
 }
 
+public double getX() {
+	return x;
+}
+
+public double getY() {
+	return y;
+}
+
+
 public int getIntX() {
 	return (int)x;
 }
@@ -356,10 +365,11 @@ public boolean collision(int screenX,int screenY){
  */
 public ImageDrawingData copy(){
 	ImageDrawingData data=new ImageDrawingData(getId(),ImageElementUtils.copy(getImageElement()));
-	 copyTo(data);
+	 copyToWithoutImageElementAndId(data);
 	 return data;
 }
-public void copyTo(ImageDrawingData container){
+//for data back
+public void copyToWithoutImageElementAndId(ImageDrawingData container){
 	if(container==this){
 		//no need to copy
 		return;

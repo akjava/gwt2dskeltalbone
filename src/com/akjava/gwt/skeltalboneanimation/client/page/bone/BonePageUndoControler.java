@@ -12,6 +12,9 @@ import com.google.common.collect.Lists;
 public class BonePageUndoControler extends UndoControler{
 private BoneUpdater boneUpdater;
 
+public BonePageUndoControler(BoneUpdater boneUpdater){
+	this.boneUpdater=boneUpdater;
+}
 
 
 private void execAddBone(TwoDimensionBone parent,TwoDimensionBone bone){

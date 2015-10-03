@@ -829,7 +829,7 @@ settings.setBone(newRoot);
 	    downloadLinks = new HorizontalPanel();
 	    panel.add(downloadLinks);
 	    
-	    undoControler = new BonePageUndoControler();
+	    undoControler = new BonePageUndoControler(this);
 	    UndoButtons undoButtons=new UndoButtons(undoControler);
 	    panel.add(undoButtons);
 	    
@@ -901,10 +901,11 @@ settings.setBone(newRoot);
 	    panel.add(createCopyColumnButtons());
 	
 	
+	twoDimensionBoneEditor = new TwoDimensionBoneEditor();    
 	    
 	updateBoneDatas();//editor call
 	
-	twoDimensionBoneEditor = new TwoDimensionBoneEditor();    
+	
 	driver.initialize(twoDimensionBoneEditor);
 	
 	

@@ -20,7 +20,7 @@ import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingDataControler;
 import com.akjava.gwt.skeltalboneanimation.client.MainManager;
 import com.akjava.gwt.skeltalboneanimation.client.TextureData;
 import com.akjava.gwt.skeltalboneanimation.client.UndoButtons;
-import com.akjava.gwt.skeltalboneanimation.client.UndoControler.Command;
+import com.akjava.gwt.skeltalboneanimation.client.SimpleUndoControler.Command;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationFrame;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneAndAnimationData;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneControlRange;
@@ -73,7 +73,7 @@ import com.google.gwt.view.client.SelectionChangeEvent.Handler;
 import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwt.view.client.TreeViewModel;
 
-public class BonePage extends AbstractPage implements HasSelectionName,BoneUpdater{
+public class BonePage extends AbstractPage implements HasSelectionName,BoneUpdater,ImageDrawingDatasUpdater{
 	 interface Driver extends SimpleBeanEditorDriver< TwoDimensionBone,  TwoDimensionBoneEditor> {}
 	 Driver driver;
 	private  class CustomTreeModel implements TreeViewModel {
@@ -829,7 +829,7 @@ settings.setBone(newRoot);
 	    downloadLinks = new HorizontalPanel();
 	    panel.add(downloadLinks);
 	    
-	    undoControler = new BonePageUndoControler(this);
+	   
 	    UndoButtons undoButtons=new UndoButtons(undoControler);
 	    panel.add(undoButtons);
 	    
@@ -1113,6 +1113,7 @@ settings.setBone(newRoot);
 		//allbones = BoneUtils.getAllBone(rootBone);
 		
 		
+		undoControler = new BonePageUndoControler(this);
 		
 		drawingDataControlers=Lists.newArrayList();
 		
@@ -1120,6 +1121,8 @@ settings.setBone(newRoot);
 		background.setEditable(false);
 		
 		ImageDrawingDataControler controler=new ImageDrawingDataControler(background);
+		controler.setUndoControler(undoControler,this);
+		
 		drawingDataControlers.add(controler);
 		
 		
@@ -1279,6 +1282,11 @@ settings.setBone(newRoot);
 			selectionModel.setSelected(bone, true);
 		}
 	}
+	@Override
+	public void updateImageDrawingDatas() {
+		updateCanvas();
+	}
+
 
 
 

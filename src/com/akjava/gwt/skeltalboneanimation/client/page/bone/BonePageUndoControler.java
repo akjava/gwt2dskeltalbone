@@ -4,12 +4,12 @@ import java.util.List;
 
 import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.skeltalboneanimation.client.BoneUtils;
-import com.akjava.gwt.skeltalboneanimation.client.UndoControler;
+import com.akjava.gwt.skeltalboneanimation.client.SimpleUndoControler;
 import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.BonePage.BonePositionData;
 import com.google.common.collect.Lists;
 
-public class BonePageUndoControler extends UndoControler{
+public class BonePageUndoControler extends SimpleUndoControler{
 private BoneUpdater boneUpdater;
 
 public BonePageUndoControler(BoneUpdater boneUpdater){

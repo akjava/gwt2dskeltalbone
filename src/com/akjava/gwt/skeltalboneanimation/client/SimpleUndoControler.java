@@ -4,7 +4,8 @@ import java.util.Stack;
 
 import com.google.common.base.Optional;
 
-public class UndoControler {
+//TODO implements?
+public class SimpleUndoControler {
 
 	public static interface UndoStateListener{
 		public void updateState(boolean undoable,boolean redoable);
@@ -29,7 +30,7 @@ public class UndoControler {
 		this.listener = listener;
 	}
 
-	public UndoControler() {
+	public SimpleUndoControler() {
          undoHistory = new Stack<Command>();
          redoHistory = new Stack<Command>();
     }

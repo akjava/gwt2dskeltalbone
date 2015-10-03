@@ -1,21 +1,21 @@
 package com.akjava.gwt.skeltalboneanimation.client;
 
-import com.akjava.gwt.skeltalboneanimation.client.UndoControler.UndoStateListener;
+import com.akjava.gwt.skeltalboneanimation.client.SimpleUndoControler.UndoStateListener;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 
 public class UndoButtons extends HorizontalPanel implements UndoStateListener{
-private UndoControler controler;
-public UndoControler getControler() {
+private SimpleUndoControler controler;
+public SimpleUndoControler getControler() {
 	return controler;
 }
 
 private Button undoButton;
 private Button redoButton;
 
-public UndoButtons(final UndoControler controler) {
+public UndoButtons(final SimpleUndoControler controler) {
 	super();
 	this.controler = controler;
 	controler.setListener(this);

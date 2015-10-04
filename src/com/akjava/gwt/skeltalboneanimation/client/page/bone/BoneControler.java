@@ -2,7 +2,10 @@ package com.akjava.gwt.skeltalboneanimation.client.page.bone;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import javax.annotation.Nullable;
+
 import com.akjava.gwt.lib.client.game.PointXY;
+import com.akjava.gwt.skeltalboneanimation.client.BoneUtils;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationFrame;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BonePositionControler;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneWithXYAngle;
@@ -10,7 +13,10 @@ import com.akjava.gwt.skeltalboneanimation.client.bones.CanvasBoneSettings;
 import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
 import com.akjava.gwt.skeltalboneanimation.client.page.CircleLineBonePainter;
 import com.akjava.gwt.skeltalboneanimation.client.page.HasSelectionName;
+import com.google.common.base.Objects;
 import com.google.common.base.Optional;
+import com.google.common.base.Predicate;
+import com.google.common.collect.FluentIterable;
 import com.google.gwt.canvas.client.Canvas;
 
 public abstract class BoneControler implements HasSelectionName{
@@ -70,6 +76,26 @@ public void paintBone(AnimationFrame frame) {
 	if(visible){
 		painter.paintBone(frame);
 	}
+}
+public Optional<TwoDimensionBone> findBoneByBoneName(@Nullable String name){
+	return FluentIterable.from(BoneUtils.getAllBone(getBone())).filter(new BoneNamePredicate(name)).first();
+}
+
+public static class BoneNamePredicate implements Predicate<TwoDimensionBone>{
+	private String name;
+	public BoneNamePredicate(@Nullable String name) {
+		super();
+		this.name = name;
+	}
+	@Override
+	public boolean apply(@Nullable TwoDimensionBone input) {
+		if(input==null){
+			return false;
+		}
+		// TODO Auto-generated method stub
+		return Objects.equal(name, input.getName());
+	}
+	
 }
 
 public Optional<PointXY> getBoneInitialPosition(TwoDimensionBone bone){

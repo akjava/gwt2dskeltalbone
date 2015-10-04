@@ -32,6 +32,7 @@ import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingData;
 import com.akjava.gwt.skeltalboneanimation.client.MainManager;
 import com.akjava.gwt.skeltalboneanimation.client.SkeltalFileFormat;
 import com.akjava.gwt.skeltalboneanimation.client.TextureData;
+import com.akjava.gwt.skeltalboneanimation.client.UndoButtons;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationControlRange;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationFrame;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneAndAnimationData;
@@ -75,10 +76,11 @@ import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 
-public  class AnimationPage extends AbstractPage implements HasSelectionName{
+public  class AnimationPage extends AbstractPage implements HasSelectionName,BoneFrameRangeControler{
 	public AnimationPage(MainManager manager) {
 		super(manager);
 	}
+	private AnimationPageUndoControler undoControler;
 	private Canvas canvas;
 	private CanvasDragMoveControler canvasControler;
 	//private BonePositionControler bonePositionControler;
@@ -86,16 +88,30 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName{
 	
 
 	private void onAnimationRangeChanged(int index){
-		currentSelectionFrame=animationControler.getSelection();
 		
-		boneControlerRange.setFrame(currentSelectionFrame);
+		for(AnimationFrame frame:animationControler.getFrame(index).asSet()){
+			currentSelectionFrame=frame;
+			
+			
+			/*for(SkeletalAnimation animations:getSkeletalAnimation().asSet()){
+			int cindex=animations.getFrames().indexOf(currentSelectionFrame);
+			LogUtils.log("index:"+index+"c-index:"+cindex+"animations:"+animations.getFrames().size());
+			}*/
+			
+			boneControlerRange.setFrame(currentSelectionFrame);
+			
+			boneControler.getBonePositionControler().updateBoth(currentSelectionFrame);
+			updateCanvas();
+			return;
+		}
 		
-		boneControler.getBonePositionControler().updateBoth(currentSelectionFrame);
-		updateCanvas();
+		LogUtils.log("onAnimationRangeChanged:out of index"+index);
+		
 	}
 	private Widget createZeroColumnButtons(SkeletalAnimation animations) {
 		HorizontalPanel panel=new HorizontalPanel();
 		panel.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
+		
 		animationControler = new AnimationControlRange(animations);
 		panel.add(animationControler);
 		animationControler.getInputRange().addtRangeListener(new ValueChangeHandler<Number>() {
@@ -349,7 +365,18 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName{
 			currentSelectionFrame.add(boneFrame);
 			LogUtils.log("new-bone-frame-created:"+bone.getName());
 		}
+		
+		if(boneFrame.getAngle()!=angle){
+			int index=animationControler.getSelectionIndex();
+			String boneName=bone.getName();
+			undoControler.executeBoneAngleRangeChanged(index,boneName,boneFrame.getAngle(),angle);
+			//updated
+			//LogUtils.log("modified-range:"+bone.getName()+angle);
+		}
+		
 		boneFrame.setAngle(angle);
+		
+		
 		
 		boneControler.getBonePositionControler().updateAnimationData(currentSelectionFrame);
 		updateCanvas();
@@ -365,7 +392,8 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName{
 			@Override
 			public void changed(TwoDimensionBone bone, int angle, int moveX, int moveY) {
 				
-				onBoneAngleRangeChanged(bone,angle);//TODO move x,y
+				onBoneAngleRangeChanged(bone,angle);//TODO support move x,y
+				
 			}
 		});
 		
@@ -450,6 +478,10 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName{
 		updateCanvas();
 	}
 	protected void doRemoveData() {
+		if(animationControler.getAnimationSize()<=1){
+			//at leaset one frame need do this.
+			return;
+		}
 		AnimationFrame frame=animationControler.getSelection();
 		animationControler.removeFrame(frame);
 		animationControler.syncDatas();
@@ -498,7 +530,7 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName{
 		//range always select
 		return boneControlerRange.getSelection().getName();
 	}
-	private void createBoneControls(SkeletalAnimation animations,TwoDimensionBone rootBone,final Canvas canvas){
+	private void createBoneControls(TwoDimensionBone rootBone,final Canvas canvas){
 		
 		
 		boneControler =new BoneControler(canvas){
@@ -884,7 +916,7 @@ public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvas
 	private AnimationControlRange animationControler;
 	//private List<ImageDrawingData> imageDrawingDatas;
 	private CheckBox showBoneCheck;
-	private SkeletalAnimation animations;
+	//private SkeletalAnimation animations;
 	private CheckBox autoReplaceBoneCheck;
 
 
@@ -947,12 +979,13 @@ public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvas
 		TwoDimensionBone chest=back.addBone(new TwoDimensionBone("chest",-100,0));
 		*/
 		
-		animations = new SkeletalAnimation("test", 33.3);
+		//for initial data
+		
 		 
 		createCanvas();
-		createBoneControls(animations,null,canvas);
+		createBoneControls(null,canvas);
 		
-		
+		undoControler=new AnimationPageUndoControler(this);
 		
 		/*
 		currentSelectionFrame = BoneUtils.createEmptyAnimationFrame(getRootBone());
@@ -1087,9 +1120,11 @@ Button extractImageBt=new Button("Draw Frame",new ClickHandler() {
 		});
 upper.add(extractImageBt);
 	    
+upper.add(new UndoButtons(undoControler)); 
 	    
 	   
-		
+	//animation-range need animation set dummy	
+	SkeletalAnimation animations = new SkeletalAnimation("test", 33.3);
 		
 		panel.add(createZeroColumnButtons(animations));    
 		
@@ -1220,6 +1255,30 @@ upper.add(extractImageBt);
 	public String getOwnerName() {
 		// TODO Auto-generated method stub
 		return "Animation-Page";
+	}
+	
+	private Optional<SkeletalAnimation> getSkeletalAnimation(){
+		return Optional.fromNullable(animationControler.getAnimation());
+	}
+	
+	//for undo
+	@Override
+	public void setRangeAt(int frameIndex, String boneName, double angle) {
+		//set-angle first
+		for(SkeletalAnimation animations:getSkeletalAnimation().asSet()){
+			animations.getFrames().get(frameIndex).getBoneFrame(boneName).setAngle(angle);
+			onAnimationRangeChanged(frameIndex);
+			
+			for(TwoDimensionBone bone:boneControler.findBoneByBoneName(boneName).asSet()){
+				boneControlerRange.setSelection(bone);
+				return;
+			}
+			
+			LogUtils.log("setRangeAt:can't find bone:"+boneName);
+			return;
+		}
+		
+		LogUtils.log("setRangeAt:invalid index:"+frameIndex);
 	}
 
 

@@ -26,7 +26,7 @@ private void execAddBone(TwoDimensionBone parent,TwoDimensionBone bone){
 	boneUpdater.setSelected(bone);	
 }
 private void execRemoveBone(TwoDimensionBone bone){
-	LogUtils.log("execRemove:"+bone);
+	
 	bone.getParent().getChildren().remove(bone);
 	
 	boneUpdater.refreshTree(bone);

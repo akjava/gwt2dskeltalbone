@@ -40,4 +40,12 @@ public class SkeletalAnimation {
 	public void clear() {
 		frames.clear();
 	}
+	
+	public SkeletalAnimation copy(){
+		SkeletalAnimation skeletalAnimation=new SkeletalAnimation(name,fps);
+		for(AnimationFrame frame:frames){
+			skeletalAnimation.add(frame);
+		}
+		return skeletalAnimation;
+	}
 }

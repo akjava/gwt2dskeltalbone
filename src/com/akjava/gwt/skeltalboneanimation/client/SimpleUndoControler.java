@@ -4,7 +4,7 @@ import java.util.Stack;
 
 import com.google.common.base.Optional;
 
-//TODO implements?
+//TODO create interface?
 public class SimpleUndoControler {
 
 	public static interface UndoStateListener{

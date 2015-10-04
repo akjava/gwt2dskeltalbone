@@ -67,6 +67,10 @@ public class GWT2DSkeltalBoneAnimation implements EntryPoint {
 		
 		final MainManager manager=new MainManager(tab);
 		
+		//sadly not support them
+		//LogUtils.log(MainManager.class.isInstance(manager));//isInstance not exist
+		//LogUtils.log(MainManager.class.isAssignableFrom(manager.getClass()));
+		
 		FileManagerBar bar=new FileManagerBar(manager);
 		root.addNorth(bar, 32);
 		

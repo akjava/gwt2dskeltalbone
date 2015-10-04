@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.skeltalboneanimation.client.ui.LabeledInputRangeWidget;
+import com.google.common.base.Optional;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
@@ -175,6 +176,17 @@ public class AnimationControlRange extends VerticalPanel{
 		public void changed(AnimationFrame frame);
 	}
 
+	public Optional<AnimationFrame> getFrame(int index){
+		if(index>=0 && index<getAnimationSize()){
+			return Optional.fromNullable(animation.getFrames().get(index));
+			
+		}
+		return Optional.absent();
+	}
+	
+	public int getAnimationSize(){
+		return animation.getFrames().size();
+	}
 
 	public int getSelectionIndex() {
 		return (int)inputRange.getValue()-1;

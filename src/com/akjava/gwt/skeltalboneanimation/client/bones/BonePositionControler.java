@@ -133,6 +133,7 @@ public class BonePositionControler {
 	}
 	
 	public List<BoneWithXYAngle> calculatorBonesFinalPositionAndAngle(TwoDimensionBone root,AnimationFrame frame){
+		
 		List<BoneWithXYAngle> boneWiths=new ArrayList<BoneWithXYAngle>();
 		List<TwoDimensionBone> bones=BoneUtils.getAllBone(root);
 		

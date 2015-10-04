@@ -3,6 +3,7 @@ package com.akjava.gwt.skeltalboneanimation.client.page.bone;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.akjava.gwt.lib.client.game.PointXY;
+import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationFrame;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BonePositionControler;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneWithXYAngle;
 import com.akjava.gwt.skeltalboneanimation.client.bones.CanvasBoneSettings;
@@ -45,6 +46,7 @@ public TwoDimensionBone getBone(){
 }
 
 public void setBone(TwoDimensionBone bone){
+	checkNotNull(bone,"BoneControler: bone is null");
 	settings.setBone(bone);
 	bonePositionControler.updateInitialData();
 }
@@ -62,6 +64,11 @@ public void setVisible(boolean visible) {
 public void paintBone() {
 	if(visible){
 		painter.paintBone();
+	}
+}
+public void paintBone(AnimationFrame frame) {
+	if(visible){
+		painter.paintBone(frame);
 	}
 }
 

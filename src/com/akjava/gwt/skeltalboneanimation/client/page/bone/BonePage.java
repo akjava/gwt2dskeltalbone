@@ -18,19 +18,17 @@ import com.akjava.gwt.skeltalboneanimation.client.CanvasDrawingDataControler;
 import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingData;
 import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingDataControler;
 import com.akjava.gwt.skeltalboneanimation.client.MainManager;
+import com.akjava.gwt.skeltalboneanimation.client.SimpleUndoControler.Command;
 import com.akjava.gwt.skeltalboneanimation.client.TextureData;
 import com.akjava.gwt.skeltalboneanimation.client.UndoButtons;
-import com.akjava.gwt.skeltalboneanimation.client.SimpleUndoControler.Command;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationFrame;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneAndAnimationData;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneControlRange;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BonePositionControler;
-import com.akjava.gwt.skeltalboneanimation.client.bones.CanvasBoneSettings;
 import com.akjava.gwt.skeltalboneanimation.client.bones.SkeletalAnimation;
 import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
 import com.akjava.gwt.skeltalboneanimation.client.converters.BoneConverter;
 import com.akjava.gwt.skeltalboneanimation.client.page.AbstractPage;
-import com.akjava.gwt.skeltalboneanimation.client.page.CircleLineBonePainter;
 import com.akjava.gwt.skeltalboneanimation.client.page.HasSelectionName;
 import com.akjava.gwt.skeltalboneanimation.client.page.SimpleBoneEditorPage2.FlushIntegerBox;
 import com.akjava.gwt.skeltalboneanimation.client.page.SimpleBoneEditorPage2.FlushTextBox;
@@ -74,7 +72,7 @@ import com.google.gwt.view.client.SelectionChangeEvent.Handler;
 import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwt.view.client.TreeViewModel;
 
-public class BonePage extends AbstractPage implements HasSelectionName,BoneUpdater,ImageDrawingDatasUpdater{
+public class BonePage extends AbstractPage implements HasSelectionName,BoneUpdater,ImageDrawingDatasUpdater,CanvasUpdater{
 	 interface Driver extends SimpleBeanEditorDriver< TwoDimensionBone,  TwoDimensionBoneEditor> {}
 	 Driver driver;
 	private  class CustomTreeModel implements TreeViewModel {
@@ -629,7 +627,7 @@ boneControler.setBone(newRoot);
 			
 		};
 		
-		drawingDataControlers.add(boneMoveControler);
+		canvasDrawingDataControlCanvas.add(boneMoveControler);
 		
 	}
 	
@@ -644,23 +642,17 @@ boneControler.setBone(newRoot);
 	@Override
 	protected void onCanvasTouchEnd(int sx, int sy) {
 		
-		if(activeDataControler!=null){
-			activeDataControler.onTouchEnd(sx, sy,canvasControler.getKeyDownState());
-		}
+		
 	}
 
 	@Override
 	protected void onCanvasTouchStart(int sx, int sy) {
 		//LogUtils.log("touchStart");
-		CanvasDrawingDataControler active=null;
-		for(CanvasDrawingDataControler data:drawingDataControlers){
-			if(data.onTouchStart(sx, sy,canvasControler.getKeyDownState())){
-				active=data;
-				break;
-			}
-		}
-		activeDataControler=active;
-		updateCanvas();
+		
+		//canvasDrawingDataControlCanvas.onCanvasTouchStart(sx, sy);
+		
+		//activeDataControler=active;
+		//updateCanvas();
 		
 		
 		
@@ -692,10 +684,7 @@ boneControler.setBone(newRoot);
 	
 	@Override
 	protected void onCanvasDragged(int vectorX, int vectorY) {
-		if(activeDataControler!=null){
-			activeDataControler.onTouchDragged(vectorX, vectorY, canvasControler.isRightMouse(),canvasControler.getKeyDownState());
-			updateCanvas();
-		}
+		
 		
 		
 /*		//TODO switch to activeDataControler
@@ -737,10 +726,7 @@ boneControler.setBone(newRoot);
 
 	@Override
 	protected void onCanvasWheeled(int delta) {
-		if(activeDataControler!=null){
-			activeDataControler.onWhelled(delta, canvasControler.getKeyDownState());
-			updateCanvas();
-		}
+		
 		/*
 		if(boneSelectedOnCanvas!=null){
 			double scale=0.01;
@@ -930,22 +916,9 @@ boneControler.setBone(newRoot);
 	panel.add(editorSpace);
 	//panel.add(canvas);
 	
-	ScrollPanel scroll=new ScrollPanel();
-	scroll.add(canvas);
-	int space=18;
-	scroll.setSize((canvas.getCoordinateSpaceWidth()+space)+"px", (canvas.getCoordinateSpaceHeight()+space)+"px");
-	panel.add(scroll);
-	
-	HorizontalPanel scalePanel=new HorizontalPanel();
-	IntegerValueListBox scaleBox=new IntegerValueListBox(ImmutableList.of(1,2,4),1,new ValueChangeHandler<Integer>() {
-		
-		@Override
-		public void onValueChange(ValueChangeEvent<Integer> event) {
-			canvasControler.setScale(event.getValue());
-		}
-	});
-	scalePanel.add(scaleBox);
-	panel.add(scalePanel);
+
+	//
+	panel.add(canvasDrawingDataControlCanvas);
 	
 		return panel;
 	}
@@ -1126,12 +1099,14 @@ boneControler.setBone(newRoot);
 		return selectionModel.getSelectedObject()!=null?selectionModel.getSelectedObject().getName():null;
 	}
 
-	List<CanvasDrawingDataControler> drawingDataControlers;
-	private CanvasDrawingDataControler activeDataControler;
+	//List<CanvasDrawingDataControler> drawingDataControlers;
+	//private CanvasDrawingDataControler activeDataControler;
 	private Background background;
 	private BonePageUndoControler undoControler;
 	private BoneMoveControler boneMoveControler;
 	private TwoDimensionBoneEditor twoDimensionBoneEditor;
+	
+	private CanvasDrawingDataControlCanvas canvasDrawingDataControlCanvas;
 	@Override
 	protected void initialize() {
 		driver = GWT.create(Driver.class);
@@ -1147,19 +1122,26 @@ boneControler.setBone(newRoot);
 		
 		undoControler = new BonePageUndoControler(this);
 		
-		drawingDataControlers=Lists.newArrayList();
+		//drawingDataControlers=Lists.newArrayList();
 		
 		background = new Background();
 		background.setEditable(false);
 		
+		initializeCanvas();
+		
+		canvasDrawingDataControlCanvas=new CanvasDrawingDataControlCanvas(canvas,800,800,this);
 		ImageDrawingDataControler controler=new ImageDrawingDataControler(background);
 		
 		controler.setUndoControler(undoControler,this);
 		
-		drawingDataControlers.add(controler);
+		canvasDrawingDataControlCanvas.add(controler);
 		
 		
-		initializeCanvas();
+		
+		
+		
+		
+		
 		
 		createBoneControls(rootBone,canvas);
 	}

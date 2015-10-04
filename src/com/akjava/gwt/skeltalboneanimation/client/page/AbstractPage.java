@@ -125,44 +125,12 @@ protected int westPanelWidth=300;
 
 
 
-	protected CanvasDragMoveControler canvasControler;
+	//protected CanvasDragMoveControler canvasControler;
 	public void initializeCanvas(){
-		canvas = CanvasUtils.createCanvas(800, 800);
+		canvas = CanvasUtils.createCanvas(800, 800);//initial size
 				CanvasUtils.disableSelection(canvas);//can avoid double click
 				GWTHTMLUtils.disableContextMenu(canvas.getElement());
 				GWTHTMLUtils.disableSelectionEnd(canvas.getElement());//not work
-				add(canvas);
-				
-				canvasControler = new CanvasDragMoveControler(canvas,new CanvasMoveListener() {
-					
-					@Override
-					public void start(int sx, int sy) {
-						onCanvasTouchStart(sx,sy);
-						
-					}
-					
-					@Override
-					public void end(int sx, int sy) {//called on mouse out
-						//selection=null; //need selection for zoom
-						
-						onCanvasTouchEnd(sx,sy);
-					}
-					
-					@Override
-					public void dragged(int startX, int startY, int endX, int endY, int vectorX, int vectorY) {
-						onCanvasDragged(vectorX,vectorY);
-						
-					}
-				});
-				
-				canvas.addMouseWheelHandler(new MouseWheelHandler() {
-					@Override
-					public void onMouseWheel(MouseWheelEvent event) {
-						event.preventDefault();
-						onCanvasWheeled(event.getDeltaY());
-					}
-				});
-
 	}
 	
 	protected abstract void  onCanvasTouchEnd(int sx,int sy);
@@ -185,7 +153,7 @@ protected int westPanelWidth=300;
 	protected boolean needBoneAndAnimationUpdate;
 	protected boolean needBackgroundUpdate;
 	protected boolean needTextureUpdate;
-	protected Canvas canvas;
+	protected Canvas canvas;//bonepage has no care this.
 	@Override
 	public void onSelectedFromTab() {
 		if(needBoneAndAnimationUpdate){

@@ -14,6 +14,8 @@ import com.akjava.gwt.lib.client.CanvasUtils;
 import com.akjava.gwt.lib.client.ImageElementUtils;
 import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.lib.client.experimental.CanvasDragMoveControler.KeyDownState;
+import com.akjava.gwt.lib.client.experimental.CanvasDragMoveControler;
+import com.akjava.gwt.lib.client.experimental.CanvasMoveListener;
 import com.akjava.gwt.lib.client.experimental.ExecuteButton;
 import com.akjava.gwt.lib.client.experimental.ImageBuilder;
 import com.akjava.gwt.lib.client.experimental.RectCanvasUtils;
@@ -61,6 +63,8 @@ import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.DoubleClickEvent;
 import com.google.gwt.event.dom.client.DoubleClickHandler;
+import com.google.gwt.event.dom.client.MouseWheelEvent;
+import com.google.gwt.event.dom.client.MouseWheelHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.user.cellview.client.CellTable;
@@ -284,8 +288,43 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 	//private CanvasBoneSettings settings;
 	//private BonePositionControler bonePositionControler;
 	
+	protected CanvasDragMoveControler canvasControler;
 	private BoneControler boneControler;
 	protected Widget createCenterPanel() {
+		
+		initializeCanvas();
+		canvasControler = new CanvasDragMoveControler(canvas,new CanvasMoveListener() {
+			
+			@Override
+			public void start(int sx, int sy) {
+				onCanvasTouchStart(sx,sy);
+				
+			}
+			
+			@Override
+			public void end(int sx, int sy) {//called on mouse out
+				//selection=null; //need selection for zoom
+				
+				onCanvasTouchEnd(sx,sy);
+			}
+			
+			@Override
+			public void dragged(int startX, int startY, int endX, int endY, int vectorX, int vectorY) {
+				onCanvasDragged(vectorX,vectorY);
+				
+			}
+		});
+		
+		canvas.addMouseWheelHandler(new MouseWheelHandler() {
+			@Override
+			public void onMouseWheel(MouseWheelEvent event) {
+				event.preventDefault();
+				onCanvasWheeled(event.getDeltaY());
+			}
+		});
+		
+		
+		
 		/**
 		 * don't insert above,should canvas initialize first.
 		 */
@@ -332,7 +371,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		ImageDrawingDataControler controler=new ImageDrawingDataControler(background);
 		drawingDataControlers.add(controler);
 		
-		
+		panel.add(canvas);
 		
 		return panel;
 	}

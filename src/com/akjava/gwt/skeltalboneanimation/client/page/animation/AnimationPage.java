@@ -38,9 +38,7 @@ import com.akjava.gwt.skeltalboneanimation.client.bones.BoneAndAnimationData;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneControlRange;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneControlRange.BoneControlListener;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneFrame;
-import com.akjava.gwt.skeltalboneanimation.client.bones.BonePositionControler;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneWithXYAngle;
-import com.akjava.gwt.skeltalboneanimation.client.bones.CanvasBoneSettings;
 import com.akjava.gwt.skeltalboneanimation.client.bones.SkeletalAnimation;
 import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
 import com.akjava.gwt.skeltalboneanimation.client.converters.BoneAndAnimationConverter;
@@ -48,8 +46,8 @@ import com.akjava.gwt.skeltalboneanimation.client.converters.BoneConverter;
 import com.akjava.gwt.skeltalboneanimation.client.converters.ClipImageDataConverter;
 import com.akjava.gwt.skeltalboneanimation.client.converters.TextureDataConverter;
 import com.akjava.gwt.skeltalboneanimation.client.page.AbstractPage;
-import com.akjava.gwt.skeltalboneanimation.client.page.CircleLineBonePainter;
 import com.akjava.gwt.skeltalboneanimation.client.page.HasSelectionName;
+import com.akjava.gwt.skeltalboneanimation.client.page.bone.BoneControler;
 import com.akjava.gwt.skeltalboneanimation.client.page.clippage.ClipImageData;
 import com.akjava.lib.common.graphics.IntRect;
 import com.akjava.lib.common.utils.CSVUtils;
@@ -83,7 +81,7 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName{
 	}
 	private Canvas canvas;
 	private CanvasDragMoveControler canvasControler;
-	private BonePositionControler bonePositionControler;
+	//private BonePositionControler bonePositionControler;
 	private BoneControlRange boneControlerRange;
 	
 
@@ -92,7 +90,7 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName{
 		
 		boneControlerRange.setFrame(currentSelectionFrame);
 		
-		bonePositionControler.updateBoth(currentSelectionFrame);
+		boneControler.getBonePositionControler().updateBoth(currentSelectionFrame);
 		updateCanvas();
 	}
 	private Widget createZeroColumnButtons(SkeletalAnimation animations) {
@@ -296,6 +294,7 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName{
 		return panel;
 	}
 	private TextureData textureData;
+	private BoneControler boneControler;
 	protected void doLoadTexture(String name,JSZip zip) {
 		
 		TextureDataConverter converter=new TextureDataConverter();
@@ -328,7 +327,7 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName{
 		//no need always first frame would be selected.
 		//animationControler.setSelection(animations.getFrames().get(0), false);
 		
-		bonePositionControler.updateBoth(currentSelectionFrame);
+		boneControler.getBonePositionControler().updateBoth(currentSelectionFrame);
 		updateCanvas();
 	}
 	private void setNewRootBone(TwoDimensionBone newRoot) {
@@ -352,7 +351,7 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName{
 		}
 		boneFrame.setAngle(angle);
 		
-		bonePositionControler.updateAnimationData(currentSelectionFrame);
+		boneControler.getBonePositionControler().updateAnimationData(currentSelectionFrame);
 		updateCanvas();
 	}
 	
@@ -380,7 +379,7 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName{
 				//this clear range-map
 				boneControlerRange.setFrame(currentSelectionFrame);
 				
-				bonePositionControler.updateAnimationData(currentSelectionFrame);
+				boneControler.getBonePositionControler().updateAnimationData(currentSelectionFrame);
 				updateCanvas();
 			}
 		});
@@ -493,31 +492,25 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName{
 				});
 	}
 	
-	private CircleLineBonePainter painter;
+	//private CircleLineBonePainter painter;
 
 	public String getSelectionName(){
 		//range always select
 		return boneControlerRange.getSelection().getName();
 	}
 	private void createBoneControls(SkeletalAnimation animations,TwoDimensionBone rootBone,final Canvas canvas){
-		settings=new CanvasBoneSettings(canvas, rootBone);
 		
 		
+		boneControler =new BoneControler(canvas){
+			@Override
+			public String getSelectionName() {
+				return AnimationPage.this.getSelectionName();
+			}
+		};
 		
-		
-		
-		
-		
-		bonePositionControler=new BonePositionControler(settings);
-		bonePositionControler.setCollisionOrderDesc(true);//root is last select-target
-		
-		
-		
-		painter = new CircleLineBonePainter(canvas, this, bonePositionControler);
-		
-		
-
-		
+		if(rootBone!=null){
+			boneControler.setBone(rootBone);
+		}
 	}
 	
 	
@@ -556,18 +549,18 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName{
 					
 					
 					
-					BoneWithXYAngle boneData=bonePositionControler.getAnimationedDataByName(boneSelectionOnCanvas.getName());
+					BoneWithXYAngle boneData=boneControler.getBonePositionControler().getAnimationedDataByName(boneSelectionOnCanvas.getName());
 					if(boneData.getBone().getParent()==null){//on root;
 						return;
 					}
 					
-					BoneWithXYAngle parentboneData=bonePositionControler.getAnimationedDataByName(boneData.getBone().getParent().getName());
+					BoneWithXYAngle parentboneData=boneControler.getBonePositionControler().getAnimationedDataByName(boneData.getBone().getParent().getName());
 					
-					int boneX=boneData.getX()+bonePositionControler.getSettings().getOffsetX();
-					int boneY=boneData.getY()+bonePositionControler.getSettings().getOffsetY();
+					int boneX=boneData.getX()+boneControler.getBonePositionControler().getSettings().getOffsetX();
+					int boneY=boneData.getY()+boneControler.getBonePositionControler().getSettings().getOffsetY();
 					
-					int parentX=parentboneData.getX()+bonePositionControler.getSettings().getOffsetX();
-					int parentY=parentboneData.getY()+bonePositionControler.getSettings().getOffsetY();
+					int parentX=parentboneData.getX()+boneControler.getBonePositionControler().getSettings().getOffsetX();
+					int parentY=parentboneData.getY()+boneControler.getBonePositionControler().getSettings().getOffsetY();
 					
 					
 					int originalAngle=(int) Math.toDegrees(calculateAngle(parentX, parentY, boneX, boneY));
@@ -628,7 +621,7 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName{
 				
 			}
 			
-			bonePositionControler.updateAnimationData(currentSelectionFrame);//position changed;
+			boneControler.getBonePositionControler().updateAnimationData(currentSelectionFrame);//position changed;
 			
 			
 			
@@ -650,7 +643,7 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName{
 			return;
 		}
 		//for drag move selection
-		boneSelectionOnCanvas=bonePositionControler.collisionAnimationedData(sx, sy);
+		boneSelectionOnCanvas=boneControler.getBonePositionControler().collisionAnimationedData(sx, sy);
 		
 		//LogUtils.log(boneSelectionOnCanvas);
 		if(boneSelectionOnCanvas!=null){
@@ -681,7 +674,7 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName{
 			return;
 		}
 		//TODO merge into above
-		if(!bonePositionControler.isAvaiable()){
+		if(!boneControler.getBonePositionControler().isAvaiable()){
 			return;
 		}
 		
@@ -698,17 +691,17 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName{
 		int mouseX=canvasControler.getMovedX();
 		int mouseY=canvasControler.getMovedY();
 		
-		BoneWithXYAngle boneInitialData=bonePositionControler.getInitialDataByName(boneSelectionOnCanvas.getName());
-		BoneWithXYAngle parentInitialData=bonePositionControler.getInitialDataByName(boneInitialData.getBone().getParent().getName());
+		BoneWithXYAngle boneInitialData=boneControler.getBonePositionControler().getInitialDataByName(boneSelectionOnCanvas.getName());
+		BoneWithXYAngle parentInitialData=boneControler.getBonePositionControler().getInitialDataByName(boneInitialData.getBone().getParent().getName());
 		
 		
-		BoneWithXYAngle boneData=bonePositionControler.getAnimationedDataByName(boneSelectionOnCanvas.getName());
+		BoneWithXYAngle boneData=boneControler.getBonePositionControler().getAnimationedDataByName(boneSelectionOnCanvas.getName());
 		if(boneData.getBone().getParent()==null){
 			//on root;
 			return;
 		}
 		
-		BoneWithXYAngle parentboneData=bonePositionControler.getAnimationedDataByName(boneData.getBone().getParent().getName());
+		BoneWithXYAngle parentboneData=boneControler.getBonePositionControler().getAnimationedDataByName(boneData.getBone().getParent().getName());
 		
 		
 		int boneInitX=boneInitialData.getX();
@@ -720,8 +713,8 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName{
 		//int boneX=boneData.getX()+bonePositionControler.getSettings().getOffsetX();
 		//int boneY=boneData.getY()+bonePositionControler.getSettings().getOffsetY();
 		
-		int parentX=parentboneData.getX()+bonePositionControler.getSettings().getOffsetX();
-		int parentY=parentboneData.getY()+bonePositionControler.getSettings().getOffsetY();
+		int parentX=parentboneData.getX()+boneControler.getBonePositionControler().getSettings().getOffsetX();
+		int parentY=parentboneData.getY()+boneControler.getBonePositionControler().getSettings().getOffsetY();
 		
 		//LogUtils.log(parentX+","+parentY+","+mouseX+","+mouseY);
 		
@@ -774,19 +767,19 @@ private void initializeConvetedCanvas(){
 
 private void drawTextureData(Canvas canvas){
 
-	bonePositionControler.updateBoth(currentSelectionFrame);//TODO update on value changed only
+	boneControler.getBonePositionControler().updateBoth(currentSelectionFrame);//TODO update on value changed only
 	//TODO add show bone check
 	//TODO make class,it's hard to understand
-	 List<BoneWithXYAngle> emptyBonePosition=bonePositionControler.getRawInitialData();
-	 List<BoneWithXYAngle> movedBonePosition=bonePositionControler.getRawAnimationedData();
+	 List<BoneWithXYAngle> emptyBonePosition=boneControler.getBonePositionControler().getRawInitialData();
+	 List<BoneWithXYAngle> movedBonePosition=boneControler.getBonePositionControler().getRawAnimationedData();
 	 
 	
 	
 	//int offsetX=painter.getOffsetX();
 	//int offsetY=painter.getOffsetY();
 	
-	int offsetX=bonePositionControler.getSettings().getOffsetX();
-	int offsetY=bonePositionControler.getSettings().getOffsetY();
+	int offsetX=boneControler.getBonePositionControler().getSettings().getOffsetX();
+	int offsetY=boneControler.getBonePositionControler().getSettings().getOffsetY();
 	
 	List<ImageDrawingData> imageDrawingDatas=textureData.getImageDrawingDatas();
 	for(int i=0;i<imageDrawingDatas.size();i++){
@@ -850,7 +843,7 @@ private void updateCanvasOnAnimation() {
 		
 		if(showBoneCheck.getValue()){
 		//canvas.getContext2d().setGlobalAlpha(0.5);
-		painter.paintBone(currentSelectionFrame);
+		boneControler.paintBone(currentSelectionFrame);
 		//canvas.getContext2d().setGlobalAlpha(1.0);
 		}
 	}
@@ -876,13 +869,13 @@ public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvas
 	
 	
 	private AnimationFrame currentSelectionFrame;//should contain all bone
-	private CanvasBoneSettings settings;
+	//private CanvasBoneSettings settings;
 	
 	public TwoDimensionBone getRootBone() {
-		return settings.getBone();
+		return boneControler.getBone();
 	}
 	public void setRootBone(TwoDimensionBone rootBone) {
-		settings.setBone(rootBone);
+		boneControler.setBone(rootBone);
 	}
 
 

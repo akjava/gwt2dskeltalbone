@@ -122,6 +122,7 @@ public class GWT2DSkeltalBoneAnimation implements EntryPoint {
 				public void onResponseReceived(Request request, Response response) {
 					String text=response.getText();
 					BoneAndAnimationData data=new BoneAndAnimationConverter().reverse().convert(CSVUtils.splitLinesWithGuava(text));
+					
 					manager.getFileManagerBar().setBoneAndAnimation(fileName, data);
 				}
 				

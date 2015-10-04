@@ -343,7 +343,7 @@ private void onEditorFlush(){
 	
 	
 	//private CanvasDragMoveControler canvasControler;
-	private BonePositionControler bonePositionControler;
+	//private BonePositionControler bonePositionControler;
 
 	private  SingleSelectionModel<TwoDimensionBone> selectionModel ;
 	
@@ -357,7 +357,7 @@ private void onEditorFlush(){
 		setNewRoot(new TwoDimensionBone("root",0,0));
 	}
 	protected void setNewRoot(TwoDimensionBone newRoot){
-settings.setBone(newRoot);
+boneControler.setBone(newRoot);
 		
 		for(TwoDimensionBone b:BoneUtils.getAllBone(newRoot)){
 			//LogUtils.log(b);
@@ -399,7 +399,7 @@ settings.setBone(newRoot);
 	 * update tree(seem not stable)
 	 */
 	public void updateBoneDatas(){
-		bonePositionControler.updateInitialData();
+		boneControler.getBonePositionControler().updateInitialData();
 		updateCanvas();
 		
 		treeNodeExpand(cellTree.getRootTreeNode());
@@ -467,21 +467,31 @@ settings.setBone(newRoot);
 		*/
 	}
 	
-	private CircleLineBonePainter painter;
+	//private CircleLineBonePainter painter;
+
+	private BoneControler boneControler;
 	private void createBoneControls(TwoDimensionBone rootBone,final Canvas canvas){
-		settings=new CanvasBoneSettings(canvas, rootBone);
+		
+		boneControler =new BoneControler(canvas){
+			@Override
+			public String getSelectionName() {
+				return BonePage.this.getSelectionName();
+			}
+		};
+		//use dummy initial hard to refactoring
+		boneControler.setBone(rootBone);
 		
 		final SkeletalAnimation animations=new SkeletalAnimation("test", 33.3);
 		
 		singleFrame = BoneUtils.createEmptyAnimationFrame(getRootBone());
 		animations.add(singleFrame);
 		
+	
 		
-		
-		bonePositionControler=new BonePositionControler(settings);
+		/*bonePositionControler=new BonePositionControler(settings);
 		bonePositionControler.setCollisionOrderDesc(true);//root is last select-target
-		
-		painter = new CircleLineBonePainter(canvas, this, bonePositionControler);
+*/		
+		//painter = new CircleLineBonePainter(canvas, this, bonePositionControler);
 		
 		
 
@@ -556,7 +566,7 @@ settings.setBone(newRoot);
 			//can replace supplier?
 			@Override
 			public BonePositionControler getBonePositionControler() {
-				return bonePositionControler;
+				return boneControler.getBonePositionControler();
 			}
 
 			@Override
@@ -1022,21 +1032,11 @@ settings.setBone(newRoot);
 		return buttons;
 	}
 
-	double lastUpdateCanvas;
+	
 	protected   void executeUpdateCanvas() {
 		checkNotNull(canvas,"somehow canvas is't initialized");
 		
-		
-		
-		double t=System.currentTimeMillis();
-		LogUtils.log("update-canvas:"+t);
-		if(t==lastUpdateCanvas){
-			//LogUtils.log("duplicate-update");
-			//return;
-		}
-		lastUpdateCanvas=t;
 		CanvasUtils.clear(canvas);
-		//LogUtils.log("clear:"+t);
 		
 		background.draw(canvas);
 		
@@ -1049,7 +1049,7 @@ settings.setBone(newRoot);
 		}
 		
 		//LogUtils.log("paint:"+canvas.getContext2d().getGlobalAlpha()+","+t);
-		painter.paintBone();
+		boneControler.paintBone();
 		canvas.getContext2d().setGlobalAlpha(1);
 		
 	}
@@ -1085,9 +1085,9 @@ settings.setBone(newRoot);
 				
 				Canvas extractCanvas=CanvasUtils.copyToSizeOnly(canvas,null);
 				
-				painter.setCanvas(extractCanvas);
-				painter.paintBone();
-				painter.setCanvas(canvas);
+				boneControler.setCanvas(extractCanvas);
+				boneControler.paintBone();
+				boneControler.setCanvas(canvas);
 				
 				String dataUrl=extractCanvas.toDataUrl();
 				Anchor a=HTML5Download.get().generateBase64DownloadLink(dataUrl, "image/png", "bone-bone.png", "bone", true);
@@ -1105,13 +1105,12 @@ settings.setBone(newRoot);
 	
 	
 	private AnimationFrame singleFrame;
-	private CanvasBoneSettings settings;
 	
 	public TwoDimensionBone getRootBone() {
-		return settings.getBone();
+		return boneControler.getBone();
 	}
 	public void setRootBone(TwoDimensionBone rootBone) {
-		settings.setBone(rootBone);
+		boneControler.setBone(rootBone);
 	}
 
 	//private List<TwoDimensionBone> allbones;
@@ -1121,6 +1120,7 @@ settings.setBone(newRoot);
 	private HorizontalPanel downloadLinks;
 	
 
+	
 	@Override
 	public String getSelectionName() {
 		return selectionModel.getSelectedObject()!=null?selectionModel.getSelectedObject().getName():null;

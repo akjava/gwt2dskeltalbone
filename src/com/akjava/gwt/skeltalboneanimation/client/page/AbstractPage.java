@@ -32,6 +32,7 @@ protected int westPanelWidth=300;
 		 * reason why i use this.
 		 * some simple drawing broken if called same millisecond time.even synchronized can't block it.
 		 * this execute bind updateCanvas on called same-time.
+		 * especialy setGlobalAlpha return horrible result.
 		 */
 		scheduleCommand=new ScheduleCommand() {
 			@Override

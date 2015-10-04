@@ -58,7 +58,9 @@ public void paintBone(){
 		List<BoneWithXYAngle> result = positionControler.calculatorBonesFinalPositionAndAngle(rootBone,frame);
 
 		for(BoneWithXYAngle data:result){
+			
 			TwoDimensionBone bone=data.getBone();
+			LogUtils.log(bone.getName());
 			String parentName;
 			int startX,startY,endX,endY;
 			endX=data.getX();
@@ -81,7 +83,7 @@ public void paintBone(){
 			}
 			cache.put(bone.getName(), new double[]{endX,endY});
 			paintBone(bone.getName(),parentName,startX+offsetX,startY+offsetY,endX+offsetX,endY+offsetY,data.getAngle(),bone.isLocked());
-			
+			LogUtils.log("painted");
 		}
 		endPaint();
 	}

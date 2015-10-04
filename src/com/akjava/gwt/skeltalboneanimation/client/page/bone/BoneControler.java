@@ -24,6 +24,9 @@ public BoneControler(Canvas canvas) {
 	
 	painter = new CircleLineBonePainter(canvas, this, bonePositionControler);
 }
+public BonePositionControler getBonePositionControler() {
+	return bonePositionControler;
+}
 private CircleLineBonePainter painter;
 private CanvasBoneSettings settings;
 

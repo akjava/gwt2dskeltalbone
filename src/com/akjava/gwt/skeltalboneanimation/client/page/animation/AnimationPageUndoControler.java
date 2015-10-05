@@ -34,6 +34,7 @@ private BoneFrameRangeControler controler;
 
 	//collapse command inside
 	public void executeBoneAngleRangeChanged(int index, String boneName, double oldAngle, int newAngle) {
+		//LogUtils.log("executeBoneAngleRangeChanged");
 		Optional<BoneFrameRangeCommand> command=this.getLastCommandIfBoneFrameRangeCommand(index,boneName);
 		if(command.isPresent()){
 			command.get().setNewAngle(newAngle);

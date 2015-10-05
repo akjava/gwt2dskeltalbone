@@ -408,6 +408,11 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 		Button resetAll=new Button("Reset All",new ClickHandler() {
 			@Override
 			public void onClick(ClickEvent event) {
+				SkeletalAnimation animation=animationControler.getAnimation();
+				int oldIndex=animationControler.getSelectionIndex();
+				List<AnimationFrame> oldFrames=FluentIterable.from(animation.getFrames()).transform(new AnimationFrameCopyFunction()).toList();
+				
+				
 				for(BoneFrame frame:currentSelectionFrame.getBoneFrames().values()){
 					frame.setAngle(0);
 				}
@@ -417,6 +422,12 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 				
 				boneControler.getBonePositionControler().updateAnimationData(currentSelectionFrame);
 				updateCanvas();
+				
+				animation=animationControler.getAnimation();
+				int newIndex=animationControler.getSelectionIndex();
+				List<AnimationFrame> newFrames=FluentIterable.from(animation.getFrames()).transform(new AnimationFrameCopyFunction()).toList();
+				undoControler.executeBoneAnimationChanged(oldFrames, newFrames, oldIndex, newIndex);
+				
 			}
 		});
 		panel.add(resetAll);

@@ -22,6 +22,10 @@ public class AnimationControlRange extends VerticalPanel{
 
 	private SkeletalAnimation animation;
 	
+	/**
+	 * be careful this animation replace when new data loaded.
+	 * @return
+	 */
 	public SkeletalAnimation getAnimation() {
 		return animation;
 	}

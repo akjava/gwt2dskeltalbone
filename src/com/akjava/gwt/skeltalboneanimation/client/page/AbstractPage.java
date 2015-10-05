@@ -127,6 +127,9 @@ protected int westPanelWidth=300;
 
 	//protected CanvasDragMoveControler canvasControler;
 	public void initializeCanvas(){
+		if(canvas!=null){
+			LogUtils.log("initializeCanvas:canvas already initialized");
+		}
 		canvas = CanvasUtils.createCanvas(800, 800);//initial size
 				CanvasUtils.disableSelection(canvas);//can avoid double click
 				GWTHTMLUtils.disableContextMenu(canvas.getElement());

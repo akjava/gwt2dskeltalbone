@@ -297,6 +297,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 			
 			@Override
 			public void start(int sx, int sy) {
+				
 				onCanvasTouchStart(sx,sy);
 				
 			}
@@ -333,7 +334,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		panel.add(createClipButtons());
 		panel.add(createBoneButtons());
 		panel.add(createBackgroundButtons());
-		initializeCanvas();
+		
 		panel.add(canvas);
 		
 		boneControler =new BoneControler(canvas){
@@ -1074,6 +1075,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 				break;
 			}
 		}
+		
 		activeDataControler=active;
 		updateCanvas();
 		

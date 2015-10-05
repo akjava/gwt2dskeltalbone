@@ -324,6 +324,7 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 	}
 	
 	private void setNewBoneAndAnimation(TwoDimensionBone newRoot,SkeletalAnimation animations){
+		undoControler.clear();
 		setRootBone(newRoot);
 		
 		boneSelectionOnCanvas=null;
@@ -429,7 +430,7 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 		
 		
 		//this replace animation
-		setNewRootBone(getRootBone());
+		setNewRootBone(getRootBone());//this clear all undo.bug
 		
 		animation=animationControler.getAnimation();
 		int newIndex=animationControler.getSelectionIndex();

@@ -102,6 +102,11 @@ public class CanvasDrawingDataControlCanvas extends VerticalPanel{
 	}
 	
 	
+	public CanvasDragMoveControler getCanvasControler() {
+		return canvasControler;
+	}
+
+
 	public boolean hasActiveDataControler(){
 		return activeDataControler!=null;
 	}

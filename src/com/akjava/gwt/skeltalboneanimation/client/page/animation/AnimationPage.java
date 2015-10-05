@@ -24,11 +24,14 @@ import com.akjava.gwt.lib.client.GWTHTMLUtils;
 import com.akjava.gwt.lib.client.ImageElementUtils;
 import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.lib.client.experimental.CanvasDragMoveControler;
+import com.akjava.gwt.lib.client.experimental.CanvasDragMoveControler.KeyDownState;
 import com.akjava.gwt.lib.client.experimental.CanvasMoveListener;
 import com.akjava.gwt.lib.client.experimental.ExecuteButton;
 import com.akjava.gwt.lib.client.experimental.RectCanvasUtils;
 import com.akjava.gwt.skeltalboneanimation.client.BoneUtils;
+import com.akjava.gwt.skeltalboneanimation.client.CanvasDrawingDataControler;
 import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingData;
+import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingDataControler;
 import com.akjava.gwt.skeltalboneanimation.client.MainManager;
 import com.akjava.gwt.skeltalboneanimation.client.SkeltalFileFormat;
 import com.akjava.gwt.skeltalboneanimation.client.TextureData;
@@ -50,6 +53,8 @@ import com.akjava.gwt.skeltalboneanimation.client.converters.TextureDataConverte
 import com.akjava.gwt.skeltalboneanimation.client.page.AbstractPage;
 import com.akjava.gwt.skeltalboneanimation.client.page.HasSelectionName;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.BoneControler;
+import com.akjava.gwt.skeltalboneanimation.client.page.bone.CanvasDrawingDataControlCanvas;
+import com.akjava.gwt.skeltalboneanimation.client.page.bone.CanvasUpdater;
 import com.akjava.gwt.skeltalboneanimation.client.page.clippage.ClipImageData;
 import com.akjava.lib.common.graphics.IntRect;
 import com.akjava.lib.common.utils.CSVUtils;
@@ -78,13 +83,13 @@ import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 
-public  class AnimationPage extends AbstractPage implements HasSelectionName,BoneFrameRangeControler{
+public  class AnimationPage extends AbstractPage implements HasSelectionName,BoneFrameRangeControler,CanvasUpdater{
 	public AnimationPage(MainManager manager) {
 		super(manager);
 	}
 	private AnimationPageUndoControler undoControler;
-	private Canvas canvas;
-	private CanvasDragMoveControler canvasControler;
+	
+	//private CanvasDragMoveControler canvasControler;
 	//private BonePositionControler bonePositionControler;
 	private BoneControlRange boneControlerRange;
 	
@@ -534,40 +539,7 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 		
 	}
 	
-	private void createCanvas(){
-		//canvas
-				canvas = CanvasUtils.createCanvas(800, 800);
-				CanvasUtils.disableSelection(canvas);//can avoid double click
-				GWTHTMLUtils.disableContextMenu(canvas.getElement());
-				GWTHTMLUtils.disableSelectionEnd(canvas.getElement());//not work
-				add(canvas);
-				
-				canvasControler = new CanvasDragMoveControler(canvas,new CanvasMoveListener() {
-					
-					@Override
-					public void start(int sx, int sy) {
-						onCanvasTouchStart(sx,sy);
-						
-					}
-					
-					@Override
-					public void end(int sx, int sy) {//called on mouse out
-						onCanvasTouchEnd(sx,sy);
-					}
-					
-					@Override
-					public void dragged(int startX, int startY, int endX, int endY, int vectorX, int vectorY) {
-						onCanvasDragged(vectorX,vectorY);
-						
-					}
-				});
-				canvas.addMouseWheelHandler(new MouseWheelHandler() {
-					@Override
-					public void onMouseWheel(MouseWheelEvent event) {
-						onCanvasWheeled(event.getDeltaY());;
-					}
-				});
-	}
+
 	
 	//private CircleLineBonePainter painter;
 
@@ -590,7 +562,179 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 		}
 	}
 	
+
 	
+	
+	private class AnimationPageDrawingControler implements CanvasDrawingDataControler{
+
+		@Override
+		public void onWhelled(int delta, KeyDownState keydownState) {
+			if(!isEnableEdit()){
+				return;
+			}
+			//bone angle change by wheel
+			TwoDimensionBone bone=boneControlerRange.getSelection();
+			if(bone==null){
+				return;
+			}
+			int value=(int) boneControlerRange.getInputRange().getValue();
+			if(delta>0){
+				value++;
+			}else{
+				value--;
+			}
+			if(value>180){
+				value=value-360;
+			}
+			if(value<-180){
+				value=360+value;
+			}
+			boneControlerRange.getInputRange().setValue(value, true);
+		}
+
+		@Override
+		public void onTouchDragged(int vectorX, int vectorY, boolean rightButton, KeyDownState keydownState) {
+
+			if(!isEnableEdit()){
+				return;
+			}
+			if(boneSelectionOnCanvas!=null && !boneSelectionOnCanvas.isLocked()){
+				
+				if(rightButton || !rightButton){//temporaly every mouse move support
+					
+					if(boneSelectionOnCanvas==getRootBone()){//handling root-bone
+					//TODO create fake circle
+					int angle=(int) boneControlerRange.getInputRange().getValue();
+					
+					//LogUtils.log("angle changed:"+angle);
+					
+					angle+=vectorX;
+					if(angle<-180){
+						angle=360+angle;
+					}else if(angle>180){
+						angle=angle-360;
+					}
+					
+					boneControlerRange.getInputRange().setValue(angle);
+					}else{
+						//draw angles
+						int mouseX=canvasDrawingDataControlCanvas.getCanvasControler().getMovedX();
+						int mouseY=canvasDrawingDataControlCanvas.getCanvasControler().getMovedY();
+						
+						
+						
+						BoneWithXYAngle boneData=boneControler.getBonePositionControler().getAnimationedDataByName(boneSelectionOnCanvas.getName());
+						if(boneData.getBone().getParent()==null){//on root;
+							return;
+						}
+						
+						BoneWithXYAngle parentboneData=boneControler.getBonePositionControler().getAnimationedDataByName(boneData.getBone().getParent().getName());
+						
+						int boneX=boneData.getX()+boneControler.getBonePositionControler().getSettings().getOffsetX();
+						int boneY=boneData.getY()+boneControler.getBonePositionControler().getSettings().getOffsetY();
+						
+						int parentX=parentboneData.getX()+boneControler.getBonePositionControler().getSettings().getOffsetX();
+						int parentY=parentboneData.getY()+boneControler.getBonePositionControler().getSettings().getOffsetY();
+						
+						
+						int originalAngle=(int) Math.toDegrees(calculateAngle(parentX, parentY, boneX, boneY));
+						int rangeAngle=(int) boneControlerRange.getInputRange().getValue();
+						
+						
+						int parentAngle=originalAngle-rangeAngle;
+						//int boneangle=(int) Math.toDegrees(getRadian(parentX, parentY, boneX, boneY));
+						/*
+						List<TwoDimensionBone> parents=BoneUtils.getParents(boneSelectionOnCanvas);
+						double parentAngle=0;
+						BoneWithXYAngle boneInitialData=bonePositionControler.getInitialDataByName(boneSelectionOnCanvas.getName());
+						BoneWithXYAngle parentInitialData=bonePositionControler.getInitialDataByName(boneInitialData.getBone().getParent().getName());
+						
+						int firstAngle=(int) Math.toDegrees(getRadian(parentInitialData.getX(), parentInitialData.getY(), boneInitialData.getX(), boneInitialData.getY()));
+						parentAngle=firstAngle;
+						//LogUtils.log(parentboneData.getBone().getName()+" - "+boneData.getBone().getName()+" angle="+firstAngle);
+						//firstAngle=(int) bonePositionControler.getAnimationedDataByName(getRootBone().getName()).getAngle();//root-angle
+						
+						for(int i=0;i<parents.size();i++){
+							parentAngle+=(int) bonePositionControler.getAnimationedDataByName(parents.get(i).getName()).getAngle();
+						}
+						*/
+						
+						/*
+						for(int i=1;i<parents.size();i++){//ignore first root
+							BoneWithXYAngle data=bonePositionControler.getInitialDataByName(parents.get(i).getName());
+							BoneWithXYAngle dataParent=bonePositionControler.getInitialDataByName(parents.get(i).getParent().getName());
+							int angle=(int) Math.toDegrees(getRadian(dataParent.getX(), dataParent.getY(), data.getX(), data.getY()));
+							parentAngle+=angle;
+							LogUtils.log(data.getBone().getName()+" - "+dataParent.getBone().getName()+" angle="+angle+",parent="+parentAngle);
+						}
+						*/
+						
+						int angle=(int) Math.toDegrees(calculateAngle(parentX, parentY, mouseX, mouseY));
+						/*
+						canvas.getContext2d().setStrokeStyle("#0f0");
+						CanvasUtils.drawLine(canvas, parentX, parentY, mouseX, mouseY);
+						LogUtils.log("parent-mouse:"+angle+",bone-data"+boneData.getAngle()+",parent-bone"+boneangle);
+						*/
+						
+						
+						
+						int newAngle=(int) (angle-parentAngle)%360;
+						
+						//LogUtils.log(newAngle);
+						
+						if(newAngle<-180){
+							newAngle+=360;
+						}else if(newAngle>180){
+							newAngle-=360;
+						}
+						
+						boneControlerRange.getInputRange().setValue(newAngle);
+					}
+					
+				}else{
+					
+				}
+				
+				boneControler.getBonePositionControler().updateAnimationData(currentSelectionFrame);//position changed;
+				
+				
+				
+				
+				
+				updateCanvas();
+			}
+		}
+
+		@Override
+		public boolean onTouchStart(int mx, int my, KeyDownState keydownState) {
+			if(!isEnableEdit()){
+				return false;
+			}
+			//for drag move selection
+			boneSelectionOnCanvas=boneControler.getBonePositionControler().collisionAnimationedData(mx, my);
+			
+			//LogUtils.log(boneSelectionOnCanvas);
+			if(boneSelectionOnCanvas!=null){
+				boneControlerRange.setSelection(boneSelectionOnCanvas);
+				return true;
+				//when range value is same,not change listener called.TODO improve smart way
+			}
+			return false;
+		}
+
+		@Override
+		public void onTouchEnd(int mx, int my, KeyDownState keydownState) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public String getName() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+		
+	}
 	
 
 	private boolean isEnableEdit(){
@@ -598,114 +742,6 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 	}
 	
 	protected void onCanvasDragged(int vectorX, int vectorY) {
-		if(!isEnableEdit()){
-			return;
-		}
-		if(boneSelectionOnCanvas!=null && !boneSelectionOnCanvas.isLocked()){
-			
-			if(canvasControler.isRightMouse() || !canvasControler.isRightMouse()){//temporaly every mouse move support
-				
-				if(boneSelectionOnCanvas==getRootBone()){//handling root-bone
-				//TODO create fake circle
-				int angle=(int) boneControlerRange.getInputRange().getValue();
-				
-				//LogUtils.log("angle changed:"+angle);
-				
-				angle+=vectorX;
-				if(angle<-180){
-					angle=360+angle;
-				}else if(angle>180){
-					angle=angle-360;
-				}
-				
-				boneControlerRange.getInputRange().setValue(angle);
-				}else{
-					//draw angles
-					int mouseX=canvasControler.getMovedX();
-					int mouseY=canvasControler.getMovedY();
-					
-					
-					
-					BoneWithXYAngle boneData=boneControler.getBonePositionControler().getAnimationedDataByName(boneSelectionOnCanvas.getName());
-					if(boneData.getBone().getParent()==null){//on root;
-						return;
-					}
-					
-					BoneWithXYAngle parentboneData=boneControler.getBonePositionControler().getAnimationedDataByName(boneData.getBone().getParent().getName());
-					
-					int boneX=boneData.getX()+boneControler.getBonePositionControler().getSettings().getOffsetX();
-					int boneY=boneData.getY()+boneControler.getBonePositionControler().getSettings().getOffsetY();
-					
-					int parentX=parentboneData.getX()+boneControler.getBonePositionControler().getSettings().getOffsetX();
-					int parentY=parentboneData.getY()+boneControler.getBonePositionControler().getSettings().getOffsetY();
-					
-					
-					int originalAngle=(int) Math.toDegrees(calculateAngle(parentX, parentY, boneX, boneY));
-					int rangeAngle=(int) boneControlerRange.getInputRange().getValue();
-					
-					
-					int parentAngle=originalAngle-rangeAngle;
-					//int boneangle=(int) Math.toDegrees(getRadian(parentX, parentY, boneX, boneY));
-					/*
-					List<TwoDimensionBone> parents=BoneUtils.getParents(boneSelectionOnCanvas);
-					double parentAngle=0;
-					BoneWithXYAngle boneInitialData=bonePositionControler.getInitialDataByName(boneSelectionOnCanvas.getName());
-					BoneWithXYAngle parentInitialData=bonePositionControler.getInitialDataByName(boneInitialData.getBone().getParent().getName());
-					
-					int firstAngle=(int) Math.toDegrees(getRadian(parentInitialData.getX(), parentInitialData.getY(), boneInitialData.getX(), boneInitialData.getY()));
-					parentAngle=firstAngle;
-					//LogUtils.log(parentboneData.getBone().getName()+" - "+boneData.getBone().getName()+" angle="+firstAngle);
-					//firstAngle=(int) bonePositionControler.getAnimationedDataByName(getRootBone().getName()).getAngle();//root-angle
-					
-					for(int i=0;i<parents.size();i++){
-						parentAngle+=(int) bonePositionControler.getAnimationedDataByName(parents.get(i).getName()).getAngle();
-					}
-					*/
-					
-					/*
-					for(int i=1;i<parents.size();i++){//ignore first root
-						BoneWithXYAngle data=bonePositionControler.getInitialDataByName(parents.get(i).getName());
-						BoneWithXYAngle dataParent=bonePositionControler.getInitialDataByName(parents.get(i).getParent().getName());
-						int angle=(int) Math.toDegrees(getRadian(dataParent.getX(), dataParent.getY(), data.getX(), data.getY()));
-						parentAngle+=angle;
-						LogUtils.log(data.getBone().getName()+" - "+dataParent.getBone().getName()+" angle="+angle+",parent="+parentAngle);
-					}
-					*/
-					
-					int angle=(int) Math.toDegrees(calculateAngle(parentX, parentY, mouseX, mouseY));
-					/*
-					canvas.getContext2d().setStrokeStyle("#0f0");
-					CanvasUtils.drawLine(canvas, parentX, parentY, mouseX, mouseY);
-					LogUtils.log("parent-mouse:"+angle+",bone-data"+boneData.getAngle()+",parent-bone"+boneangle);
-					*/
-					
-					
-					
-					int newAngle=(int) (angle-parentAngle)%360;
-					
-					//LogUtils.log(newAngle);
-					
-					if(newAngle<-180){
-						newAngle+=360;
-					}else if(newAngle>180){
-						newAngle-=360;
-					}
-					
-					boneControlerRange.getInputRange().setValue(newAngle);
-				}
-				
-			}else{
-				
-			}
-			
-			boneControler.getBonePositionControler().updateAnimationData(currentSelectionFrame);//position changed;
-			
-			
-			
-			
-			
-			updateCanvas();
-		}
 	}
 	
 	protected double calculateAngle(double x, double y, double x2, double y2) {
@@ -716,17 +752,7 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 
 	
 	protected void onCanvasTouchStart(int sx, int sy) {
-		if(!isEnableEdit()){
-			return;
-		}
-		//for drag move selection
-		boneSelectionOnCanvas=boneControler.getBonePositionControler().collisionAnimationedData(sx, sy);
 		
-		//LogUtils.log(boneSelectionOnCanvas);
-		if(boneSelectionOnCanvas!=null){
-			boneControlerRange.setSelection(boneSelectionOnCanvas);
-			//when range value is same,not change listener called.TODO improve smart way
-		}
 	}
 
 
@@ -765,8 +791,8 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 		}
 		
 		//draw angles
-		int mouseX=canvasControler.getMovedX();
-		int mouseY=canvasControler.getMovedY();
+	//	int mouseX=canvasDrawingDataControlCanvas.getCanvasControler().getMovedX();
+		//int mouseY=canvasDrawingDataControlCanvas.getCanvasControler().getMovedY();
 		
 		BoneWithXYAngle boneInitialData=boneControler.getBonePositionControler().getInitialDataByName(boneSelectionOnCanvas.getName());
 		BoneWithXYAngle parentInitialData=boneControler.getBonePositionControler().getInitialDataByName(boneInitialData.getBone().getParent().getName());
@@ -963,6 +989,7 @@ public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvas
 	private CheckBox showBoneCheck;
 	//private SkeletalAnimation animations;
 	private CheckBox autoReplaceBoneCheck;
+	private CanvasDrawingDataControlCanvas canvasDrawingDataControlCanvas;
 
 
 	@Override
@@ -972,27 +999,7 @@ public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvas
 	}
 	@Override
 	protected void onCanvasWheeled(int delta) {
-		if(!isEnableEdit()){
-			return;
-		}
-		//bone angle change by wheel
-		TwoDimensionBone bone=boneControlerRange.getSelection();
-		if(bone==null){
-			return;
-		}
-		int value=(int) boneControlerRange.getInputRange().getValue();
-		if(delta>0){
-			value++;
-		}else{
-			value--;
-		}
-		if(value>180){
-			value=value-360;
-		}
-		if(value<-180){
-			value=360+value;
-		}
-		boneControlerRange.getInputRange().setValue(value, true);
+	
 	}
 	@Override
 	protected void onBoneAndAnimationChanged(BoneAndAnimationData data) {
@@ -1027,7 +1034,7 @@ public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvas
 		//for initial data
 		
 		 
-		createCanvas();
+		initializeCanvas();
 		createBoneControls(null,canvas);
 		
 		undoControler=new AnimationPageUndoControler(this);
@@ -1038,6 +1045,14 @@ public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvas
 		animations.add(BoneUtils.createEmptyAnimationFrame(getRootBone()));
 		bonePositionControler.updateBoth(currentSelectionFrame);
 		*/
+		
+		canvasDrawingDataControlCanvas=new CanvasDrawingDataControlCanvas(canvas,800,800,this);
+		AnimationPageDrawingControler controler=new AnimationPageDrawingControler();
+		//undo controled by range & buttons
+		
+		//controler.setUndoControler(undoControler,this);
+		
+		canvasDrawingDataControlCanvas.add(controler);
 	
 	}
 	@Override
@@ -1181,7 +1196,7 @@ upper.add(new UndoButtons(undoControler));
 		panel.add(createBackground2ColumnButtons());
 		
 	    
-	panel.add(canvas);
+	panel.add(canvasDrawingDataControlCanvas);
 	
 	
 	updateCanvas();

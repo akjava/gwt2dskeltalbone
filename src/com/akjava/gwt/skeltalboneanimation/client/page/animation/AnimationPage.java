@@ -97,7 +97,7 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 	private void onAnimationRangeChanged(int index){
 		
 		for(AnimationFrame frame:animationControler.getFrame(index).asSet()){
-			currentSelectionFrame=frame;
+			//currentSelectionFrame=frame;
 			
 			
 			/*for(SkeletalAnimation animations:getSkeletalAnimation().asSet()){
@@ -105,9 +105,9 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 			LogUtils.log("index:"+index+"c-index:"+cindex+"animations:"+animations.getFrames().size());
 			}*/
 			
-			boneControlerRange.setFrame(currentSelectionFrame);
+			boneControlerRange.setFrame(frame);
 			
-			boneControler.getBonePositionControler().updateBoth(currentSelectionFrame);
+			boneControler.getBonePositionControler().updateBoth(frame);
 			updateCanvas();
 			return;
 		}
@@ -340,7 +340,7 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 		
 		animationControler.setAnimation(animations);
 		
-		currentSelectionFrame = animations.getFrames().get(0);
+		AnimationFrame currentSelectionFrame = animations.getFrames().get(0);
 		
 		boneControlerRange.setRootBone(newRoot);//reset
 		boneControlerRange.setFrame(currentSelectionFrame);
@@ -366,6 +366,7 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 			return;
 		}
 		boneSelectionOnCanvas=bone;
+		AnimationFrame currentSelectionFrame=animationControler.getSelection();
 		//LogUtils.log("update:"+bone.getName());
 		BoneFrame boneFrame=currentSelectionFrame.getBoneFrame(bone.getName());
 		if(boneFrame==null){
@@ -375,7 +376,7 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 		}
 		
 		if(boneFrame.getAngle()!=angle){
-			int index=animationControler.getSelectionIndex();
+			int index=animationControler.getSelectedIndex();
 			String boneName=bone.getName();
 			undoControler.executeBoneAngleRangeChanged(index,boneName,boneFrame.getAngle(),angle);
 			//updated
@@ -409,9 +410,10 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 			@Override
 			public void onClick(ClickEvent event) {
 				SkeletalAnimation animation=animationControler.getAnimation();
-				int oldIndex=animationControler.getSelectionIndex();
+				int oldIndex=animationControler.getSelectedIndex();
 				List<AnimationFrame> oldFrames=FluentIterable.from(animation.getFrames()).transform(new AnimationFrameCopyFunction()).toList();
 				
+				AnimationFrame currentSelectionFrame=animationControler.getSelection();
 				
 				for(BoneFrame frame:currentSelectionFrame.getBoneFrames().values()){
 					frame.setAngle(0);
@@ -424,7 +426,7 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 				updateCanvas();
 				
 				animation=animationControler.getAnimation();
-				int newIndex=animationControler.getSelectionIndex();
+				int newIndex=animationControler.getSelectedIndex();
 				List<AnimationFrame> newFrames=FluentIterable.from(animation.getFrames()).transform(new AnimationFrameCopyFunction()).toList();
 				undoControler.executeBoneAnimationChanged(oldFrames, newFrames, oldIndex, newIndex);
 				
@@ -441,7 +443,7 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 		}
 		
 		SkeletalAnimation animation=animationControler.getAnimation();
-		int oldIndex=animationControler.getSelectionIndex();
+		int oldIndex=animationControler.getSelectedIndex();
 		List<AnimationFrame> oldFrames=FluentIterable.from(animation.getFrames()).transform(new AnimationFrameCopyFunction()).toList();
 		
 		
@@ -449,7 +451,7 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 		setNewRootBone(getRootBone());//this clear all undo.bug
 		
 		animation=animationControler.getAnimation();
-		int newIndex=animationControler.getSelectionIndex();
+		int newIndex=animationControler.getSelectedIndex();
 		List<AnimationFrame> newFrames=FluentIterable.from(animation.getFrames()).transform(new AnimationFrameCopyFunction()).toList();
 		undoControler.executeBoneAnimationChanged(oldFrames, newFrames, oldIndex, newIndex);
 		
@@ -494,7 +496,7 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 	
 	protected void doAddAfterData() {
 		SkeletalAnimation animation=animationControler.getAnimation();
-		int oldIndex=animationControler.getSelectionIndex();
+		int oldIndex=animationControler.getSelectedIndex();
 		List<AnimationFrame> oldFrames=FluentIterable.from(animation.getFrames()).transform(new AnimationFrameCopyFunction()).toList();
 		
 		AnimationFrame frame=animationControler.getSelection();
@@ -502,16 +504,16 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 		animationControler.insertAfter(copy);
 		animationControler.syncDatas();
 		animationControler.setSelection(copy,false);//update later
-		onAnimationRangeChanged(animationControler.getSelectionIndex());
+		onAnimationRangeChanged(animationControler.getSelectedIndex());
 		updateCanvas();
 		
-		int newIndex=animationControler.getSelectionIndex();
+		int newIndex=animationControler.getSelectedIndex();
 		List<AnimationFrame> newFrames=FluentIterable.from(animation.getFrames()).transform(new AnimationFrameCopyFunction()).toList();
 		undoControler.executeBoneAnimationChanged(oldFrames, newFrames, oldIndex, newIndex);
 	}	
 	protected void doAddBeforeData() {
 		SkeletalAnimation animation=animationControler.getAnimation();
-		int oldIndex=animationControler.getSelectionIndex();
+		int oldIndex=animationControler.getSelectedIndex();
 		List<AnimationFrame> oldFrames=FluentIterable.from(animation.getFrames()).transform(new AnimationFrameCopyFunction()).toList();
 		
 		AnimationFrame frame=animationControler.getSelection();
@@ -519,10 +521,10 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 		animationControler.insertBefore(copy);
 		animationControler.syncDatas();
 		animationControler.setSelection(copy,false);//update later
-		onAnimationRangeChanged(animationControler.getSelectionIndex());
+		onAnimationRangeChanged(animationControler.getSelectedIndex());
 		updateCanvas();
 		
-		int newIndex=animationControler.getSelectionIndex();
+		int newIndex=animationControler.getSelectedIndex();
 		List<AnimationFrame> newFrames=FluentIterable.from(animation.getFrames()).transform(new AnimationFrameCopyFunction()).toList();
 		undoControler.executeBoneAnimationChanged(oldFrames, newFrames, oldIndex, newIndex);
 		
@@ -534,17 +536,17 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 		}
 		
 		SkeletalAnimation animation=animationControler.getAnimation();
-		int oldIndex=animationControler.getSelectionIndex();
+		int oldIndex=animationControler.getSelectedIndex();
 		List<AnimationFrame> oldFrames=FluentIterable.from(animation.getFrames()).transform(new AnimationFrameCopyFunction()).toList();
 		
 		
 		AnimationFrame frame=animationControler.getSelection();
 		animationControler.removeFrame(frame);
 		animationControler.syncDatas();
-		onAnimationRangeChanged(animationControler.getSelectionIndex());
+		onAnimationRangeChanged(animationControler.getSelectedIndex());
 		updateCanvas();
 		
-		int newIndex=animationControler.getSelectionIndex();
+		int newIndex=animationControler.getSelectedIndex();
 		List<AnimationFrame> newFrames=FluentIterable.from(animation.getFrames()).transform(new AnimationFrameCopyFunction()).toList();
 		undoControler.executeBoneAnimationChanged(oldFrames, newFrames, oldIndex, newIndex);
 		
@@ -705,6 +707,8 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 				}else{
 					
 				}
+				
+				AnimationFrame currentSelectionFrame=animationControler.getSelection();
 				
 				boneControler.getBonePositionControler().updateAnimationData(currentSelectionFrame);//position changed;
 				
@@ -880,7 +884,7 @@ private void initializeConvetedCanvas(){
 }
 
 private void drawTextureData(Canvas canvas){
-
+	AnimationFrame currentSelectionFrame=animationControler.getSelection();
 	boneControler.getBonePositionControler().updateBoth(currentSelectionFrame);//TODO update on value changed only
 	//TODO add show bone check
 	//TODO make class,it's hard to understand
@@ -957,6 +961,7 @@ private void updateCanvasOnAnimation() {
 		
 		if(showBoneCheck.getValue()){
 		//canvas.getContext2d().setGlobalAlpha(0.5);
+		AnimationFrame currentSelectionFrame=animationControler.getSelection();
 		boneControler.paintBone(currentSelectionFrame);
 		//canvas.getContext2d().setGlobalAlpha(1.0);
 		}
@@ -982,7 +987,7 @@ public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvas
 	
 	
 	
-	private AnimationFrame currentSelectionFrame;//should contain all bone
+	//private AnimationFrame currentSelectionFrame;//should contain all bone
 	//private CanvasBoneSettings settings;
 	
 	public TwoDimensionBone getRootBone() {
@@ -1342,6 +1347,9 @@ upper.add(new UndoButtons(undoControler));
 			
 			for(TwoDimensionBone bone:boneControler.findBoneByBoneName(boneName).asSet()){
 				boneControlerRange.setSelection(bone);
+				AnimationFrame currentSelectionFrame=animationControler.getSelection();
+				boneControler.getBonePositionControler().updateBoth(currentSelectionFrame);
+				updateCanvas();
 				return;
 			}
 			
@@ -1356,15 +1364,20 @@ upper.add(new UndoButtons(undoControler));
 		for(SkeletalAnimation animations:getSkeletalAnimation().asSet()){
 			animations.getFrames().clear();
 			
-			LogUtils.log("replaceAnimations:"+frames.size());
+			//LogUtils.log("replaceAnimations:"+frames.size());
 			//copied frame
 			for(AnimationFrame frame:frames){
 				animations.getFrames().add(frame);
 			}
+			
+			//AnimationFrame frame=frames.get(selectedIndex);
 			animationControler.setAnimation(animations);
-			animationControler.setSelection(frames.get(selectedIndex), false);
+			
+			onAnimationRangeChanged(selectedIndex);
+			//animationControler.setSelection(frame, false);
 			animationControler.syncDatas();
 			
+			updateCanvas();
 			return;
 		}
 		

@@ -432,7 +432,7 @@ private BoneControlRange boneControlerRange;
 		animationControler.insertAfter(copy);
 		animationControler.syncDatas();
 		animationControler.setSelection(copy,false);//update later
-		onAnimationRangeChanged(animationControler.getSelectionIndex());
+		onAnimationRangeChanged(animationControler.getSelectedIndex());
 		updateCanvas();
 	}	
 	protected void doAddBeforeData() {
@@ -441,14 +441,14 @@ private BoneControlRange boneControlerRange;
 		animationControler.insertBefore(copy);
 		animationControler.syncDatas();
 		animationControler.setSelection(copy,false);//update later
-		onAnimationRangeChanged(animationControler.getSelectionIndex());
+		onAnimationRangeChanged(animationControler.getSelectedIndex());
 		updateCanvas();
 	}
 	protected void doRemoveData() {
 		AnimationFrame frame=animationControler.getSelection();
 		animationControler.removeFrame(frame);
 		animationControler.syncDatas();
-		onAnimationRangeChanged(animationControler.getSelectionIndex());
+		onAnimationRangeChanged(animationControler.getSelectedIndex());
 		updateCanvas();
 	}
 	

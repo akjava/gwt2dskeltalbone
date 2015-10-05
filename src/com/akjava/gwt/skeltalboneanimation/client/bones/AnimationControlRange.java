@@ -156,7 +156,7 @@ public class AnimationControlRange extends VerticalPanel{
 		inputRange.getRange().setMax(animation.getFrames().size());
 		//AnimationFrame frame=getSelection();
 		
-		int selectionIndex=getSelectionIndex();
+		int selectionIndex=getSelectedIndex();
 		
 		if(selectionIndex>animation.getFrames().size()){
 			inputRange.setValue(animation.getFrames().size());
@@ -192,7 +192,7 @@ public class AnimationControlRange extends VerticalPanel{
 		return animation.getFrames().size();
 	}
 
-	public int getSelectionIndex() {
+	public int getSelectedIndex() {
 		return (int)inputRange.getValue()-1;
 	}
 	public void setSelection(AnimationFrame frame,boolean fireEvent) {

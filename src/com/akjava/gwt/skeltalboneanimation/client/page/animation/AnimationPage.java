@@ -35,6 +35,7 @@ import com.akjava.gwt.skeltalboneanimation.client.TextureData;
 import com.akjava.gwt.skeltalboneanimation.client.UndoButtons;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationControlRange;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationFrame;
+import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationFrameCopyFunction;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneAndAnimationData;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneControlRange;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneControlRange.BoneControlListener;
@@ -56,6 +57,7 @@ import com.akjava.lib.common.utils.FileNames;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.base.Stopwatch;
+import com.google.common.collect.FluentIterable;
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.dom.client.CanvasElement;
 import com.google.gwt.dom.client.ImageElement;
@@ -414,12 +416,26 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 		panel.add(resetAll);
 		return panel;
 	}
+	//clear all
 	protected void doCreateNewData() {
 		boolean confirm=Window.confirm("clear all frame?if not saved data would all gone");
 		if(!confirm){
 			return;
 		}
+		
+		SkeletalAnimation animation=animationControler.getAnimation();
+		int oldIndex=animationControler.getSelectionIndex();
+		List<AnimationFrame> oldFrames=FluentIterable.from(animation.getFrames()).transform(new AnimationFrameCopyFunction()).toList();
+		
+		
+		//this replace animation
 		setNewRootBone(getRootBone());
+		
+		animation=animationControler.getAnimation();
+		int newIndex=animationControler.getSelectionIndex();
+		List<AnimationFrame> newFrames=FluentIterable.from(animation.getFrames()).transform(new AnimationFrameCopyFunction()).toList();
+		undoControler.executeBoneAnimationChanged(oldFrames, newFrames, oldIndex, newIndex);
+		
 	}
 
 	/**
@@ -460,6 +476,10 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 	}
 	
 	protected void doAddAfterData() {
+		SkeletalAnimation animation=animationControler.getAnimation();
+		int oldIndex=animationControler.getSelectionIndex();
+		List<AnimationFrame> oldFrames=FluentIterable.from(animation.getFrames()).transform(new AnimationFrameCopyFunction()).toList();
+		
 		AnimationFrame frame=animationControler.getSelection();
 		AnimationFrame copy=frame.copy();
 		animationControler.insertAfter(copy);
@@ -467,8 +487,16 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 		animationControler.setSelection(copy,false);//update later
 		onAnimationRangeChanged(animationControler.getSelectionIndex());
 		updateCanvas();
+		
+		int newIndex=animationControler.getSelectionIndex();
+		List<AnimationFrame> newFrames=FluentIterable.from(animation.getFrames()).transform(new AnimationFrameCopyFunction()).toList();
+		undoControler.executeBoneAnimationChanged(oldFrames, newFrames, oldIndex, newIndex);
 	}	
 	protected void doAddBeforeData() {
+		SkeletalAnimation animation=animationControler.getAnimation();
+		int oldIndex=animationControler.getSelectionIndex();
+		List<AnimationFrame> oldFrames=FluentIterable.from(animation.getFrames()).transform(new AnimationFrameCopyFunction()).toList();
+		
 		AnimationFrame frame=animationControler.getSelection();
 		AnimationFrame copy=frame.copy();
 		animationControler.insertBefore(copy);
@@ -476,17 +504,33 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 		animationControler.setSelection(copy,false);//update later
 		onAnimationRangeChanged(animationControler.getSelectionIndex());
 		updateCanvas();
+		
+		int newIndex=animationControler.getSelectionIndex();
+		List<AnimationFrame> newFrames=FluentIterable.from(animation.getFrames()).transform(new AnimationFrameCopyFunction()).toList();
+		undoControler.executeBoneAnimationChanged(oldFrames, newFrames, oldIndex, newIndex);
+		
 	}
 	protected void doRemoveData() {
 		if(animationControler.getAnimationSize()<=1){
 			//at leaset one frame need do this.
 			return;
 		}
+		
+		SkeletalAnimation animation=animationControler.getAnimation();
+		int oldIndex=animationControler.getSelectionIndex();
+		List<AnimationFrame> oldFrames=FluentIterable.from(animation.getFrames()).transform(new AnimationFrameCopyFunction()).toList();
+		
+		
 		AnimationFrame frame=animationControler.getSelection();
 		animationControler.removeFrame(frame);
 		animationControler.syncDatas();
 		onAnimationRangeChanged(animationControler.getSelectionIndex());
 		updateCanvas();
+		
+		int newIndex=animationControler.getSelectionIndex();
+		List<AnimationFrame> newFrames=FluentIterable.from(animation.getFrames()).transform(new AnimationFrameCopyFunction()).toList();
+		undoControler.executeBoneAnimationChanged(oldFrames, newFrames, oldIndex, newIndex);
+		
 	}
 	
 	private void createCanvas(){
@@ -1279,6 +1323,25 @@ upper.add(new UndoButtons(undoControler));
 		}
 		
 		LogUtils.log("setRangeAt:invalid index:"+frameIndex);
+	}
+	@Override
+	public void replaceAnimations(List<AnimationFrame> frames, int selectedIndex) {
+		for(SkeletalAnimation animations:getSkeletalAnimation().asSet()){
+			animations.getFrames().clear();
+			
+			LogUtils.log("replaceAnimations:"+frames.size());
+			//copied frame
+			for(AnimationFrame frame:frames){
+				animations.getFrames().add(frame);
+			}
+			animationControler.setAnimation(animations);
+			animationControler.setSelection(frames.get(selectedIndex), false);
+			animationControler.syncDatas();
+			
+			return;
+		}
+		
+		LogUtils.log("replaceAnimations:no animation");
 	}
 
 

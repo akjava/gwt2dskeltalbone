@@ -195,6 +195,7 @@ public class AnimationControlRange extends VerticalPanel{
 		checkNotNull(frame,"setSelection:need frame");
 		int index=animation.getFrames().indexOf(frame);
 		
+		//LogUtils.log("setSelection:"+index+","+inputRange.get);
 		if(index!=-1){
 			inputRange.setValue(index+1,fireEvent);
 		}

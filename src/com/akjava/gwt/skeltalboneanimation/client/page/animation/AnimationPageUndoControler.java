@@ -1,6 +1,10 @@
 package com.akjava.gwt.skeltalboneanimation.client.page.animation;
 
+import java.util.List;
+
+import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.skeltalboneanimation.client.SimpleUndoControler;
+import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationFrame;
 import com.akjava.gwt.skeltalboneanimation.client.page.animation.BoneFrameRangeCommand.BoneFrameRangeCommandIndexNamePredicate;
 import com.google.common.base.Optional;
 
@@ -37,5 +41,9 @@ private BoneFrameRangeControler controler;
 			BoneFrameRangeCommand newCommand=new BoneFrameRangeCommand(index,boneName,oldAngle,newAngle,controler);
 			this.execute(newCommand);
 		}
+	}
+	public void executeBoneAnimationChanged(List<AnimationFrame> oldFrames, List<AnimationFrame> newFrames, int oldSelection,int newSelection){
+		//LogUtils.log("executeBoneAnimationChanged");
+		execute(new BoneAnimationCommand(oldFrames, newFrames, oldSelection, newSelection, controler));
 	}
 }

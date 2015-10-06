@@ -28,13 +28,13 @@ public class MovePointCommand implements Command {
 
 	@Override
 	public void undo() {
-		controler.getPoint(dataIndex,pointIndex).set(oldPoint);
+		controler.getPointAt(dataIndex,pointIndex).set(oldPoint);
 		controler.updatePoints();
 	}
 
 	@Override
 	public void redo() {
-		controler.getPoint(dataIndex,pointIndex).set(newPoint);
+		controler.getPointAt(dataIndex,pointIndex).set(newPoint);
 		controler.updatePoints();
 	}
 

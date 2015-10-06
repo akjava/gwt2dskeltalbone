@@ -1389,11 +1389,16 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 
 			@Override
 			public void flush() {
-				LogUtils.log("flush");
+				//LogUtils.log("flush");
 				if(value==null){
 					return;
 				}
 				value.setBone(boneList.getValue().getName());
+				
+				//TODO support expand
+				if(!eqvialence.doEquivalent(oldValue, value)){
+					onDataModified(oldValue,value);
+				}
 				
 				updateDatas();
 				updateCanvas();
@@ -1405,6 +1410,8 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 				
 			}
 
+			private ClipDataWithtouChildrenEquivalence eqvialence=new ClipDataWithtouChildrenEquivalence();
+			private ClipData oldValue;
 			@Override
 			public void setValue(ClipData value) {
 				this.value=value;
@@ -1414,6 +1421,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 				}else{
 					boneList.setEnabled(true);
 				}
+				oldValue=value.copy(false);
 				
 				//is this heavy?
 				TwoDimensionBone bone=findBoneByName(value.getBone());
@@ -1464,6 +1472,15 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		return Optional.absent();
 	}
 	
+	public void onDataModified(ClipData oldValue, ClipData value) {
+		for(Integer index:cellObjects.getSelectedIndex(value).asSet()){
+			undoControler.execEditData(index, oldValue, value.copy(false));
+			return;
+		}
+		LogUtils.log("onDataModified:not exist in datas");
+	}
+
+
 	protected void doSyncTextureOrder() {
 		List<String> names=FluentIterable.from(cellObjects.getDatas()).transform(new Function<ClipData,String>(){
 			@Override
@@ -1817,7 +1834,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 
 
 	@Override
-	public Point getPoint(int dataIndex,int index) {
+	public Point getPointAt(int dataIndex,int index) {
 		return cellObjects.getDatas().get(dataIndex).getPoints().get(index);
 	}
 
@@ -1856,6 +1873,26 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 	@Override
 	public ClipData removeData(int dataIndex) {
 		return cellObjects.removeItem(dataIndex);
+	}
+
+
+	@Override
+	public ClipData getDataAt(int dataIndex) {
+		Optional<ClipData> data=cellObjects.getItemAt(dataIndex);
+		if(data.isPresent()){
+			return data.get();
+		}
+		return null;
+	}
+
+
+	@Override
+	public void updateData(int dataIndex) {
+		for(ClipData data:cellObjects.getItemAt(dataIndex).asSet()){
+		driver.edit(data);//update values
+		return;
+		}
+		 LogUtils.log("updateData not exist:"+dataIndex);
 	}
 
 

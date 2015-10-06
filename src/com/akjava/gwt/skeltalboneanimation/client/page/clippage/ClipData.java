@@ -81,4 +81,26 @@ public Optional<ImageDrawingData> getLinkedImageDrawingData() {
 public void setLinkedImageDrawingData(ImageDrawingData linkedImageDrawingData) {
 	this.linkedImageDrawingData = linkedImageDrawingData;
 }
+public ClipData copy(boolean deepCopy){
+	ClipData data=new ClipData();
+	copyTo(data,deepCopy);
+	return data;
+}
+public void copyTo(ClipData data, boolean deepCopy) {
+	if(deepCopy==true){
+		throw new UnsupportedOperationException("clipdata:copyto(true) not support yet");
+	}
+	data.setBone(bone);
+	data.setExpand(expand);
+	
+	/*
+	data.setLinkedImageDrawingData(linkedImageDrawingData);
+	data.getPoints().clear();
+	for(Point pt:points){
+		data.getPoints().add(pt);
+	}
+	*/
+	
+}
+
 }

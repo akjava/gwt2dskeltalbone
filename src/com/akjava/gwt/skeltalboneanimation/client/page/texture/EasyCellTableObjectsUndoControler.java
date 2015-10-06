@@ -5,8 +5,6 @@ import java.util.List;
 import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.lib.client.widget.cell.EasyCellTableObjects;
 import com.akjava.gwt.skeltalboneanimation.client.SimpleUndoControler;
-import com.akjava.gwt.skeltalboneanimation.client.SimpleUndoControler.Command;
-import com.akjava.gwt.skeltalboneanimation.client.page.bone.ImageDrawingDataCommand;
 import com.akjava.gwt.skeltalboneanimation.client.page.texture.commands.AddDataCommand;
 import com.akjava.gwt.skeltalboneanimation.client.page.texture.commands.EditDataCommand;
 import com.akjava.gwt.skeltalboneanimation.client.page.texture.commands.OrderChangeCommand;
@@ -119,8 +117,7 @@ public abstract class EasyCellTableObjectsUndoControler<T> extends SimpleUndoCon
 	}
 
 	public void execEditData(int dataIndex,T oldData,T newData,boolean collapse) {
-		LogUtils.log("execEditData");
-
+		
 		if(collapse){//usually mouse wheel event.
 		for(EditDataCommand<T> lastCommand:getLastEditDataCommandIfExist().asSet()){
 			lastCommand.setNewData(newData);
@@ -128,6 +125,7 @@ public abstract class EasyCellTableObjectsUndoControler<T> extends SimpleUndoCon
 			}
 		}
 		
+		LogUtils.log("execEditData");
 		execute(new EditDataCommand<T>(dataIndex, oldData,newData,collapse,this));
 	}
 	

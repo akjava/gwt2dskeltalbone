@@ -5,15 +5,16 @@ import com.akjava.gwt.skeltalboneanimation.client.page.clippage.ClipImageDataCon
 import com.akjava.lib.common.graphics.Point;
 
 //from mouse move
-public class ChangePointCommand implements Command {
-
+public class MovePointCommand implements Command {
+	private int dataIndex;
 	private int pointIndex;
-	public ChangePointCommand(int pointIndex, Point oldPoint,Point newPoint, ClipImageDataControler controler) {
+	public MovePointCommand(int dataIndex,int pointIndex, Point oldPoint,Point newPoint, ClipImageDataControler controler) {
 		super();
 		this.pointIndex = pointIndex;
 		this.oldPoint = oldPoint;
 		this.newPoint = newPoint;
 		
+		this.dataIndex=dataIndex;
 		this.controler = controler;
 	}
 
@@ -27,13 +28,13 @@ public class ChangePointCommand implements Command {
 
 	@Override
 	public void undo() {
-		controler.getPoint(pointIndex).set(oldPoint);
+		controler.getPoint(dataIndex,pointIndex).set(oldPoint);
 		controler.updatePoints();
 	}
 
 	@Override
 	public void redo() {
-		controler.getPoint(pointIndex).set(newPoint);
+		controler.getPoint(dataIndex,pointIndex).set(newPoint);
 		controler.updatePoints();
 	}
 

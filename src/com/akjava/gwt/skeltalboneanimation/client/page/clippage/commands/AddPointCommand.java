@@ -6,11 +6,13 @@ import com.akjava.lib.common.graphics.Point;
 
 public class AddPointCommand implements Command{
 	private int pointIndex;
-	public AddPointCommand(int pointIndex, Point point, ClipImageDataControler controler) {
+	private int dataIndex;
+	public AddPointCommand(int dataIndex,int pointIndex, Point point, ClipImageDataControler controler) {
 		super();
 		this.pointIndex = pointIndex;
 		this.point = point;
 		this.controler = controler;
+		this.dataIndex=dataIndex;
 	}
 	private Point point;
 	private ClipImageDataControler controler;
@@ -21,10 +23,12 @@ public class AddPointCommand implements Command{
 	}
 	@Override
 	public void undo() {
-		controler.removePoint(pointIndex);
+		controler.removePoint(dataIndex,pointIndex);
+		controler.updatePoints();
 	}
 	@Override
 	public void redo() {
-		controler.insertPoint(pointIndex, point.copy());
+		controler.insertPoint(dataIndex,pointIndex, point.copy());
+		controler.updatePoints();
 	}
 }

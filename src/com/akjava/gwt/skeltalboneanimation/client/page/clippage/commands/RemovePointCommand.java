@@ -6,24 +6,28 @@ import com.akjava.lib.common.graphics.Point;
 
 public class RemovePointCommand implements Command{
 	private int pointIndex;
-	public RemovePointCommand(int pointIndex, ClipImageDataControler controler) {
+	private int dataIndex;
+	public RemovePointCommand(int dataIndex,int pointIndex, ClipImageDataControler controler) {
 		super();
 		this.pointIndex = pointIndex;
 		this.controler = controler;
+		this.dataIndex=dataIndex;
 	}
 	private Point point;
 	private ClipImageDataControler controler;
 	
 	@Override
 	public void execute() {
-		point=controler.removePoint(pointIndex).copy();
+		point=controler.removePoint(dataIndex,pointIndex).copy();
 	}
 	@Override
 	public void undo() {
-		controler.insertPoint(pointIndex, point.copy());
+		controler.insertPoint(dataIndex,pointIndex, point.copy());
+		controler.updatePoints();
 	}
 	@Override
 	public void redo() {
-		controler.removePoint(pointIndex).copy();
+		controler.removePoint(dataIndex,pointIndex).copy();
+		controler.updatePoints();
 	}
 }

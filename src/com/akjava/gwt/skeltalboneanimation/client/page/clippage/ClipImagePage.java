@@ -1,5 +1,7 @@
 package com.akjava.gwt.skeltalboneanimation.client.page.clippage;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -262,12 +264,17 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 	
 	//remoing selectionPt field.
 
+	private int getDataIndex(){
+		checkNotNull(getSelection(),"getDataIndex:selection is null");
+		return cellObjects.getDatas().indexOf(getSelection());
+	}
+	
 	protected void doRemovePoint() {
 		if(isClipDataSelected() && getSelectedPoint()!=null){
 			
 			int index=pointSelectionIndex;
 			if(index!=-1){
-				undoControler.execRemovePoint(index);
+				undoControler.execRemovePoint(getDataIndex(),index);
 			}else{
 				LogUtils.log("some how selection point exist");
 			}
@@ -376,7 +383,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		x/=canvasDrawingDataControlCanvas.getScale();
 		y/=canvasDrawingDataControlCanvas.getScale();
 		int index=getSelection().getPoints().size();
-		Point p=undoControler.execAddPoint(index, x, y);
+		Point p=undoControler.execAddPoint(getDataIndex(),index, x, y);
 		
 		//Point pt=new Point(p);
 		
@@ -1157,6 +1164,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 			}
 			
 			
+			//right button insert
 			if(rightButton){
 				if(getSelectedPoint()==null){
 					return false;
@@ -1164,6 +1172,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 				
 				for(Integer index:execInsertPoint(getSelection(),getSelectedPoint(),new Point(mx,my)).asSet()){
 					pointSelectionIndex=index;
+					startPosition=getSelectedPoint().copy();
 					return true;
 				}
 				
@@ -1172,15 +1181,33 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 				
 			}else{
 			
-				setSelectedPoint(getSelection().collision(mx, my));
+			setSelectedPoint(getSelection().collision(mx, my));
 			
-			return getSelectedPoint()!=null;
+			if(getSelectedPoint()!=null){
+				startPosition=getSelectedPoint().copy();
+				return true;
+			}else{
+				
+				return false;
+			}
+			
+			
 			}
 		}
+		private Point startPosition;
 
 		@Override
 		public void onTouchEnd(int mx, int my, boolean rightButton,KeyDownState keydownState) {
-			//do nothing
+			if(startPosition!=null){
+				Point endPosition=getSelectedPoint().copy();
+				if(!startPosition.equals(endPosition)){
+					undoControler.execMovePoint(getDataIndex(),pointSelectionIndex, startPosition, endPosition);
+				}
+				startPosition=null;
+				return;
+			}
+			
+			startPosition=null;
 		}
 
 		@Override
@@ -1330,7 +1357,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 				Point pt=new Point(x/2, y/2);
 				
 				int newIndex=index+1;
-				Point p=undoControler.execAddPoint(index+1, pt.x, pt.y);
+				Point p=undoControler.execAddPoint(getDataIndex(),index+1, pt.x, pt.y);
 				
 				
 				
@@ -1774,23 +1801,22 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 
 
 	@Override
-	public Point getPoint(int index) {
-		// TODO Auto-generated method stub
-		return null;
+	public Point getPoint(int dataIndex,int index) {
+		return cellObjects.getDatas().get(dataIndex).getPoints().get(index);
 	}
 
 
 	@Override
-	public Point insertPoint(int index, Point pt) {
+	public Point insertPoint(int dataIndex,int index, Point pt) {
 	
-		getSelection().getPoints().add(index, pt);
+		cellObjects.getDatas().get(dataIndex).getPoints().add(index, pt);
 		return pt;
 	}
 
 
 	@Override
-	public Point removePoint(int index) {
-		Point point=getSelection().getPoints().remove(index);
+	public Point removePoint(int dataIndex,int index) {
+		Point point=cellObjects.getDatas().get(dataIndex).getPoints().remove(index);
 		if(point==null){
 			LogUtils.log("removePoint:basically never happen null="+index);
 		}

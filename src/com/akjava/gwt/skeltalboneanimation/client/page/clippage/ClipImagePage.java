@@ -1236,6 +1236,11 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 	}
 
 
+	
+	private void execOrderChange(List<ClipData> oldOrder){
+		List<ClipData> newOrder=copyOrder();
+		undoControler.executeOrder(oldOrder, newOrder);
+	}
 
 	public class ClipDataEditor extends VerticalPanel implements Editor<ClipData>,ValueAwareEditor<ClipData>{
 		ClipData value;
@@ -1250,7 +1255,11 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 					if(value==null){
 						return;
 					}
+					
+					List<ClipData> oldOrder=copyOrder();
+					
 					cellObjects.topItem(value);
+					execOrderChange(oldOrder);
 					updateCanvas();
 				}
 			}));
@@ -1261,7 +1270,9 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 					if(value==null){
 						return;
 					}
+					List<ClipData> oldOrder=copyOrder();
 					cellObjects.upItem(value);
+					execOrderChange(oldOrder);
 					updateCanvas();
 				}
 			}));
@@ -1272,7 +1283,9 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 					if(value==null){
 						return;
 					}
+					List<ClipData> oldOrder=copyOrder();
 					cellObjects.downItem(value);
+					execOrderChange(oldOrder);
 					updateCanvas();
 				}
 			}));
@@ -1283,7 +1296,9 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 					if(value==null){
 						return;
 					}
+					List<ClipData> oldOrder=copyOrder();
 					cellObjects.bottomItem(value);
+					execOrderChange(oldOrder);
 					updateCanvas();
 				}
 			}));
@@ -1801,6 +1816,8 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		if(owner==this){ //called by myself no need to change
 			return;
 		}
+		List<ClipData> oldOrder=copyOrder();
+		
 		List<ClipData> newDatas=Lists.newArrayList();
 		
 		for(String id:data){
@@ -1816,6 +1833,8 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		
 		cellObjects.setDatas(newDatas);
 		cellObjects.update();
+		
+		execOrderChange(oldOrder);
 		
 	}
 
@@ -1896,7 +1915,27 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 	}
 
 
+	@Override
+	public void setOrder(List<ClipData> datas) {
+		List<ClipData> newDatas=Lists.newArrayList();
+		
+		for(ClipData data:datas){
+			newDatas.add(data);
+		}
+		
+		cellObjects.setDatas(newDatas);
+	}
 	
+	public List<ClipData> copyOrder(){
+		List<ClipData> order=Lists.newArrayList();
+		for(ClipData data:cellObjects.getDatas()){
+			order.add(data);
+		}
+		return order;
+	}
+
+
+	//public boolean isSame
 
 
 

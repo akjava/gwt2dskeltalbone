@@ -1,7 +1,8 @@
 package com.akjava.gwt.skeltalboneanimation.client.page.clippage;
 
+import java.util.List;
+
 import com.akjava.lib.common.graphics.Point;
-import com.google.common.base.Optional;
 
 public interface ClipImageDataControler {
 
@@ -16,6 +17,8 @@ public interface ClipImageDataControler {
 	public ClipData insertData(int dataIndex,ClipData data);
 	public ClipData removeData(int dataIndex);
 	public ClipData getDataAt(int dataIndex);
+	public void setOrder(List<ClipData> dats);
+	
 	public void updateDatas();
 	public void updateData(int dataIndex);
 	

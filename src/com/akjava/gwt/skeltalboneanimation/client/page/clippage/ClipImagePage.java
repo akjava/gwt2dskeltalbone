@@ -52,6 +52,7 @@ import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
 import com.google.common.base.Supplier;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.canvas.dom.client.Context2d;
@@ -199,8 +200,18 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		if(!Window.confirm("remove all clip-image-data.are you sure?")){
 			return;
 		}
+		
+		//old one
+		List<ClipData> oldDatas=ImmutableList.copyOf(cellObjects.getDatas());
+		
 		cellObjects.clearAllItems();
+		
+		
 		updateCanvas();
+		
+		List<ClipData> newDatas=ImmutableList.of();
+		
+		undoControler.executeDataUpdate(oldDatas, newDatas);
 	}
 	
 	
@@ -209,6 +220,9 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 	 */
 	protected void doCreateClipDataFromBone() {
 		for(TwoDimensionBone rootBone:getRootBone().asSet()){
+			
+			List<ClipData> oldDatas=ImmutableList.copyOf(cellObjects.getDatas());
+			
 			List<TwoDimensionBone> bones=BoneUtils.getAllBone(rootBone);
 			for(TwoDimensionBone bone:bones){
 				if(bone.getParent()!=null && !bone.isLocked()){
@@ -239,6 +253,10 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 					
 				}
 			}
+			//these add data is new-created.and not exist old data.
+			//if old data modified.when undo come here,every data is same as old data.
+			List<ClipData> newDatas=ImmutableList.copyOf(cellObjects.getDatas());
+			undoControler.executeDataUpdate(oldDatas, newDatas);
 			//BoneUtils.
 		}
 		updateCanvas();
@@ -1916,7 +1934,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 
 
 	@Override
-	public void setOrder(List<ClipData> datas) {
+	public void setDatas(List<ClipData> datas) {
 		List<ClipData> newDatas=Lists.newArrayList();
 		
 		for(ClipData data:datas){

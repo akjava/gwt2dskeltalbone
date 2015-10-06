@@ -17,7 +17,7 @@ public interface ClipImageDataControler {
 	public ClipData insertData(int dataIndex,ClipData data);
 	public ClipData removeData(int dataIndex);
 	public ClipData getDataAt(int dataIndex);
-	public void setOrder(List<ClipData> dats);
+	public void setDatas(List<ClipData> dats);
 	
 	public void updateDatas();
 	public void updateData(int dataIndex);

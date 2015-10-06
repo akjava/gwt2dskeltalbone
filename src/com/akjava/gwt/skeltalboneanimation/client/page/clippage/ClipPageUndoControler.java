@@ -6,6 +6,7 @@ import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.skeltalboneanimation.client.SimpleUndoControler;
 import com.akjava.gwt.skeltalboneanimation.client.page.clippage.commands.AddDataCommand;
 import com.akjava.gwt.skeltalboneanimation.client.page.clippage.commands.AddPointCommand;
+import com.akjava.gwt.skeltalboneanimation.client.page.clippage.commands.ClipImageDataCommand;
 import com.akjava.gwt.skeltalboneanimation.client.page.clippage.commands.EditDataCommand;
 import com.akjava.gwt.skeltalboneanimation.client.page.clippage.commands.MovePointCommand;
 import com.akjava.gwt.skeltalboneanimation.client.page.clippage.commands.OrderChangeCommand;
@@ -66,6 +67,10 @@ public void execEditData(int dataIndex,ClipData oldData,ClipData newData) {
 public void executeOrder(List<ClipData> oldOrder,List<ClipData> newOrder){
 	LogUtils.log("executeOrder");
 	execute(new OrderChangeCommand(oldOrder, newOrder, controler));
+}
+public void executeDataUpdate(List<ClipData> oldDatas,List<ClipData> newDatas){
+	LogUtils.log("executeDataUpdate");
+	execute(new ClipImageDataCommand(oldDatas, newDatas, controler));
 }
 
 }

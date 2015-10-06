@@ -93,13 +93,13 @@ public void copyTo(ClipData data, boolean deepCopy) {
 	data.setBone(bone);
 	data.setExpand(expand);
 	
-	/*
+	
 	data.setLinkedImageDrawingData(linkedImageDrawingData);
 	data.getPoints().clear();
 	for(Point pt:points){
 		data.getPoints().add(pt);
 	}
-	*/
+	
 	
 }
 

@@ -4,7 +4,6 @@ import java.util.List;
 import com.akjava.gwt.skeltalboneanimation.client.SimpleUndoControler.Command;
 import com.akjava.gwt.skeltalboneanimation.client.page.clippage.ClipData;
 import com.akjava.gwt.skeltalboneanimation.client.page.clippage.ClipImageDataControler;
-import com.akjava.lib.common.graphics.Point;
 /*
  * Called when
  * top,up,down,bottom pushed.
@@ -32,7 +31,7 @@ public class OrderChangeCommand implements Command {
 
 	@Override
 	public void undo() {
-		controler.setOrder(oldOrder);
+		controler.setDatas(oldOrder);
 		controler.updateDatas();
 	}
 	
@@ -41,7 +40,7 @@ public class OrderChangeCommand implements Command {
 
 	@Override
 	public void redo() {
-		controler.setOrder(newOrder);
+		controler.setDatas(newOrder);
 		controler.updateDatas();
 	}
 }

@@ -1615,6 +1615,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		//LogUtils.log("onClipImageDataChanged:");
 		//background and bone called if exist.
 		
+		
 		cellObjects.clearAllItems();
 		for(ClipData clip:data.getClips()){
 			cellObjects.addItem(clip);
@@ -1626,6 +1627,8 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		}
 		
 		updateCanvas();
+		
+		undoControler.clear();//for sync other datas.
 	}
 	
 	protected void doLoadData(String name, JSZip zip) {

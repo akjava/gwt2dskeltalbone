@@ -34,6 +34,11 @@ public class CanvasDrawingDataControlCanvas extends VerticalPanel{
 	protected CanvasDragMoveControler canvasControler;
 	protected CanvasUpdater canvasUpdater;
 	protected Canvas canvas;
+	
+	public double getScale(){
+		return canvasControler.getScaleX();//TODO how to handle scaley
+	}
+	
 	public Canvas getCanvas() {
 		return canvas;
 	}
@@ -118,7 +123,7 @@ public class CanvasDrawingDataControlCanvas extends VerticalPanel{
 		//LogUtils.log("touchStart");
 		CanvasDrawingDataControler active=null;
 		for(CanvasDrawingDataControler data:drawingDataControlers){
-			if(data.onTouchStart(sx, sy,canvasControler.getKeyDownState())){
+			if(data.onTouchStart(sx, sy,canvasControler.isRightMouse(),canvasControler.getKeyDownState())){
 				active=data;
 				break;
 			}
@@ -132,7 +137,7 @@ public class CanvasDrawingDataControlCanvas extends VerticalPanel{
 		
 		for(CanvasDrawingDataControler activeDataControler:getActiveDataControler().asSet()){
 			
-			activeDataControler.onTouchEnd(sx, sy,canvasControler.getKeyDownState());
+			activeDataControler.onTouchEnd(sx, sy,canvasControler.isRightMouse(),canvasControler.getKeyDownState());
 		}
 	}
 	protected void onCanvasDragged(int vectorX, int vectorY) {

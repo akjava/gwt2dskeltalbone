@@ -721,7 +721,7 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 		}
 
 		@Override
-		public boolean onTouchStart(int mx, int my, KeyDownState keydownState) {
+		public boolean onTouchStart(int mx, int my,boolean rightButton, KeyDownState keydownState) {
 			if(!isEnableEdit()){
 				return false;
 			}
@@ -738,7 +738,7 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 		}
 
 		@Override
-		public void onTouchEnd(int mx, int my, KeyDownState keydownState) {
+		public void onTouchEnd(int mx, int my, boolean rightButton,KeyDownState keydownState) {
 			// TODO Auto-generated method stub
 			
 		}

@@ -98,7 +98,7 @@ public abstract class BoneMoveControler implements CanvasDrawingDataControler{
 	}
 
 	@Override
-	public boolean onTouchStart(int mx, int my,KeyDownState keydownState) {
+	public boolean onTouchStart(int mx, int my,boolean rightButton,KeyDownState keydownState) {
 		
 		if(selection!=null){
 			if(!getBonePositionControler().isCollisionOnInitialData(selection,mx,my)){
@@ -127,7 +127,7 @@ public abstract class BoneMoveControler implements CanvasDrawingDataControler{
 	public abstract BonePositionControler getBonePositionControler();
 	
 	@Override
-	public void onTouchEnd(int mx, int my,KeyDownState keydownState) {
+	public void onTouchEnd(int mx, int my,boolean rightButton,KeyDownState keydownState) {
 		onBoneMoveEnd();
 	}
 

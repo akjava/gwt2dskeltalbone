@@ -2,9 +2,9 @@ package com.akjava.gwt.skeltalboneanimation.client.page.clippage;
 
 import java.util.List;
 
-import com.akjava.gwt.lib.client.game.PointXY;
 import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingData;
-import com.akjava.lib.common.graphics.IntRect;
+import com.akjava.lib.common.graphics.Rect;
+import com.akjava.lib.common.graphics.Point;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
@@ -15,26 +15,26 @@ public static int DEFAULT_EXPAND=64;
 public static  int dotSize=10;
 
 private String bone;
-private List<PointXY> points=Lists.newArrayList();
+private List<Point> points=Lists.newArrayList();
 public String getBone() {
 	return bone;
 }
 public void setBone(String bone) {
 	this.bone = bone;
 }
-public List<PointXY> getPoints() {
+public List<Point> getPoints() {
 	return points;
 }
-public void setPoints(List<PointXY> points) {
+public void setPoints(List<Point> points) {
 	this.points = points;
 }
-public void addPoint(PointXY pt) {
+public void addPoint(Point pt) {
 	points.add(pt);
 }
 
-public PointXY collision(int sx,int sy){
-	for(PointXY pt:getPoints()){
-		IntRect rect=IntRect.fromCenterPoint(pt.getX(), pt.getY(), dotSize/2, dotSize/2);
+public Point collision(int sx,int sy){
+	for(Point pt:getPoints()){
+		Rect rect=Rect.fromCenterPoint(pt.getX(), pt.getY(), dotSize/2, dotSize/2);
 		if(rect.contains(sx, sy)){
 			return pt;
 		}
@@ -50,11 +50,11 @@ public String getId(){
 	return (boneName+","+this.getBounds().toKanmaString()).replace(',', '_');
 }
 
-public IntRect getPointBound(){
-	return IntRect.fromPoints(getPoints());
+public Rect getPointBound(){
+	return Rect.fromPoints(getPoints());
 }
-public IntRect getBounds(){
-	return IntRect.fromPoints(getPoints()).expandSelf(expand, expand);
+public Rect getBounds(){
+	return Rect.fromPoints(getPoints()).expandSelf(expand, expand);
 }
 private int expand=DEFAULT_EXPAND;
 public int getExpand() {
@@ -68,7 +68,7 @@ public String toString(){
 	List<String> values=Lists.newArrayList();
 	values.add(bone!=null?bone:"");
 	values.add(String.valueOf(expand));
-	for(PointXY pt:points){
+	for(Point pt:points){
 		values.add(pt.toString());
 	}
 	return Joiner.on(",").join(values);

@@ -14,13 +14,9 @@ import com.akjava.gwt.lib.client.CanvasUtils;
 import com.akjava.gwt.lib.client.ImageElementUtils;
 import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.lib.client.experimental.CanvasDragMoveControler.KeyDownState;
-import com.akjava.gwt.lib.client.experimental.CanvasDragMoveControler;
-import com.akjava.gwt.lib.client.experimental.CanvasMoveListener;
 import com.akjava.gwt.lib.client.experimental.ExecuteButton;
-import com.akjava.gwt.lib.client.experimental.ImageBuilder;
 import com.akjava.gwt.lib.client.experimental.RectCanvasUtils;
 import com.akjava.gwt.lib.client.game.PointD;
-import com.akjava.gwt.lib.client.game.PointXY;
 import com.akjava.gwt.lib.client.graphics.Graphics;
 import com.akjava.gwt.lib.client.widget.cell.EasyCellTableObjects;
 import com.akjava.gwt.lib.client.widget.cell.SimpleCellTable;
@@ -32,6 +28,7 @@ import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingData;
 import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingDataControler;
 import com.akjava.gwt.skeltalboneanimation.client.MainManager;
 import com.akjava.gwt.skeltalboneanimation.client.TextureData;
+import com.akjava.gwt.skeltalboneanimation.client.UndoButtons;
 import com.akjava.gwt.skeltalboneanimation.client.UploadedFileManager.ClipImageDataChangeListener;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneAndAnimationData;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneListBox;
@@ -42,8 +39,11 @@ import com.akjava.gwt.skeltalboneanimation.client.page.AbstractPage;
 import com.akjava.gwt.skeltalboneanimation.client.page.ListenerSystem.DataChangeListener;
 import com.akjava.gwt.skeltalboneanimation.client.page.ListenerSystem.DataOwner;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.BoneControler;
+import com.akjava.gwt.skeltalboneanimation.client.page.bone.CanvasDrawingDataControlCanvas;
+import com.akjava.gwt.skeltalboneanimation.client.page.bone.CanvasUpdater;
 import com.akjava.gwt.skeltalboneanimation.client.page.html5app.TransparentItPage;
-import com.akjava.lib.common.graphics.IntRect;
+import com.akjava.lib.common.graphics.Point;
+import com.akjava.lib.common.graphics.Rect;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Stopwatch;
@@ -63,8 +63,6 @@ import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.DoubleClickEvent;
 import com.google.gwt.event.dom.client.DoubleClickHandler;
-import com.google.gwt.event.dom.client.MouseWheelEvent;
-import com.google.gwt.event.dom.client.MouseWheelHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.user.cellview.client.CellTable;
@@ -81,7 +79,7 @@ import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 
-public class ClipImagePage extends AbstractPage implements DataOwner{
+public class ClipImagePage extends AbstractPage implements DataOwner,ClipImageDataControler,CanvasUpdater{
 	 interface Driver extends SimpleBeanEditorDriver< ClipData,  ClipDataEditor> {}
 	
 	 //dont initialize here
@@ -212,8 +210,8 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 			List<TwoDimensionBone> bones=BoneUtils.getAllBone(rootBone);
 			for(TwoDimensionBone bone:bones){
 				if(bone.getParent()!=null && !bone.isLocked()){
-					PointXY selfPoint=boneControler.getBoneInitialPosition(bone).get();
-					PointXY parentPoint=boneControler.getBoneInitialPosition(bone.getParent()).get();
+					Point selfPoint=boneControler.getBoneInitialPosition(bone).get().toPoint();
+					Point parentPoint=boneControler.getBoneInitialPosition(bone.getParent()).get().toPoint();
 					if(selfPoint!=null && parentPoint!=null){
 						BoxPoints box=new BoxPoints(selfPoint,parentPoint,20);
 						ClipData clip=new ClipData();
@@ -223,15 +221,15 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 					}
 				}else if(bone.getParent()==null && !bone.isLocked()){
 					//Bone is circle
-					PointXY selfPoint=boneControler.getBoneInitialPosition(bone).get();
+					Point selfPoint=boneControler.getBoneInitialPosition(bone).get().toPoint();
 					int width=40;
 					int max=6;
-					PointXY base=new PointXY(0,-width);
+					Point base=new Point(0,-width);
 					ClipData clip=new ClipData();
 					
 					for(int i=0;i<max;i++){
 						int angle=360/max;
-						PointXY newPoint=BoneUtils.turnedAngle(base.copy(), angle*i);
+						Point newPoint=BoneUtils.turnedAngle(base.copy(), angle*i);
 						clip.addPoint(newPoint.incrementXY(selfPoint.x, selfPoint.y));
 					}
 					clip.setBone(bone.getName());
@@ -252,10 +250,27 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		}
 	}
 
+	private int pointSelectionIndex=-1;
+	
+	public Point getSelectedPoint(){
+		if(pointSelectionIndex>=0 && pointSelectionIndex<getSelection().getPoints().size()){
+			return getSelection().getPoints().get(pointSelectionIndex);
+		}
+		
+		return null;
+	}
+	
+	//remoing selectionPt field.
 
 	protected void doRemovePoint() {
-		if(isClipDataSelected() && selectionPt!=null){
-			getSelection().getPoints().remove(selectionPt);
+		if(isClipDataSelected() && getSelectedPoint()!=null){
+			
+			int index=pointSelectionIndex;
+			if(index!=-1){
+				undoControler.execRemovePoint(index);
+			}else{
+				LogUtils.log("some how selection point exist");
+			}
 			updateCanvas();
 		}
 	}
@@ -288,41 +303,17 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 	//private CanvasBoneSettings settings;
 	//private BonePositionControler bonePositionControler;
 	
-	protected CanvasDragMoveControler canvasControler;
+	//protected CanvasDragMoveControler canvasControler;
 	private BoneControler boneControler;
+	private CanvasDrawingDataControlCanvas canvasDrawingDataControlCanvas;
 	protected Widget createCenterPanel() {
 		
 		initializeCanvas();
-		canvasControler = new CanvasDragMoveControler(canvas,new CanvasMoveListener() {
-			
-			@Override
-			public void start(int sx, int sy) {
-				
-				onCanvasTouchStart(sx,sy);
-				
-			}
-			
-			@Override
-			public void end(int sx, int sy) {//called on mouse out
-				//selection=null; //need selection for zoom
-				
-				onCanvasTouchEnd(sx,sy);
-			}
-			
-			@Override
-			public void dragged(int startX, int startY, int endX, int endY, int vectorX, int vectorY) {
-				onCanvasDragged(vectorX,vectorY);
-				
-			}
-		});
 		
-		canvas.addMouseWheelHandler(new MouseWheelHandler() {
-			@Override
-			public void onMouseWheel(MouseWheelEvent event) {
-				event.preventDefault();
-				onCanvasWheeled(event.getDeltaY());
-			}
-		});
+		canvasDrawingDataControlCanvas=new CanvasDrawingDataControlCanvas(canvas,800,800,this);
+		
+		
+
 		
 		
 		
@@ -335,7 +326,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		panel.add(createBoneButtons());
 		panel.add(createBackgroundButtons());
 		
-		panel.add(canvas);
+		panel.add(canvasDrawingDataControlCanvas);
 		
 		boneControler =new BoneControler(canvas){
 			@Override
@@ -359,36 +350,44 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 			
 		});
 		
-		drawingDataControlers=Lists.newArrayList();
+		//drawingDataControlers=Lists.newArrayList();
 		
 		background = new Background();
 		background.setEditable(false);
 		
 		
 		clipDrawingDataControler = new ClipDrawingDataControler();
-		drawingDataControlers.add(clipDrawingDataControler);
+		canvasDrawingDataControlCanvas.add(clipDrawingDataControler);
 		
 		//modify background
 		ImageDrawingDataControler controler=new ImageDrawingDataControler(background);
-		drawingDataControlers.add(controler);
+		canvasDrawingDataControlCanvas.add(controler);
 		
-		panel.add(canvas);
+		
 		
 		return panel;
 	}
 
+	//TODO merge in CanvasDrawingDataControlCanvas
 	private void doDoubleClick(int x,int y) {
 		if(!isClipDataSelected()){
 			return;
 		}
+		x/=canvasDrawingDataControlCanvas.getScale();
+		y/=canvasDrawingDataControlCanvas.getScale();
+		int index=getSelection().getPoints().size();
+		Point p=undoControler.execAddPoint(index, x, y);
 		
-		PointXY pt=new PointXY(x,y);
-		getSelection().addPoint(pt);
+		//Point pt=new Point(p);
 		
-		selectionPt=pt;
 		
-		//TODO method setActive
-		activeDataControler=clipDrawingDataControler;
+		
+		
+		
+		pointSelectionIndex=index;
+		//selectionPt=pt;
+		
+		canvasDrawingDataControlCanvas.setActiveDataControler(clipDrawingDataControler);
 		
 		updateCanvas();			
 		}
@@ -454,6 +453,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 	cellObjects = new EasyCellTableObjects<ClipData>(table,false){
 		@Override
 		public void onSelect(ClipData selection) {
+			setPointUnselected();
 			
 			driver.edit(selection);
 			
@@ -632,17 +632,17 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 			
 			//linked data is set by loading compare both id.FUTURE change by editor
 			for(ImageDrawingData linked:clip.getLinkedImageDrawingData().asSet()){
-				IntRect clipBound=clip.getBounds();
+				Rect clipBound=clip.getBounds();
 				if(clip.getBounds().equals(linked.getBounds())){
 					LogUtils.log("same no need convert");
 					//same size,no need care
 					clippedImageSrc=linked.getImageElement().getSrc();
 				}else{
 					
-					Canvas canvas=Graphics.createCanvas().copyToSizeOnly(clip.getBounds().toRect()).getCanvas();
+					Canvas canvas=Graphics.createCanvas().copyToSizeOnly(clip.getBounds()).getCanvas();
 					//offset
 					ImageDrawingData textureImage=linked.copy();
-					textureImage.incrementXY(clipBound.toRect().getXY().inverse());
+					textureImage.incrementXY(clipBound.getXY().inverse());
 					textureImage.draw(canvas);
 					//LogUtils.log("converted:"+linked.getBounds()+","+clip.getBounds()+",xy:"+textureImage.getX()+","+textureImage.getY());
 					clippedImageSrc=canvas.toDataUrl();
@@ -771,7 +771,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 
 
 	public ImageDrawingData convertToImageDrawingData(ClipData clip){
-		IntRect rect=clip.getPointBound();
+		Rect rect=clip.getPointBound();
 		rect.expandSelf(clip.getExpand(), clip.getExpand());
 		PointD pt=rect.getCenterPoint();
 		ImageElement element=ImageElementUtils.create(generateClippedImage(clip));
@@ -800,14 +800,14 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		//int expand=64;
 		
 		
-		IntRect rect=selection.getPointBound();
+		Rect rect=selection.getPointBound();
 		rect.expandSelf(selection.getExpand(), selection.getExpand());
 		Canvas clipCanvas=CanvasUtils.createCanvas(rect.getWidth(), rect.getHeight());
 		Context2d context=clipCanvas.getContext2d();
 		
 		if(clip){
-		List<PointXY> newPoints=Lists.newArrayList();
-		for(PointXY pt:selection.getPoints()){
+		List<Point> newPoints=Lists.newArrayList();
+		for(Point pt:selection.getPoints()){
 			newPoints.add(pt.copy().incrementXY(-rect.getX(), -rect.getY()));
 		}
 		
@@ -875,7 +875,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 
 
 	@Override
-	protected void updateDatas() {
+	public void updateDatas() {
 		cellObjects.update();
 	}
 
@@ -901,11 +901,11 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 			
 			
 			for(ClipData data:cellObjects.getDatas()){
-				List<PointXY> pts=data.getPoints();
+				List<Point> pts=data.getPoints();
 				if(data.getPoints().size()>2){
 					canvas.getContext2d().beginPath();
 					canvas.getContext2d().moveTo(pts.get(pts.size()-1).getX(), pts.get(pts.size()-1).getY());
-					for(PointXY pt:data.getPoints()){
+					for(Point pt:data.getPoints()){
 						canvas.getContext2d().lineTo(pt.getX(),pt.getY());
 					}
 					canvas.getContext2d().closePath();
@@ -916,11 +916,11 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 			
 		}else if(drawMode==INSIDE){
 			for(ClipData data:cellObjects.getDatas()){
-				List<PointXY> pts=data.getPoints();
+				List<Point> pts=data.getPoints();
 				if(data.getPoints().size()>2){
 					canvas.getContext2d().beginPath();
 					canvas.getContext2d().moveTo(pts.get(pts.size()-1).getX(), pts.get(pts.size()-1).getY());
-					for(PointXY pt:data.getPoints()){
+					for(Point pt:data.getPoints()){
 						canvas.getContext2d().lineTo(pt.getX(),pt.getY());
 					}
 					canvas.getContext2d().closePath();
@@ -954,21 +954,21 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 			if(data==selection){
 				int dotSize=10;
 				
-				for(PointXY pt:data.getPoints()){
+				for(Point pt:data.getPoints()){
 					String rectColor="#0a0";
 					if(pt==data.getPoints().get(data.getPoints().size()-1)){
 						rectColor="#0f0";
 					}
-					IntRect rect=IntRect.fromCenterPoint(pt.getX(), pt.getY(), dotSize/2, dotSize/2);
+					Rect rect=Rect.fromCenterPoint(pt.getX(), pt.getY(), dotSize/2, dotSize/2);
 					RectCanvasUtils.fill(rect, canvas, rectColor);
 					
-					if(pt==selectionPt){
+					if(pt==getSelectedPoint()){
 						rect.expandSelf(8,8);
 						RectCanvasUtils.stroke(rect, canvas, "#000");
 						
 						
 						//draw insert
-						int index=data.getPoints().indexOf(selectionPt);
+						int index=data.getPoints().indexOf(pointSelectionIndex);
 						if(index!=-1 && index<data.getPoints().size()){
 							int at=index+1;
 							
@@ -976,11 +976,11 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 								at=0;
 							}
 							
-							int x=selectionPt.x + data.getPoints().get(at).x;
-							int y=selectionPt.y + data.getPoints().get(at).y;
-							PointXY insertPt=new PointXY(x/2, y/2);
+							double x=getSelectedPoint().x + data.getPoints().get(at).x;
+							double y=getSelectedPoint().y + data.getPoints().get(at).y;
+							Point insertPt=new Point(x/2, y/2);
 							
-							IntRect insertRect=IntRect.fromCenterPoint(insertPt.getX(), insertPt.getY(), dotSize/2, dotSize/2);
+							Rect insertRect=Rect.fromCenterPoint(insertPt.getX(), insertPt.getY(), dotSize/2, dotSize/2);
 							RectCanvasUtils.stroke(insertRect, canvas, "#888");
 						}
 						
@@ -998,25 +998,25 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 			canvas.getContext2d().setStrokeStyle(color);
 			if(data==selection || !drawSelectionOnly){
 			for(int i=0;i<data.getPoints().size()-1;i++){
-				int x1=data.getPoints().get(i).getX();
-				int y1=data.getPoints().get(i).getY();
-				int x2=data.getPoints().get(i+1).getX();
-				int y2=data.getPoints().get(i+1).getY();
+				double x1=data.getPoints().get(i).getX();
+				double y1=data.getPoints().get(i).getY();
+				double x2=data.getPoints().get(i+1).getX();
+				double y2=data.getPoints().get(i+1).getY();
 				CanvasUtils.drawLine(canvas, x1, y1, x2, y2);
 			}
 			
 			//close
 			if(data.getPoints().size()>2){
-				int x1=data.getPoints().get(0).getX();
-				int y1=data.getPoints().get(0).getY();
-				int x2=data.getPoints().get(data.getPoints().size()-1).getX();
-				int y2=data.getPoints().get(data.getPoints().size()-1).getY();
+				double x1=data.getPoints().get(0).getX();
+				double y1=data.getPoints().get(0).getY();
+				double x2=data.getPoints().get(data.getPoints().size()-1).getX();
+				double y2=data.getPoints().get(data.getPoints().size()-1).getY();
 				CanvasUtils.drawLine(canvas, x1, y1, x2, y2);
 			}
 			
 			if(data.getPoints().size()==1){
-				int x1=data.getPoints().get(0).getX();
-				int y1=data.getPoints().get(0).getY();
+				double x1=data.getPoints().get(0).getX();
+				double y1=data.getPoints().get(0).getY();
 			
 				CanvasUtils.fillPoint(canvas, x1, y1);
 			}
@@ -1025,7 +1025,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 			//stroke bounds
 			if(data==selection || !drawSelectionOnly){
 			if(data.getPoints().size()>2 && drawBounds){
-			IntRect boundRect=IntRect.fromPoints(data.getPoints());
+			Rect boundRect=Rect.fromPoints(data.getPoints());
 			int expand=data.getExpand();
 			boundRect.expandSelf(expand, expand);
 			RectCanvasUtils.stroke(boundRect, canvas, "#444");
@@ -1048,36 +1048,20 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 
 	@Override
 	protected void onCanvasTouchEnd(int sx, int sy) {
-		//selectionPt=null;
 		
-		if(activeDataControler!=null){
-			
-			activeDataControler.onTouchEnd(sx, sy,canvasControler.getKeyDownState());
-		}
 	}
 
 
 
 
-	PointXY selectionPt; //need insertPoint;
+	//Point selectionPt; //need insertPoint;
 	private ClipDataEditor editor;
 
-	List<CanvasDrawingDataControler> drawingDataControlers;
-	private CanvasDrawingDataControler activeDataControler;
+	//List<CanvasDrawingDataControler> drawingDataControlers;
+	//private CanvasDrawingDataControler activeDataControler;
 	private Background background;
 	@Override
 	protected void onCanvasTouchStart(int sx, int sy) {
-		
-		CanvasDrawingDataControler active=null;
-		for(CanvasDrawingDataControler data:drawingDataControlers){
-			if(data.onTouchStart(sx, sy,canvasControler.getKeyDownState())){
-				active=data;
-				break;
-			}
-		}
-		
-		activeDataControler=active;
-		updateCanvas();
 		
 		
 		//LogUtils.log(activeDataControler!=null?activeDataControler.getName():"null-active");
@@ -1093,11 +1077,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 
 	@Override
 	protected void onCanvasDragged(int vectorX, int vectorY) {
-		if(activeDataControler!=null){
-			activeDataControler.onTouchDragged(vectorX, vectorY, canvasControler.isRightMouse(),canvasControler.getKeyDownState());
-			updateCanvas();
-		}
-		
+	
 		
 		//TODO 
 		/*
@@ -1132,12 +1112,12 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 			if(delta<0){
 				direction=-1;
 			}
-			PointXY pt=null;
-			if(selectionPt==null){//sadly never happen,so far .CanvasDrawingDataControler selected when clicked.
+			Point pt=null;
+			if(getSelectedPoint()==null){//sadly never happen,so far .CanvasDrawingDataControler selected when clicked.
 				//LogUtils.log("select first");
 				pt=getSelection().getPoints().get(0);//select first
 			}else{
-				int index=getSelection().getPoints().indexOf(selectionPt);
+				int index=pointSelectionIndex;
 				if(index==-1){
 					LogUtils.log("somehow invalid selection.");
 					return;
@@ -1150,7 +1130,11 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 				}
 				pt=getSelection().getPoints().get(index);
 			}
-			selectionPt=pt;
+			if(pt==null){
+				setPointUnselected();
+			}else{
+			pointSelectionIndex=getSelection().getPoints().indexOf(pt);
+			}
 		}
 
 		@Override
@@ -1159,27 +1143,27 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 				return;
 			}
 			
-			if(selectionPt!=null){
-				selectionPt.incrementX(vectorX);
-				selectionPt.incrementY(vectorY);
+			if(getSelectedPoint()!=null){
+				getSelectedPoint().incrementX(vectorX);
+				getSelectedPoint().incrementY(vectorY);
 			}
 		}
 
 		@Override
-		public boolean onTouchStart(int mx, int my, KeyDownState keydownState) {
+		public boolean onTouchStart(int mx, int my, boolean rightButton,KeyDownState keydownState) {
 			if(!isClipDataSelected()){
-				selectionPt=null;
+				setPointUnselected();
 				return false;
 			}
 			
-			boolean rightMouse=canvasControler.isRightMouse();
-			if(rightMouse){
-				if(selectionPt==null){
+			
+			if(rightButton){
+				if(getSelectedPoint()==null){
 					return false;
 				}
 				
-				for(PointXY pt:execInsertPoint(getSelection(),selectionPt,new PointXY(mx,my)).asSet()){
-					selectionPt=pt;
+				for(Integer index:execInsertPoint(getSelection(),getSelectedPoint(),new Point(mx,my)).asSet()){
+					pointSelectionIndex=index;
 					return true;
 				}
 				
@@ -1188,14 +1172,14 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 				
 			}else{
 			
-			selectionPt=getSelection().collision(mx, my);
+				setSelectedPoint(getSelection().collision(mx, my));
 			
-			return selectionPt!=null;
+			return getSelectedPoint()!=null;
 			}
 		}
 
 		@Override
-		public void onTouchEnd(int mx, int my, KeyDownState keydownState) {
+		public void onTouchEnd(int mx, int my, boolean rightButton,KeyDownState keydownState) {
 			//do nothing
 		}
 
@@ -1206,14 +1190,18 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		
 	}
 
+	private void setSelectedPoint(Point pt){
+		pointSelectionIndex=getSelection().getPoints().indexOf(pt);
+	}
 
+	//this make getSelectionPoint return null
+	private void setPointUnselected(){
+		pointSelectionIndex=-1;
+	}
 
 	@Override
 	protected void onCanvasWheeled(int delta) {
-		if(activeDataControler!=null){
-			activeDataControler.onWhelled(delta,canvasControler.getKeyDownState());
-			updateCanvas();
-		}
+		
 	}
 
 
@@ -1326,10 +1314,10 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		
 
 		protected void doInsertPoint() {
-			if(!isClipDataSelected() || selectionPt==null){
+			if(!isClipDataSelected() || getSelectedPoint()==null){
 				return;
 			}
-			int index=value.getPoints().indexOf(selectionPt);
+			int index=pointSelectionIndex;
 			if(index!=-1 && index<value.getPoints().size()){
 				int at=index+1;
 				
@@ -1337,11 +1325,18 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 					at=0;
 				}
 				
-				int x=selectionPt.x + value.getPoints().get(at).x;
-				int y=selectionPt.y + value.getPoints().get(at).y;
-				PointXY pt=new PointXY(x/2, y/2);
-				value.getPoints().add(index+1, pt);
-				selectionPt=pt;
+				double x=getSelectedPoint().x + value.getPoints().get(at).x;
+				double y=getSelectedPoint().y + value.getPoints().get(at).y;
+				Point pt=new Point(x/2, y/2);
+				
+				int newIndex=index+1;
+				Point p=undoControler.execAddPoint(index+1, pt.x, pt.y);
+				
+				
+				
+				//value.getPoints().add(index+1, pt);
+				
+				pointSelectionIndex=newIndex;
 				updateCanvas();
 			}
 		}
@@ -1404,7 +1399,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 			}
 	}
 	
-	private Optional<PointXY> execInsertPoint(ClipData value,PointXY target,@Nullable PointXY newPoint){
+	private Optional<Integer> execInsertPoint(ClipData value,Point target,@Nullable Point newPoint){
 		int index=value.getPoints().indexOf(target);
 		if(index!=-1 && index<value.getPoints().size()){
 			int at=index+1;
@@ -1414,14 +1409,14 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 			}
 			
 			if(newPoint==null){//center point
-			int x=selectionPt.x + value.getPoints().get(at).x;
-			int y=selectionPt.y + value.getPoints().get(at).y;
-			newPoint=new PointXY(x/2, y/2);
+			double x=getSelectedPoint().x + value.getPoints().get(at).x;
+			double y=getSelectedPoint().y + value.getPoints().get(at).y;
+			newPoint=new Point(x/2, y/2);
 			}
+			int insertedIndex=index+1;
+			value.getPoints().add(insertedIndex, newPoint);
 			
-			value.getPoints().add(index+1, newPoint);
-			
-			return Optional.of(newPoint);
+			return Optional.of(insertedIndex);
 		}
 		return Optional.absent();
 	}
@@ -1455,17 +1450,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 	
 	    panel.add(new Label("Clips:"));
 	    
-	    Button test=new Button("test",new ClickHandler() {
-			
-			@Override
-			public void onClick(ClickEvent event) {
-				//test deadly code
-				String dataUrl=ImageBuilder.from(ImageElementUtils.create(canvas.toDataUrl())).onFileName("root").toDataUrl();
-				LogUtils.log("fine");
-				
-			}
-		});
-	    panel.add(test);
+
 	    
 	    panel.add(new Label("Load:(Clips,Bone,Background)"));
 	    FileUploadForm load=JSZipUtils.createZipFileUploadForm(new ZipListener() {
@@ -1494,9 +1479,16 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 			}
 		}));
 	    
+	    
+	    //TODO set better position
+	    UndoButtons undoButtons=new UndoButtons(undoControler);
+	    panel.add(undoButtons);
+	    
+	    
 	    downloadLinks = new HorizontalPanel();
 	    panel.add(downloadLinks);
 		
+	    
 	    return panel;
 	}
 	protected void doSaveData() {
@@ -1682,10 +1674,10 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 				extractCanvas.getContext2d().beginPath();
 				extractCanvas.getContext2d().setGlobalCompositeOperation("destination-out");
 				for(ClipData data:cellObjects.getDatas()){
-					List<PointXY> pts=data.getPoints();
+					List<Point> pts=data.getPoints();
 					if(data.getPoints().size()>2){
 						extractCanvas.getContext2d().moveTo(pts.get(pts.size()-1).getX(), pts.get(pts.size()-1).getY());
-						for(PointXY pt:data.getPoints()){
+						for(Point pt:data.getPoints()){
 							extractCanvas.getContext2d().lineTo(pt.getX(),pt.getY());
 						}
 					}
@@ -1724,6 +1716,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		return dataUrl;
 	}
 
+	ClipPageUndoControler undoControler;
 
 	@Override
 	protected void initialize() {
@@ -1733,6 +1726,8 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 				onTextureOrderChanged(data,owner);
 			}
 		});
+		
+		undoControler=new ClipPageUndoControler(this);
 	}
 	public Optional<ClipData> findDataById(String id){
 		for(ClipData clip:cellObjects.getDatas()){
@@ -1775,6 +1770,37 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 	public String getOwnerName() {
 		// TODO Auto-generated method stub
 		return "Clip-Editor";
+	}
+
+
+	@Override
+	public Point getPoint(int index) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	@Override
+	public Point insertPoint(int index, Point pt) {
+	
+		getSelection().getPoints().add(index, pt);
+		return pt;
+	}
+
+
+	@Override
+	public Point removePoint(int index) {
+		Point point=getSelection().getPoints().remove(index);
+		if(point==null){
+			LogUtils.log("removePoint:basically never happen null="+index);
+		}
+		return new Point(point.x,point.y);
+	}
+
+
+	@Override
+	public void updatePoints() {
+		updateCanvas();
 	}
 
 

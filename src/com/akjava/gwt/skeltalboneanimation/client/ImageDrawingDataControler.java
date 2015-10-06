@@ -101,6 +101,7 @@ public class ImageDrawingDataControler implements CanvasDrawingDataControler{
 		}
 	}
 
+	@Override
 	public void onTouchDragged(int vectorX, int vectorY,boolean rightButton,KeyDownState keydownState){
 		//LogUtils.log("dragged");
 		
@@ -119,7 +120,8 @@ public class ImageDrawingDataControler implements CanvasDrawingDataControler{
 	}
 	
 	ImageDrawingData before;
-	public boolean onTouchStart(int mx,int my,KeyDownState keydownState){
+	@Override
+	public boolean onTouchStart(int mx,int my,boolean rightButton,KeyDownState keydownState){
 		collisioned = owner.collision(mx, my);
 		
 		if(isSupportUndo() && collisioned!=null){
@@ -129,7 +131,8 @@ public class ImageDrawingDataControler implements CanvasDrawingDataControler{
 		return collisioned!=null;
 	}
 	
-	public void onTouchEnd(int mx,int my,KeyDownState keydownState){
+	@Override
+	public void onTouchEnd(int mx,int my,boolean rightButton,KeyDownState keydownState){
 		if(isSupportUndo()){
 			if(before==null){
 				return;

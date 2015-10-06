@@ -9,7 +9,7 @@ public interface CanvasDrawingDataControler {
 	/*
 	 * when this controler active return true;
 	 */
-	public boolean onTouchStart(int mx,int my,KeyDownState keydownState);
-	public void onTouchEnd(int mx,int my,KeyDownState keydownState);
+	public boolean onTouchStart(int mx,int my,boolean rightButton,KeyDownState keydownState);
+	public void onTouchEnd(int mx,int my,boolean rightButton,KeyDownState keydownState);
 	public String getName();
 }

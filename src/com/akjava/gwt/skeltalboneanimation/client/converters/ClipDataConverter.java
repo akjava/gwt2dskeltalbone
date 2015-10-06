@@ -1,7 +1,7 @@
 package com.akjava.gwt.skeltalboneanimation.client.converters;
 
-import com.akjava.gwt.lib.client.game.PointXY;
 import com.akjava.gwt.skeltalboneanimation.client.page.clippage.ClipData;
+import com.akjava.lib.common.graphics.Point;
 import com.akjava.lib.common.utils.ValuesUtils;
 import com.google.common.base.Converter;
 
@@ -25,7 +25,7 @@ public class ClipDataConverter extends Converter<ClipData, String>{
 			data.setExpand(ValuesUtils.toInt(csv[1], ClipData.DEFAULT_EXPAND));
 		}
 		for(int i=2;i<csv.length;i++){
-			data.addPoint(PointXY.fromString(csv[i]));
+			data.addPoint(Point.fromString(csv[i]));
 		}
 		//data.set
 		return data;

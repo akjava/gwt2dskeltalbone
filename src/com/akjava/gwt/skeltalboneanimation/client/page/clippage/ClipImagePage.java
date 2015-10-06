@@ -979,7 +979,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 						
 						
 						//draw insert
-						int index=data.getPoints().indexOf(pointSelectionIndex);
+						int index=pointSelectionIndex;
 						if(index!=-1 && index<data.getPoints().size()){
 							int at=index+1;
 							

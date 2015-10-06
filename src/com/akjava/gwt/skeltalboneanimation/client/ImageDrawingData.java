@@ -12,11 +12,12 @@ import com.akjava.lib.common.graphics.Point;
 import com.akjava.lib.common.graphics.Rect;
 import com.akjava.lib.common.utils.ValuesUtils;
 import com.google.common.base.Joiner;
+import com.google.common.base.Objects;
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.dom.client.ImageElement;
 
 /**
- * TODO change int to double
+ * 
  * @author aki
  *
  */
@@ -71,6 +72,88 @@ public ImageDrawingData(String id,ImageElement imageElement) {
 private String id;
 public String getId() {
 	return id;
+}
+
+
+
+@Override
+public int hashCode() {
+	final int prime = 31;
+	int result = 1;
+	long temp;
+	temp = Double.doubleToLongBits(alpha);
+	result = prime * result + (int) (temp ^ (temp >>> 32));
+	temp = Double.doubleToLongBits(angle);
+	result = prime * result + (int) (temp ^ (temp >>> 32));
+	result = prime * result + ((boneName == null) ? 0 : boneName.hashCode());
+	result = prime * result + (flipHorizontal ? 1231 : 1237);
+	result = prime * result + (flipVertical ? 1231 : 1237);
+	result = prime * result + ((id == null) ? 0 : id.hashCode());
+	result = prime * result + ((imageName == null) ? 0 : imageName.hashCode());
+	temp = Double.doubleToLongBits(scaleX);
+	result = prime * result + (int) (temp ^ (temp >>> 32));
+	temp = Double.doubleToLongBits(scaleY);
+	result = prime * result + (int) (temp ^ (temp >>> 32));
+	result = prime * result + (visible ? 1231 : 1237);
+	temp = Double.doubleToLongBits(x);
+	result = prime * result + (int) (temp ^ (temp >>> 32));
+	temp = Double.doubleToLongBits(y);
+	result = prime * result + (int) (temp ^ (temp >>> 32));
+	return result;
+}
+
+@Override
+public boolean equals(Object obj) {
+	if (this == obj)
+		return true;
+	if (obj == null)
+		return false;
+	if (getClass() != obj.getClass())
+		return false;
+	ImageDrawingData other = (ImageDrawingData) obj;
+	if (Double.doubleToLongBits(alpha) != Double.doubleToLongBits(other.alpha))
+		return false;
+	if (Double.doubleToLongBits(angle) != Double.doubleToLongBits(other.angle))
+		return false;
+	if (boneName == null) {
+		if (other.boneName != null)
+			return false;
+	} else if (!boneName.equals(other.boneName))
+		return false;
+	if (flipHorizontal != other.flipHorizontal)
+		return false;
+	if (flipVertical != other.flipVertical)
+		return false;
+	if (id == null) {
+		if (other.id != null)
+			return false;
+	} else if (!id.equals(other.id))
+		return false;
+	if (imageName == null) {
+		if (other.imageName != null)
+			return false;
+	} else if (!imageName.equals(other.imageName))
+		return false;
+	if (Double.doubleToLongBits(scaleX) != Double.doubleToLongBits(other.scaleX))
+		return false;
+	if (Double.doubleToLongBits(scaleY) != Double.doubleToLongBits(other.scaleY))
+		return false;
+	if (visible != other.visible)
+		return false;
+	if (Double.doubleToLongBits(x) != Double.doubleToLongBits(other.x))
+		return false;
+	if (Double.doubleToLongBits(y) != Double.doubleToLongBits(other.y))
+		return false;
+	
+	if((imageElement!=null && other.imageElement==null) || (imageElement==null && other.imageElement!=null)){
+		return false;
+	}
+	
+	if(!Objects.equal(imageElement.getSrc(), other.imageElement.getSrc())){
+		return false;
+	}
+	
+	return true;
 }
 
 public void setId(String id) {
@@ -374,6 +457,31 @@ public void copyToWithoutImageElementAndId(ImageDrawingData container){
 		//no need to copy
 		return;
 	}
+	container.setImageName(imageName);
+	container.setBoneName(getBoneName());
+	container.setX(x);
+	container.setY(y);
+	container.setAngle(angle);
+	container.setScaleX(scaleX);
+	container.setScaleY(scaleY);
+	container.setAlpha(alpha);
+	
+	container.setFlipHorizontal(flipHorizontal);
+	container.setFlipVertical(flipVertical);
+	container.setVisible(visible);
+	
+}
+/**
+ * not support deep copy.imageElement 
+ * @param container
+ */
+public void copyTo(ImageDrawingData container){
+	if(container==this){
+		//no need to copy
+		return;
+	}
+	container.setId(id);
+	container.setImageElement(imageElement);
 	container.setImageName(imageName);
 	container.setBoneName(getBoneName());
 	container.setX(x);

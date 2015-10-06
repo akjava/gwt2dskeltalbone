@@ -5,6 +5,10 @@ import com.akjava.gwt.skeltalboneanimation.client.page.texture.UndoDataControler
 public class EditDataCommand<T> implements Command{
 	private T oldData;
 	private T newData;
+	public void setNewData(T newData) {
+		this.newData = newData;
+	}
+
 	private UndoDataControler<T> controler;
 	private int dataIndex;
 	private boolean collapse;

@@ -12,17 +12,16 @@ import com.akjava.gwt.html5.client.file.FileUtils.DataURLListener;
 import com.akjava.gwt.jszip.client.JSZip;
 import com.akjava.gwt.jszip.client.JSZipUtils;
 import com.akjava.gwt.lib.client.CanvasUtils;
-import com.akjava.gwt.lib.client.GWTHTMLUtils;
 import com.akjava.gwt.lib.client.ImageElementUtils;
 import com.akjava.gwt.lib.client.LogUtils;
-import com.akjava.gwt.lib.client.experimental.CanvasDragMoveControler;
-import com.akjava.gwt.lib.client.experimental.CanvasMoveListener;
+import com.akjava.gwt.lib.client.experimental.CanvasDragMoveControler.KeyDownState;
 import com.akjava.gwt.lib.client.experimental.ReplaceEachOther;
 import com.akjava.gwt.lib.client.widget.cell.ButtonColumn;
 import com.akjava.gwt.lib.client.widget.cell.EasyCellTableObjects;
 import com.akjava.gwt.lib.client.widget.cell.SimpleCellTable;
 import com.akjava.gwt.skeltalboneanimation.client.Background;
 import com.akjava.gwt.skeltalboneanimation.client.BoneUtils;
+import com.akjava.gwt.skeltalboneanimation.client.CanvasDrawingDataControler;
 import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingData;
 import com.akjava.gwt.skeltalboneanimation.client.MainManager;
 import com.akjava.gwt.skeltalboneanimation.client.TextureData;
@@ -44,7 +43,8 @@ import com.akjava.gwt.skeltalboneanimation.client.page.ListenerSystem.DataChange
 import com.akjava.gwt.skeltalboneanimation.client.page.ListenerSystem.DataOwner;
 import com.akjava.gwt.skeltalboneanimation.client.page.SimpleBoneEditorPage.FlushTextBox;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.BoneControler;
-import com.akjava.gwt.skeltalboneanimation.client.page.clippage.ClipData;
+import com.akjava.gwt.skeltalboneanimation.client.page.bone.CanvasDrawingDataControlCanvas;
+import com.akjava.gwt.skeltalboneanimation.client.page.bone.CanvasUpdater;
 import com.akjava.gwt.skeltalboneanimation.client.ui.LabeledInputRangeWidget;
 import com.akjava.lib.common.utils.CSVUtils;
 import com.akjava.lib.common.utils.FileNames;
@@ -65,8 +65,6 @@ import com.google.gwt.editor.client.SimpleBeanEditorDriver;
 import com.google.gwt.editor.client.ValueAwareEditor;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.event.dom.client.MouseWheelEvent;
-import com.google.gwt.event.dom.client.MouseWheelHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.text.shared.Renderer;
@@ -85,15 +83,16 @@ import com.google.gwt.user.client.ui.ValueListBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 
-public class TexturePage extends AbstractPage implements HasSelectionName,DataUpdater{
+public class TexturePage extends AbstractPage implements HasSelectionName,DataUpdater,CanvasUpdater{
 	
-private Canvas canvas;
-private CanvasDragMoveControler canvasControler;
+
+//private CanvasDragMoveControler canvasControler;
 private BonePositionControler bonePositionControler;
 
 interface Driver extends SimpleBeanEditorDriver< ImageDrawingData,  ImageDrawingDataEditor> {}
 Driver driver;
 private BoneControler boneControler;
+private CanvasDrawingDataControlCanvas canvasDrawingDataControlCanvas;
 
 
 
@@ -395,6 +394,151 @@ public void setBoneNames(List<String> names){
 
 
 
+	public class TextureDrawingDataControler implements CanvasDrawingDataControler{
+
+		public void setSelection(ImageDrawingData data){
+			imageDataSelectionOnCanvas=data;
+		}
+		@Override
+		public void onWhelled(int delta, KeyDownState keydownState) {
+			if(modeAnimation){
+				
+			}else{
+				onModeEditWheel(delta,keydownState);
+			}
+		}
+
+		@Override
+		public void onTouchDragged(int vectorX, int vectorY, boolean rightButton, KeyDownState keydownState) {
+			if(modeAnimation){
+				
+			}else{
+				onModeEditDrag(vectorX, vectorY,rightButton,keydownState);
+			}
+		}
+
+		@Override
+		public boolean onTouchStart(int mx, int my, boolean rightButton, KeyDownState keydownState) {
+			if(modeAnimation){
+				return false;
+			}else{
+				return onModeEditDragStart(mx, my);
+			}
+		}
+
+		private ImageDrawingData startData;
+		@Override
+		public void onTouchEnd(int mx, int my, boolean rightButton, KeyDownState keydownState) {
+			if(startData!=null){
+				if(!startData.equals(drawingDataObjects.getSelection())){
+				onDataModified(startData,drawingDataObjects.getSelection().copy(),false);
+				
+				}else{
+					//LogUtils.log("onTouchEnd:same ignore it");
+				}
+				startData=null;
+			}
+		}
+
+		@Override
+		public String getName() {
+			return "TextureControl";
+		}
+		private boolean onModeEditDragStart(int x,int y){
+			
+			imageDataSelectionOnCanvas=null;
+			
+			//current selection first;
+			if(drawingDataObjects.getSelection()!=null && drawingDataObjects.getSelection().collision(x, y)){
+				
+				imageDataSelectionOnCanvas=drawingDataObjects.getSelection();
+				
+			}else{
+			
+			//detect last first,last image are draw at top
+			for(int i=drawingDataObjects.getDatas().size()-1;i>=0;i--){
+				ImageDrawingData data=drawingDataObjects.getDatas().get(i);
+				if(data.collision(x, y)){
+					imageDataSelectionOnCanvas=data;
+					break;
+				}
+			}
+			
+			}
+			
+			if(imageDataSelectionOnCanvas!=null){
+				drawingDataObjects.setSelected(imageDataSelectionOnCanvas, true);
+				startData=imageDataSelectionOnCanvas.copy();
+			}else{
+				//
+			}
+			
+			return imageDataSelectionOnCanvas!=null;
+
+			//TODO create data-editor
+			/*
+			if(imageDataSelection!=null){
+				int index=dataBelongintMap.get(imageDataSelection);
+				boneListBox.setValue(allbones.get(index));
+			}
+			*/
+			
+			//updateCanvas();//if call update ,duplicate called from selection-changed-listener
+		}
+		
+
+
+		
+		protected void onModeEditDrag(int vectorX, int vectorY,boolean rightButton, KeyDownState keydownState) {
+			if(imageDataSelectionOnCanvas!=null && imageDataSelectionOnCanvas.isVisible()){
+				
+				
+				if(rightButton){
+					imageDataSelectionOnCanvas.incrementAngle(vectorX);
+				}else{
+					imageDataSelectionOnCanvas.incrementX(vectorX);
+					imageDataSelectionOnCanvas.incrementY(vectorY);
+				}
+				imageDataSelectionOnCanvas.updateBounds();
+				
+				updateCanvas();
+				drawingDataEditor.updateValues();
+			}
+		}
+		ImageDrawingData imageDataSelectionOnCanvas;
+
+		protected void onModeEditWheel(int v,KeyDownState keydownState) {
+			
+			if(imageDataSelectionOnCanvas!=null && imageDataSelectionOnCanvas.isVisible()){
+				ImageDrawingData before=imageDataSelectionOnCanvas.copy();
+				int zoom=(int) (100*imageDataSelectionOnCanvas.getScaleX());
+				
+				int vector=1;
+				if(v<0){
+					vector=-1;
+				}
+				
+				int add=keydownState.isShiftKeyDown()?1:5;
+				zoom+=vector*add;
+				if(zoom<5){
+					zoom=5;
+				}
+				
+				imageDataSelectionOnCanvas.setScaleX((double)zoom/100);
+				imageDataSelectionOnCanvas.setScaleY((double)zoom/100);
+				imageDataSelectionOnCanvas.updateBounds();
+				
+				for(Integer dataIndex:drawingDataObjects.getSelectedIndex(imageDataSelectionOnCanvas).asSet()){
+					easyCellTableObjectsUndoControler.execEditData(dataIndex, before, imageDataSelectionOnCanvas.copy(), true);
+				}
+				
+				updateCanvas();
+				drawingDataEditor.updateValues();
+			}
+			
+		}
+		
+	}
 
 
 	@Override
@@ -403,6 +547,7 @@ public void setBoneNames(List<String> names){
 			LogUtils.log("TexturePage:invalidly bone is null");
 		}
 		boneControler.setBone(data.getBone());
+		updateCanvas();
 	}
 
 	@Override
@@ -444,14 +589,12 @@ public void setBoneNames(List<String> names){
 
 				@Override
 				public void copyData(ImageDrawingData data, ImageDrawingData targetData) {
-					// TODO Auto-generated method stub
-					
+					data.copyTo(targetData);
 				}
 
 				@Override
 				public void updatedData(ImageDrawingData data) {
-					// TODO Auto-generated method stub
-					
+					driver.edit(data);
 				}
 				
 			};
@@ -514,7 +657,8 @@ public void setBoneNames(List<String> names){
 		//allbones = BoneUtils.getAllBone(rootBone);
 		SkeletalAnimation animations = new SkeletalAnimation("test", 33.3);
 		 
-		createCanvas();
+		initializeCanvas();
+		canvasDrawingDataControlCanvas=new CanvasDrawingDataControlCanvas(canvas,800,800,this);
 		createBoneControls(animations,rootBone,canvas);
 		
 		boneControler =new BoneControler(canvas){
@@ -612,9 +756,17 @@ public void setBoneNames(List<String> names){
 		
 		
 		    
-		panel.add(canvas);
+		panel.add(canvasDrawingDataControlCanvas);
 		
 		setNewBoneAndAnimation(rootBone, animations);
+		
+		
+		textureDrawingDataControler = new TextureDrawingDataControler();
+		canvasDrawingDataControlCanvas.add(textureDrawingDataControler);
+		
+		
+		updateCanvas();
+		
 		return panel;
 	}
 	
@@ -851,14 +1003,16 @@ public void setBoneNames(List<String> names){
 		//set-editor & update list
 		
 		int dataIndex=drawingDataObjects.getDatas().size();
-		drawingDataObjects.addItem(data);
+		
+		easyCellTableObjectsUndoControler.execAddData(dataIndex, data);
+		
 		animationModeToggle.setValue(false, true);//for convert image
 		
 		drawingDataObjects.setSelected(data, true);//select upload
 		
 		updateCanvas();
 		
-		easyCellTableObjectsUndoControler.execAddData(dataIndex, data);
+		
 	}
 	
 	private void onAnimationRangeChanged(int index){
@@ -1060,7 +1214,8 @@ public void setBoneNames(List<String> names){
 			return;
 		}
 		
-		drawingDataObjects.removeItem(selection);
+		easyCellTableObjectsUndoControler.execRemoveData(optional.get());
+		//drawingDataObjects.removeItem(selection);
 		
 		
 		
@@ -1074,45 +1229,11 @@ public void setBoneNames(List<String> names){
 		driver.edit(null);//can do it?
 		
 		updateCanvas();
-		easyCellTableObjectsUndoControler.execRemoveData(optional.get());
+		
 	}
 	
-	private void createCanvas(){
-		//canvas
-				canvas = CanvasUtils.createCanvas(800, 800);
-				CanvasUtils.disableSelection(canvas);//can avoid double click
-				GWTHTMLUtils.disableContextMenu(canvas.getElement());
-				GWTHTMLUtils.disableSelectionEnd(canvas.getElement());//not work
-				add(canvas);
-				
-				canvasControler = new CanvasDragMoveControler(canvas,new CanvasMoveListener() {
-					
-					@Override
-					public void start(int sx, int sy) {
-						onCanvasTouchStart(sx,sy);
-						
-					}
-					
-					@Override
-					public void end(int sx, int sy) {//called on mouse out
-						//selection=null; //need selection for zoom
-					}
-					
-					@Override
-					public void dragged(int startX, int startY, int endX, int endY, int vectorX, int vectorY) {
-						onCanvasDragged(vectorX,vectorY);
-						
-					}
-				});
-				canvas.addMouseWheelHandler(new MouseWheelHandler() {
-					@Override
-					public void onMouseWheel(MouseWheelEvent event) {
-						shiftDowned=event.isShiftKeyDown();
-						onCanvasWheeled(event.getDeltaY());
-					}
-				});
-	}
-	private boolean shiftDowned;
+
+	//private boolean shiftDowned;
 	
 	//private CircleLineBonePainter painter;
 
@@ -1227,34 +1348,28 @@ public void setBoneNames(List<String> names){
 	}
 	
 	protected void onCanvasWheeled(int deltaY) {
-if(modeAnimation){
-			
-		}else{
-			onModeEditWheel(deltaY);
-		}
+
 	}
 
 
 	protected void onCanvasDragged(int vectorX, int vectorY) {
-if(modeAnimation){
-			
-		}else{
-			onModeEditDrag(vectorX, vectorY);
-		}
+
 	}
 
 
 	
 	protected void onCanvasTouchStart(int sx, int sy) {
-		if(modeAnimation){
-			
-		}else{
-			onModeEditDragStart(sx, sy);
-		}
+	
 	}
 
 
-
+	public void onDataModified(ImageDrawingData oldValue, ImageDrawingData value,boolean collapse) {
+		for(Integer index:drawingDataObjects.getSelectedIndex(value).asSet()){
+			easyCellTableObjectsUndoControler.execEditData(index, oldValue, value.copy(),collapse);
+			return;
+		}
+		LogUtils.log("onDataModified:not exist in datas");
+	}
 
 
 	private int findIndex(List<BoneWithXYAngle> list,String name){
@@ -1289,6 +1404,9 @@ if(modeAnimation){
 			updateCanvasOnEdit();
 		}
 	}
+	/**
+	 * TODO re-build FUTURE
+	 */
 	private void updateCanvasOnAnimation() {
 		
 		
@@ -1424,87 +1542,9 @@ if(modeAnimation){
 	private ToggleButton animationModeToggle;
 
 
-	private void onModeEditDragStart(int x,int y){
-		
-		imageDataSelectionOnCanvas=null;
-		
-		//current selection first;
-		if(drawingDataObjects.getSelection()!=null && drawingDataObjects.getSelection().collision(x, y)){
-			
-			imageDataSelectionOnCanvas=drawingDataObjects.getSelection();
-			
-		}else{
-		
-		//detect last first,last image are draw at top
-		for(int i=drawingDataObjects.getDatas().size()-1;i>=0;i--){
-			ImageDrawingData data=drawingDataObjects.getDatas().get(i);
-			if(data.collision(x, y)){
-				imageDataSelectionOnCanvas=data;
-				break;
-			}
-		}
-		
-		}
-		
-		if(imageDataSelectionOnCanvas!=null){
-			drawingDataObjects.setSelected(imageDataSelectionOnCanvas, true);
-		}else{
-			//
-		}
-
-		//TODO create data-editor
-		/*
-		if(imageDataSelection!=null){
-			int index=dataBelongintMap.get(imageDataSelection);
-			boneListBox.setValue(allbones.get(index));
-		}
-		*/
-		
-		//updateCanvas();//if call update ,duplicate called from selection-changed-listener
-	}
 	
-	protected void onModeEditDrag(int vectorX, int vectorY) {
-		if(imageDataSelectionOnCanvas!=null && imageDataSelectionOnCanvas.isVisible()){
-			
-			
-			if(canvasControler.isRightMouse()){
-				imageDataSelectionOnCanvas.incrementAngle(vectorX);
-			}else{
-				imageDataSelectionOnCanvas.incrementX(vectorX);
-				imageDataSelectionOnCanvas.incrementY(vectorY);
-			}
-			imageDataSelectionOnCanvas.updateBounds();
-			
-			updateCanvas();
-			drawingDataEditor.updateValues();
-		}
-	}
-	ImageDrawingData imageDataSelectionOnCanvas;
 	private ImageDrawingDataEditor drawingDataEditor;
 	private CheckBox uploadImageAutoScaleCheck;
-	protected void onModeEditWheel(int v) {
-		
-		if(imageDataSelectionOnCanvas!=null && imageDataSelectionOnCanvas.isVisible()){
-			int zoom=(int) (100*imageDataSelectionOnCanvas.getScaleX());
-			
-			int vector=1;
-			if(v<0){
-				vector=-1;
-			}
-			
-			int add=shiftDowned?1:5;
-			zoom+=vector*add;
-			if(zoom<5){
-				zoom=5;
-			}
-			
-			imageDataSelectionOnCanvas.setScaleX((double)zoom/100);
-			imageDataSelectionOnCanvas.setScaleY((double)zoom/100);
-			imageDataSelectionOnCanvas.updateBounds();
-		}
-		updateCanvas();
-		drawingDataEditor.updateValues();
-	}
 
 	@Override
 	public String getSelectionName() {
@@ -1638,7 +1678,7 @@ if(modeAnimation){
 				//LogUtils.log(selection.getName());
 				driver.edit(selection);
 				updateCanvas();
-				imageDataSelectionOnCanvas=selection;//for mouse-wheel-zoom
+				textureDrawingDataControler.setSelection(selection);
 			}
 		};
 		easyCellTableObjectsUndoControler.setEasyCellTableObjects(drawingDataObjects);
@@ -1700,12 +1740,13 @@ if(modeAnimation){
 	
 	List<ImageDrawingData> notDrawingItem;
 	private EasyCellTableObjectsUndoControler<ImageDrawingData> easyCellTableObjectsUndoControler;
+	private TextureDrawingDataControler textureDrawingDataControler;
 	
 
 	@Override
 	public void updateDatas() {
 		// TODO Auto-generated method stub
-		
+		updateCanvas();
 	}
 
 	@Override

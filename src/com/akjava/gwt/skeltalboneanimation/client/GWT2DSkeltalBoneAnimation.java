@@ -114,7 +114,7 @@ public class GWT2DSkeltalBoneAnimation implements EntryPoint {
 		*/
 		
 		
-		tab.selectTab(2);
+		tab.selectTab(4);
 		
 		//initial bone
 		final String fileName="2dbones-belly-stomach.txt";

@@ -26,6 +26,7 @@ import com.akjava.gwt.skeltalboneanimation.client.BoneUtils;
 import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingData;
 import com.akjava.gwt.skeltalboneanimation.client.MainManager;
 import com.akjava.gwt.skeltalboneanimation.client.TextureData;
+import com.akjava.gwt.skeltalboneanimation.client.UndoButtons;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationControlRange;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationFrame;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneAndAnimationData;
@@ -43,6 +44,7 @@ import com.akjava.gwt.skeltalboneanimation.client.page.ListenerSystem.DataChange
 import com.akjava.gwt.skeltalboneanimation.client.page.ListenerSystem.DataOwner;
 import com.akjava.gwt.skeltalboneanimation.client.page.SimpleBoneEditorPage.FlushTextBox;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.BoneControler;
+import com.akjava.gwt.skeltalboneanimation.client.page.clippage.ClipData;
 import com.akjava.gwt.skeltalboneanimation.client.ui.LabeledInputRangeWidget;
 import com.akjava.lib.common.utils.CSVUtils;
 import com.akjava.lib.common.utils.FileNames;
@@ -83,7 +85,7 @@ import com.google.gwt.user.client.ui.ValueListBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 
-public class TexturePage extends AbstractPage implements HasSelectionName{
+public class TexturePage extends AbstractPage implements HasSelectionName,DataUpdater{
 	
 private Canvas canvas;
 private CanvasDragMoveControler canvasControler;
@@ -436,6 +438,23 @@ public void setBoneNames(List<String> names){
 				}
 			});
 			notDrawingItem=Lists.newArrayList();
+			
+			
+			easyCellTableObjectsUndoControler = new EasyCellTableObjectsUndoControler<ImageDrawingData>(this){
+
+				@Override
+				public void copyData(ImageDrawingData data, ImageDrawingData targetData) {
+					// TODO Auto-generated method stub
+					
+				}
+
+				@Override
+				public void updatedData(ImageDrawingData data) {
+					// TODO Auto-generated method stub
+					
+				}
+				
+			};
 	}
 
 	protected void doSyncTextureOrder() {
@@ -549,6 +568,10 @@ public void setBoneNames(List<String> names){
 				}
 			}));
 		    
+		    UndoButtons undoButtons=new UndoButtons(easyCellTableObjectsUndoControler);
+		    northPanel.add(undoButtons);
+		    
+		    
 		    showBoneCheck = new CheckBox("show Bone on animation");
 		    showBoneCheck.setValue(true);
 		    showBoneCheck.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
@@ -634,7 +657,7 @@ public void setBoneNames(List<String> names){
 		}
 		newData.setBoneName(newBoneName);
 		
-		addDrawingData(newData);
+		doAddDrawingData(newData);
 	}
 	protected void doCopyVertical() {
 		ImageDrawingData selection=drawingDataObjects.getSelection();
@@ -663,7 +686,7 @@ public void setBoneNames(List<String> names){
 				}
 				newData.setBoneName(newBoneName);
 				
-		addDrawingData(newData);
+		doAddDrawingData(newData);
 	}
 	
 	public int calcurateFlip(int center,int position){
@@ -680,7 +703,7 @@ public void setBoneNames(List<String> names){
 		ImageDrawingData newData=selection.copy();
 		newData.setId(getUniqDrawingName(newData.getId()));
 			
-		addDrawingData(newData);
+		doAddDrawingData(newData);
 	}
 	private String getUniqDrawingName(String name){
 		List<String> exist=Lists.newArrayList();
@@ -821,18 +844,21 @@ public void setBoneNames(List<String> names){
 		
 		
 		
-		addDrawingData(data);
+		doAddDrawingData(data);
 	}
 	
-	private void addDrawingData(ImageDrawingData data){
+	private void doAddDrawingData(ImageDrawingData data){
 		//set-editor & update list
 		
+		int dataIndex=drawingDataObjects.getDatas().size();
 		drawingDataObjects.addItem(data);
 		animationModeToggle.setValue(false, true);//for convert image
 		
 		drawingDataObjects.setSelected(data, true);//select upload
 		
 		updateCanvas();
+		
+		easyCellTableObjectsUndoControler.execAddData(dataIndex, data);
 	}
 	
 	private void onAnimationRangeChanged(int index){
@@ -1027,15 +1053,28 @@ public void setBoneNames(List<String> names){
 	
 	protected void doRemoveData() {
 		ImageDrawingData selection=drawingDataObjects.getSelection();
+		
+		Optional<Integer> optional=drawingDataObjects.getSelectedIndex(selection);
+		if(!optional.isPresent()){
+			LogUtils.log("doRemoveData:not selection exist");
+			return;
+		}
+		
 		drawingDataObjects.removeItem(selection);
+		
+		
+		
 		for(ImageDrawingData data:drawingDataObjects.getFirst().asSet()){
 			//remove and select first
 			drawingDataObjects.setSelected(data, true);
 		}
 		
+		//easyCellTableObjectsUndoControler.execRemoveData(dataIndex);
+		
 		driver.edit(null);//can do it?
 		
 		updateCanvas();
+		easyCellTableObjectsUndoControler.execRemoveData(optional.get());
 	}
 	
 	private void createCanvas(){
@@ -1566,6 +1605,10 @@ if(modeAnimation){
 							public void update(int index, ImageDrawingData object,
 									String value) {
 								
+								if(manager.getTextureData()==null){
+									return;
+								}
+								
 								for(ImageDrawingData original:manager.getTextureData().findDataById(object.getId()).asSet()){
 									original.copyToWithoutImageElementAndId(object);
 									updateCanvas();
@@ -1575,6 +1618,10 @@ if(modeAnimation){
 							}
 							@Override
 							public String getValue(ImageDrawingData object) {
+								if(manager.getTextureData()==null){
+									return "";
+								}
+								
 								 return "Reset";
 							}
 						};
@@ -1594,6 +1641,8 @@ if(modeAnimation){
 				imageDataSelectionOnCanvas=selection;//for mouse-wheel-zoom
 			}
 		};
+		easyCellTableObjectsUndoControler.setEasyCellTableObjects(drawingDataObjects);
+		
 		
 		drawingDataEditor = new ImageDrawingDataEditor();
 		driver.initialize(drawingDataEditor);
@@ -1650,10 +1699,11 @@ if(modeAnimation){
 	}
 	
 	List<ImageDrawingData> notDrawingItem;
+	private EasyCellTableObjectsUndoControler<ImageDrawingData> easyCellTableObjectsUndoControler;
 	
 
 	@Override
-	protected void updateDatas() {
+	public void updateDatas() {
 		// TODO Auto-generated method stub
 		
 	}

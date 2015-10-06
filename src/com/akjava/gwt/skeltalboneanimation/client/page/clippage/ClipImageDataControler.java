@@ -13,4 +13,7 @@ public interface ClipImageDataControler {
 	public void updatePoints();
 	public void updateDatas();
 	
+	public ClipData insertData(int dataIndex,ClipData data);
+	public ClipData removeData(int dataIndex);
+	
 }

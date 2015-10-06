@@ -1,8 +1,11 @@
 package com.akjava.gwt.skeltalboneanimation.client.page.clippage;
 
+import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.skeltalboneanimation.client.SimpleUndoControler;
+import com.akjava.gwt.skeltalboneanimation.client.page.clippage.commands.AddDataCommand;
 import com.akjava.gwt.skeltalboneanimation.client.page.clippage.commands.AddPointCommand;
 import com.akjava.gwt.skeltalboneanimation.client.page.clippage.commands.MovePointCommand;
+import com.akjava.gwt.skeltalboneanimation.client.page.clippage.commands.RemoveDataCommand;
 import com.akjava.gwt.skeltalboneanimation.client.page.clippage.commands.RemovePointCommand;
 import com.akjava.lib.common.graphics.Point;
 
@@ -17,13 +20,14 @@ public ClipPageUndoControler(ClipImageDataControler controler) {
 
 
 public void execMovePoint(int dataIndex,int index,Point oldPoint,Point newPoint){
-	
+	LogUtils.log("execMovePoint");
 	execute(new MovePointCommand(dataIndex,index, oldPoint,newPoint, controler));
 	
 	
 }
 
 public Point execAddPoint(int dataIndex,int index,double x,double y){
+	LogUtils.log("execAddPoint");
 	Point pt=new Point(x,y);
 	
 	execute(new AddPointCommand(dataIndex,index, pt, controler));
@@ -32,7 +36,22 @@ public Point execAddPoint(int dataIndex,int index,double x,double y){
 }
 
 public void execRemovePoint(int dataIndex,int index) {
+	LogUtils.log("execRemovePoint");
 	execute(new RemovePointCommand(dataIndex,index, controler));
+}
+
+
+public ClipData execAddData(int dataIndex,ClipData data){
+	LogUtils.log("execAddData");
+	
+	execute(new AddDataCommand(dataIndex,data, controler));
+	
+	return data;
+}
+
+public void execRemoveData(int dataIndex) {
+	LogUtils.log("execRemoveData");
+	execute(new RemoveDataCommand(dataIndex, controler));
 }
 
 }

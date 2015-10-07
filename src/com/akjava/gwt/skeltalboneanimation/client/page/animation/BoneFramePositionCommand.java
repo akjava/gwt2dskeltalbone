@@ -3,11 +3,12 @@ package com.akjava.gwt.skeltalboneanimation.client.page.animation;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.akjava.gwt.skeltalboneanimation.client.SimpleUndoControler.Command;
+import com.akjava.lib.common.graphics.Point;
 import com.google.common.base.Equivalence;
 import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 
-public class BoneFrameRangeCommand implements Command{
+public class BoneFramePositionCommand implements Command{
 private int frameIndex;
 public int getFrameIndex() {
 	return frameIndex;
@@ -18,20 +19,18 @@ public String getBoneName() {
 }
 
 private String boneName;
-private double newAngle;
-private double oldAngle;
-public BoneFrameRangeCommand(int frameIndex, String boneName,  double oldAngle,double newAngle, BoneFrameRangeControler controler) {
+private Point newPosition;
+private Point oldPosition;
+public BoneFramePositionCommand(int frameIndex, String boneName,  Point oldPosition,Point newPosition, BoneFrameRangeControler controler) {
 	super();
 	this.frameIndex = frameIndex;
 	this.boneName = boneName;
-	this.newAngle = newAngle;
-	this.oldAngle = oldAngle;
+	this.newPosition = newPosition;
+	this.oldPosition = oldPosition;
 	this.controler = controler;
 }
 
-public void setNewAngle(double newAngle) {
-	this.newAngle = newAngle;
-}
+
 
 private BoneFrameRangeControler controler;
 	@Override
@@ -42,17 +41,18 @@ private BoneFrameRangeControler controler;
 	@Override
 	public void undo() {
 		checkNotNull(controler,"BoneFrameRangeCommand:need controler");
-		controler.setRangeAt(frameIndex, boneName, oldAngle);
+		controler.setPositionAt(frameIndex, boneName, oldPosition);
 	}
 
 	@Override
 	public void redo() {
 		checkNotNull(controler,"BoneFrameRangeCommand:need controler");
-		controler.setRangeAt(frameIndex, boneName, newAngle);
+		controler.setPositionAt(frameIndex, boneName, newPosition);
 	}
-	public static class BoneFrameRangeCommandIndexNamePredicate implements Predicate<BoneFrameRangeCommand>{
+	
+	public static class BoneFramePositionCommandIndexNamePredicate implements Predicate<BoneFramePositionCommand>{
 		private int frameIndex;
-		public BoneFrameRangeCommandIndexNamePredicate(int frameIndex, String boneName) {
+		public BoneFramePositionCommandIndexNamePredicate(int frameIndex, String boneName) {
 			super();
 			this.frameIndex = frameIndex;
 			this.boneName = boneName;
@@ -61,7 +61,7 @@ private BoneFrameRangeControler controler;
 		private String boneName;
 		
 		@Override
-		public boolean apply(BoneFrameRangeCommand input) {
+		public boolean apply(BoneFramePositionCommand input) {
 			// TODO Auto-generated method stub
 			return Objects.equal(input.getBoneName(),boneName) && frameIndex == input.getFrameIndex();
 		}
@@ -69,20 +69,25 @@ private BoneFrameRangeControler controler;
 	}
 	
 
-	public static class BoneFrameRangeCommandIndexNameEqualize extends Equivalence<BoneFrameRangeCommand>{
+	public static class BoneFramePositionCommandIndexNameEqualize extends Equivalence<BoneFramePositionCommand>{
 
 		@Override
-		protected boolean doEquivalent(BoneFrameRangeCommand a, BoneFrameRangeCommand b) {
+		protected boolean doEquivalent(BoneFramePositionCommand a, BoneFramePositionCommand b) {
 			// TODO Auto-generated method stub
 			return Objects.equal(a.getBoneName(), b.getBoneName()) && a.frameIndex==b.frameIndex;
 		}
 
 		@Override
-		protected int doHash(BoneFrameRangeCommand t) {
+		protected int doHash(BoneFramePositionCommand t) {
 			// TODO Auto-generated method stub
 			return t.hashCode();
 		}
 		
+	}
+
+
+	public void setNewPosition(Point newPoint) {
+		this.newPosition=newPoint;
 	}
 	
 }

@@ -1,5 +1,11 @@
 package com.akjava.gwt.skeltalboneanimation.client.bones;
 
+import java.util.List;
+
+import com.akjava.lib.common.graphics.Point;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
+
 public class BoneFrame {
 private String boneName;
 public BoneFrame(String boneName, int x, int y, double angle) {
@@ -8,6 +14,14 @@ public BoneFrame(String boneName, int x, int y, double angle) {
 	this.x = x;
 	this.y = y;
 	this.angle = angle;
+}
+public String toString(){
+	List<String> arrays=Lists.newArrayList();
+	arrays.add(boneName);
+	arrays.add(String.valueOf(x));
+	arrays.add(String.valueOf(y));
+	arrays.add(String.valueOf(angle));
+	return Joiner.on(",").join(arrays);
 }
 public BoneFrame(String name) {
 	this(name,0,0,0);
@@ -45,5 +59,11 @@ public BoneFrame copy(){
 
 public boolean isAllZeroFrame(){
 	return x==0 && y==0 && angle==0;
+}
+
+//TODO convert to Double
+public void setPosition(Point position) {
+	this.x=(int)position.x;
+	this.y=(int)position.y;
 }
 }

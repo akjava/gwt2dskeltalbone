@@ -57,6 +57,7 @@ import com.akjava.gwt.skeltalboneanimation.client.page.bone.CanvasDrawingDataCon
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.CanvasUpdater;
 import com.akjava.gwt.skeltalboneanimation.client.page.clippage.ClipImageData;
 import com.akjava.lib.common.graphics.IntRect;
+import com.akjava.lib.common.graphics.Point;
 import com.akjava.lib.common.utils.CSVUtils;
 import com.akjava.lib.common.utils.FileNames;
 import com.google.common.base.Joiner;
@@ -386,9 +387,23 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 			//LogUtils.log("modified-range:"+bone.getName()+angle);
 		}
 		
+		if(boneFrame.getX()!=x || boneFrame.getY()!=y){
+			//LogUtils.log(boneFrame+","+x+","+y);
+			int index=animationControler.getSelectedIndex();
+			String boneName=bone.getName();
+			Point oldPoint=new Point(boneFrame.getX(),boneFrame.getY());
+			
+			
+			
+			Point newPoint=new Point(x,y);
+			
+			undoControler.executeBonePositionChanged(index, boneName, oldPoint, newPoint);
+			
+			boneFrame.setX(x);
+			boneFrame.setY(y);
+		}
 		
-		boneFrame.setX(x);
-		boneFrame.setY(y);
+		
 		
 		
 		
@@ -406,8 +421,8 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 		boneControlerRange.setListener(new BoneControlListener() {
 			@Override
 			public void changed(TwoDimensionBone bone, int angle, int x, int y) {
-				
-				onBoneAngleRangeChanged(bone,angle,x,y);//TODO support move x,y
+				//this called every moveing
+				onBoneAngleRangeChanged(bone,angle,x,y);
 				
 			}
 		});
@@ -1399,6 +1414,24 @@ upper.add(new UndoButtons(undoControler));
 		}
 		
 		LogUtils.log("replaceAnimations:no animation");
+	}
+	@Override
+	public void setPositionAt(int frameIndex, String boneName, Point position) {
+		for(SkeletalAnimation animations:getSkeletalAnimation().asSet()){
+			animations.getFrames().get(frameIndex).getBoneFrame(boneName).setPosition(position);
+			onAnimationRangeChanged(frameIndex);
+			
+			for(TwoDimensionBone bone:boneControler.findBoneByBoneName(boneName).asSet()){
+				boneControlerRange.setSelection(bone);
+				AnimationFrame currentSelectionFrame=animationControler.getSelection();
+				boneControler.getBonePositionControler().updateBoth(currentSelectionFrame);
+				updateCanvas();
+				return;
+			}
+			
+			LogUtils.log("setRangeAt:can't find bone:"+boneName);
+			return;
+		}
 	}
 
 

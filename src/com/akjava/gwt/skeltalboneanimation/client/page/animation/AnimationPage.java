@@ -361,7 +361,8 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 		setNewBoneAndAnimation(newRoot,animations);
 	}
 	
-	private void onBoneAngleRangeChanged(TwoDimensionBone bone,int angle){
+	private void onBoneAngleRangeChanged(TwoDimensionBone bone,int angle,int x,int y){
+		//LogUtils.log("onBoneAngleRangeChanged");
 		if(bone==null){
 			return;
 		}
@@ -379,11 +380,16 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 			int index=animationControler.getSelectedIndex();
 			String boneName=bone.getName();
 			undoControler.executeBoneAngleRangeChanged(index,boneName,boneFrame.getAngle(),angle);
+		
+			boneFrame.setAngle(angle);
 			//updated
 			//LogUtils.log("modified-range:"+bone.getName()+angle);
 		}
 		
-		boneFrame.setAngle(angle);
+		
+		boneFrame.setX(x);
+		boneFrame.setY(y);
+		
 		
 		
 		
@@ -399,9 +405,9 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 		panel.add(boneControlerRange);
 		boneControlerRange.setListener(new BoneControlListener() {
 			@Override
-			public void changed(TwoDimensionBone bone, int angle, int moveX, int moveY) {
+			public void changed(TwoDimensionBone bone, int angle, int x, int y) {
 				
-				onBoneAngleRangeChanged(bone,angle);//TODO support move x,y
+				onBoneAngleRangeChanged(bone,angle,x,y);//TODO support move x,y
 				
 			}
 		});
@@ -607,7 +613,7 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 
 		@Override
 		public void onTouchDragged(int vectorX, int vectorY, boolean rightButton, KeyDownState keydownState) {
-
+			
 			if(!isEnableEdit()){
 				return;
 			}
@@ -616,6 +622,9 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 				if(rightButton || !rightButton){//temporaly every mouse move support
 					
 					if(boneSelectionOnCanvas==getRootBone()){//handling root-bone
+						
+					if(rightButton){
+						
 					//TODO create fake circle
 					int angle=(int) boneControlerRange.getInputRange().getValue();
 					
@@ -627,8 +636,15 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 					}else if(angle>180){
 						angle=angle-360;
 					}
+						boneControlerRange.getInputRange().setValue(angle);
+					}else{
+						int x=boneControlerRange.getX();
+						int y=boneControlerRange.getY();
+						
+						boneControlerRange.setPosition(x+vectorX,y+vectorY);
+					}
 					
-					boneControlerRange.getInputRange().setValue(angle);
+					
 					}else{
 						//draw angles
 						int mouseX=canvasDrawingDataControlCanvas.getCanvasControler().getMovedX();
@@ -722,6 +738,7 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 
 		@Override
 		public boolean onTouchStart(int mx, int my,boolean rightButton, KeyDownState keydownState) {
+			
 			if(!isEnableEdit()){
 				return false;
 			}

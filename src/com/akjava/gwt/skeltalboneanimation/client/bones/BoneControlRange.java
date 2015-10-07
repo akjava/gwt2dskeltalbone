@@ -7,9 +7,9 @@ import java.util.Map;
 
 import javax.annotation.Nullable;
 
+import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.skeltalboneanimation.client.BoneUtils;
 import com.akjava.gwt.skeltalboneanimation.client.ui.LabeledInputRangeWidget;
-import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
@@ -18,6 +18,8 @@ import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.text.shared.Renderer;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.HorizontalPanel;
+import com.google.gwt.user.client.ui.IntegerBox;
+import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ValueListBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 
@@ -26,21 +28,72 @@ public class BoneControlRange extends VerticalPanel{
 	private ValueListBox<TwoDimensionBone> boneListBox;
 
 	private Map<String,TwoDimensionBone> boneMap=new HashMap<String, TwoDimensionBone>();
-	private Map<String,Integer> rangeMap=new HashMap<String, Integer>();
+	private Map<String,BoneFrame> rangeMap=new HashMap<String, BoneFrame>();
 
 	private LabeledInputRangeWidget inputRange;
+
+	private IntegerBox yBox;
 	public LabeledInputRangeWidget getInputRange() {
 		return inputRange;
+	}
+	
+	
+	
+	
+	private int getBoneFrameIntAngle(String boneName){
+		if(rangeMap.get(boneName)==null){
+			return 0;
+		}
+		return (int)rangeMap.get(boneName).getAngle();
+	}
+	private int getBoneFrameX(String boneName){
+		if(rangeMap.get(boneName)==null){
+			return 0;
+		}
+		return (int)rangeMap.get(boneName).getX();
+	}
+	private int getBoneFrameY(String boneName){
+		if(rangeMap.get(boneName)==null){
+			return 0;
+		}
+		return (int)rangeMap.get(boneName).getY();
+	}
+	private void setBoneFrameValue(String boneName,int x,int y,int angle){
+		if(rangeMap.get(boneName)==null){
+			rangeMap.put(boneName, new BoneFrame(boneName, x, y, angle));
+			return;
+		}
+		BoneFrame boneFrame=rangeMap.get(boneName);
+		boneFrame.setAngle(angle);
+		boneFrame.setX(x);
+		boneFrame.setY(y);
+	}
+	
+	private void updateInputValues(String boneName){
+		inputRange.setValue(getBoneFrameIntAngle(boneName),false);
+		
+		xBox.setValue(getBoneFrameX(boneName));
+		yBox.setValue(getBoneFrameY(boneName));
+		
+		xBox.setEnabled(isRootBone(boneName));
+		yBox.setEnabled(isRootBone(boneName));
+	}
+	
+	private boolean isRootBone(String boneName){
+		if(rootBone==null){
+			return false;
+		}
+		return rootBone.getName().equals(boneName);
 	}
 	
 	public void setFrame(AnimationFrame frame){
 		rangeMap.clear();
 		for(BoneFrame boneFrame:frame.getBoneFrames().values()){
-			rangeMap.put(boneFrame.getBoneName(),(int) boneFrame.getAngle());
+			rangeMap.put(boneFrame.getBoneName(),boneFrame.copy());
 		}
 		
 		String selection=boneListBox.getValue().getName();
-		inputRange.setValue(MoreObjects.firstNonNull(rangeMap.get(selection), 0));
+		updateInputValues(selection);
 	}
 
 	public BoneControlRange(@Nullable TwoDimensionBone rootBone){
@@ -80,9 +133,11 @@ public class BoneControlRange extends VerticalPanel{
 				}else{
 					inputRange. getRange().setVisible(true);
 				}
-				inputRange.setValue(MoreObjects.firstNonNull(rangeMap.get(bone.getName()), 0),false);
+				
+				
+				updateInputValues(bone.getName());
 				if(listener!=null){
-					listener.changed(getSelection(),(int)inputRange.getValue(), 0, 0);//TODO support move
+					listener.changed(getSelection(),(int)inputRange.getValue(), xBox.getValue(), yBox.getValue());//TODO support move
 				}
 			}
 		});
@@ -93,25 +148,63 @@ public class BoneControlRange extends VerticalPanel{
 			@Override
 			public void onValueChange(ValueChangeEvent<Number> event) {
 				//LogUtils.log("on-range-changed");
+				
+				/*
 				TwoDimensionBone selection=getSelection();
 				if(selection==null){
 					return;
 				}
-				rangeMap.put(selection.getName(), event.getValue().intValue());
+				int x=xBox.getValue();
+				int y=0;
+				rangeMap.put(selection.getName(),new BoneFrame(selection.getName(),x,y ,event.getValue().intValue()));
 				
 				if(listener!=null){
-					listener.changed(getSelection(), event.getValue().intValue(), 0, 0);//TODO support move
+					listener.changed(getSelection(), event.getValue().intValue(), x, y);//TODO support move
 				}
+				*/
+				onValueChanged();
 			}
 		});
 		
 		panel.add(inputRange);
 		
+		panel.add(new Label("X:"));
+		xBox = new IntegerBox();
+		xBox.setWidth("60px");
+		panel.add(xBox);
+		xBox.addValueChangeHandler(new ValueChangeHandler<Integer>() {
+
+			@Override
+			public void onValueChange(ValueChangeEvent<Integer> event) {
+				//called when enter-key
+				LogUtils.log("x-box:value changed:"+event.getValue());
+				onValueChanged();
+			}
+		});
+		
+		panel.add(new Label("Y:"));
+		yBox = new IntegerBox();
+		yBox.setWidth("60px");
+		panel.add(yBox);
+		yBox.addValueChangeHandler(new ValueChangeHandler<Integer>() {
+
+			@Override
+			public void onValueChange(ValueChangeEvent<Integer> event) {
+				//called when enter-key
+				LogUtils.log("y-box:value changed:"+event.getValue());
+				onValueChanged();
+			}
+		});
+		
+		
 		Button reset=new Button("Reset",new ClickHandler() {
 			
 			@Override
 			public void onClick(ClickEvent event) {
-				inputRange.setValue(0);
+				inputRange.setValue(0,false);
+				xBox.setValue(0);
+				yBox.setValue(0);
+				onValueChanged();
 			}
 		});
 		panel.add(reset);
@@ -122,7 +215,26 @@ public class BoneControlRange extends VerticalPanel{
 		}	
 		
 		}
+	
+	private void onValueChanged(){
+		
+		TwoDimensionBone selection=getSelection();
+		if(selection==null){
+			return;
+		}
+		int x=xBox.getValue();
+		int y=yBox.getValue();
+		int angle=(int)inputRange.getValue();
+		
+		setBoneFrameValue(selection.getName(),x,y,angle);
+		
+		if(listener!=null){
+			listener.changed(getSelection(), angle, x, y);//TODO support move
+		}
+	}
 	private BoneControlListener listener;
+
+	private IntegerBox xBox;
 		
 		public BoneControlListener getListener() {
 		return listener;
@@ -135,8 +247,10 @@ public class BoneControlRange extends VerticalPanel{
 	//label-range
 		//set-change listener
 		//select(if not found ,select root)
+	private TwoDimensionBone rootBone;
 	public void setRootBone(TwoDimensionBone rootBone){
 		Preconditions.checkNotNull(rootBone,"LabeledInputRangeWidget need rootBone");
+		this.rootBone=rootBone;
 		rangeMap.clear();
 		
 		List<TwoDimensionBone> bones=BoneUtils.getAllBone(rootBone);
@@ -162,6 +276,27 @@ public class BoneControlRange extends VerticalPanel{
 	
 	public TwoDimensionBone getSelection(){
 		return boneListBox.getValue();
+	}
+
+
+
+
+	public int getX() {
+		return xBox.getValue();
+	}
+
+	public void setPosition(int x,int y) {
+		xBox.setValue(x);
+		yBox.setValue(y);
+		onValueChanged();
+	}
+
+
+
+
+	public int getY() {
+		// TODO Auto-generated method stub
+		return yBox.getValue();
 	}
 	
 }

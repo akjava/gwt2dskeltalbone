@@ -117,15 +117,18 @@ public class BonePositionControler {
 	}
 
 	protected void makeBoneAnimationData(List<InnerBoneAnimationData> list,TwoDimensionBone bone,AnimationFrame frame,InnerBoneAnimationData parent){
+		double scaleX=frame.getScaleX();
+		double scaleY=frame.getScaleY();
 		
 		
-		InnerBoneAnimationData calculator=new InnerBoneAnimationData(bone.getName(),bone.getX(),bone.getY());
+		
+		InnerBoneAnimationData calculator=new InnerBoneAnimationData(bone.getName(),bone.getX()*scaleX,bone.getY()*scaleY);
 		calculator.setParent(parent);
 		list.add(calculator);
 		
 		if(frame.getBoneFrames().get(bone.getName())!=null){
 			BoneFrame boneFrame=frame.getBoneFrames().get(bone.getName());
-			calculator.setX(calculator.getX()+boneFrame.getX());
+			calculator.setX(calculator.getX()+boneFrame.getX());//frame xy no scale effect
 			calculator.setY(calculator.getY()+boneFrame.getY());
 			calculator.setAngle(boneFrame.getAngle());
 		}
@@ -159,12 +162,20 @@ public class BonePositionControler {
 		 rawInitialData = calculatorBonesFinalPositionAndAngle(settings.getBone(),AbstractBonePainter.EMPTY_FRAME);
 		 
 	}
+	public void updateInitialData(double scaleX,double scaleY){
+		 rawInitialData = calculatorBonesFinalPositionAndAngle(settings.getBone(),new AnimationFrame(scaleX,scaleY));
+		 
+	}
 	public void updateAnimationData(AnimationFrame frame){
 		Preconditions.checkNotNull(frame);
 		rawAnimationedData = calculatorBonesFinalPositionAndAngle(settings.getBone(),frame);
 	}
 	public void updateBoth(AnimationFrame frame){
-		updateInitialData();
+		if(frame.getScaleX()==1 && frame.getScaleY()==1){
+			updateInitialData();
+		}else{
+			updateInitialData(frame.getScaleX(), frame.getScaleY());
+		}
 		updateAnimationData(frame);
 	}
 	//TODO add collision initial
@@ -243,6 +254,9 @@ public class BonePositionControler {
 		
 		return null;
 	}
+
+
+
 	
 	
 

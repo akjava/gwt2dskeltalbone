@@ -129,6 +129,21 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 			}
 		});
 		
+		animationControler.getScaleRange().addtRangeListener(new ValueChangeHandler<Number>() {
+
+			@Override
+			public void onValueChange(ValueChangeEvent<Number> event) {
+				if(animationControler.getSelection()==null){
+					return;
+				}
+				//LogUtils.log("scale-changed");
+				boneControler.getBonePositionControler().updateAnimationData(animationControler.getSelection());
+				updateCanvas();
+			}
+			
+		});
+		
+		
 		return panel;
 	}
 	private Widget createBonesColumnButtons() {
@@ -406,7 +421,7 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 		
 		
 		
-		
+		//LogUtils.log("onBoneAngleRangeChanged");
 		
 		boneControler.getBonePositionControler().updateAnimationData(currentSelectionFrame);
 		updateCanvas();
@@ -917,6 +932,13 @@ private void initializeConvetedCanvas(){
 
 private void drawTextureData(Canvas canvas){
 	AnimationFrame currentSelectionFrame=animationControler.getSelection();
+	
+	double scaleX=currentSelectionFrame.getScaleX();
+	double scaleY=currentSelectionFrame.getScaleY();
+	//LogUtils.log("drawTextureData:"+scaleX+","+scaleY);
+/*	double scaleX=1;
+	double scaleY=1;*/
+	
 	boneControler.getBonePositionControler().updateBoth(currentSelectionFrame);//TODO update on value changed only
 	//TODO add show bone check
 	//TODO make class,it's hard to understand
@@ -952,6 +974,12 @@ private void drawTextureData(Canvas canvas){
 		int boneX=(int)emptyBonePosition.get(boneIndex).getX();
 		int boneY=(int)emptyBonePosition.get(boneIndex).getY();
 		
+		/**
+		 * bonePosition start(0,0) however on canvas cordinate center is 0,0 
+		 * so need add offset*(this is always half canvas so far)
+		 */
+		
+		
 		int movedX=(int)movedBonePosition.get(boneIndex).getX();
 		int movedY=(int)movedBonePosition.get(boneIndex).getY();
 		
@@ -968,15 +996,25 @@ private void drawTextureData(Canvas canvas){
 		
 		Canvas converted=convertedDatas.get(i);
 		
-		int diffX=(boneX+offsetX)-(data.getIntX()-converted.getCoordinateSpaceWidth()/2);
-		int diffY=(boneY+offsetY)-(data.getIntY()-converted.getCoordinateSpaceHeight()/2);
+		double halfConvertedImageWidth=converted.getCoordinateSpaceWidth()/2*scaleX;
+		double halfConvertedImageHeighth=converted.getCoordinateSpaceHeight()/2*scaleY;
+		
+		//this image drawing data cordinate absolute.so like bone cordinate need sub offset*
+		
+		int diffX=(int)((boneX)-((data.getIntX()-offsetX)*scaleX-halfConvertedImageWidth));
+		int diffY=(int)((boneY)-((data.getIntY()-offsetY)*scaleY-halfConvertedImageHeighth));
+		
+		//diffX*=scaleX;
+		//diffY*=scaleY;
 		
 		
-		int imageX=(int)(data.getIntX()-converted.getCoordinateSpaceWidth()/2)-(boneX+offsetX); //
+		
+		/*int imageX=(int)(data.getIntX()-converted.getCoordinateSpaceWidth()/2)-(boneX+offsetX); //
 		int imageY=(int)(data.getIntY()-converted.getCoordinateSpaceHeight()/2)-(boneY+offsetY);//
-		//LogUtils.log(imageX+","+imageY);
+*/		//LogUtils.log(imageX+","+imageY);
 		
-		drawImageAt(canvas,converted.getCanvasElement(),movedX+offsetX-diffX,movedY+offsetY-diffY,diffX,diffY,angle);
+		//CanvasUtils.drawCenter(canvas, converted.getCanvasElement(), offsetX, offsetY, scaleX, scaleY, angle, 1.0)
+		drawImageAt(canvas,converted.getCanvasElement(),movedX+offsetX-diffX,movedY+offsetY-diffY,diffX,diffY,angle,scaleX,scaleY);
 		//canvas.getContext2d().drawImage(converted.getCanvasElement(), (int)(data.getX()-converted.getCoordinateSpaceWidth()/2), (int)(data.getY()-converted.getCoordinateSpaceHeight()/2));
 		//
 	}
@@ -998,7 +1036,7 @@ private void updateCanvasOnAnimation() {
 		//canvas.getContext2d().setGlobalAlpha(1.0);
 		}
 	}
-public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvasY,int imageX,int imageY,double angle){
+public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvasY,int imageX,int imageY,double angle,double scaleX,double scaleY){
 	canvas.getContext2d().save();
 	double radiant=Math.toRadians(angle);
 	canvas.getContext2d().translate(canvasX+imageX,canvasY+imageY);//rotate center
@@ -1008,6 +1046,8 @@ public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvas
 	
 	canvas.getContext2d().translate(canvasX,canvasY);	
 	
+	
+	canvas.getContext2d().scale(scaleX,scaleY);
 	canvas.getContext2d().drawImage(image, 0,0);
 	canvas.getContext2d().restore();
 }

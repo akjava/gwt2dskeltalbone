@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 
 public class AnimationFrame {
+	private double scaleX=1;
+	private double scaleY=1;
 /*
  * not sure need this
 */
@@ -17,6 +19,26 @@ public void setIndex(int index) {
 	this.index = index;
 }
 */
+public AnimationFrame(){
+	super();
+}
+public AnimationFrame(double scaleX, double scaleY) {
+		super();
+		this.scaleX = scaleX;
+		this.scaleY = scaleY;
+	}
+public double getScaleX() {
+		return scaleX;
+	}
+	public void setScaleX(double scaleX) {
+		this.scaleX = scaleX;
+	}
+	public double getScaleY() {
+		return scaleY;
+	}
+	public void setScaleY(double scaleY) {
+		this.scaleY = scaleY;
+	}
 
 private Map<String,BoneFrame> boneFrames=new LinkedHashMap<String, BoneFrame>();
 public Map<String, BoneFrame> getBoneFrames() {
@@ -48,6 +70,8 @@ public void insertEmptyFrames(List<TwoDimensionBone> bones){
 
 public AnimationFrame copy(){
 	AnimationFrame frame=new AnimationFrame();
+	frame.setScaleX(scaleX);
+	frame.setScaleY(scaleY);
 	for(BoneFrame bones:boneFrames.values()){
 		frame.add(bones.copy());
 	}

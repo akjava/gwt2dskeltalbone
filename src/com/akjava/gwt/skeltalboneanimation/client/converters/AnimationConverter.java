@@ -22,10 +22,14 @@ public class AnimationConverter extends Converter<SkeletalAnimation,List<String>
 		lines.add(FORMAT_KEY+","+animation.getFps()+","+animation.getName());
 		for(int i=0;i<animation.getFrames().size();i++){
 			//index
-			lines.add(String.valueOf(i));
+			
 			
 			//bone-frame
 			AnimationFrame frame=animation.getFrames().get(i);
+			lines.add(String.valueOf(i)+","+String.valueOf(frame.getScaleX())+","+String.valueOf(frame.getScaleY()));
+			
+			
+			
 			for(BoneFrame boneFrame:frame.getBoneFrames().values()){
 				String data=boneFrame.getBoneName()+","+boneFrame.getAngle()+","+boneFrame.getX()+","+boneFrame.getY();
 				lines.add(data);
@@ -61,6 +65,15 @@ public class AnimationConverter extends Converter<SkeletalAnimation,List<String>
 			}else if(ValuesUtils.isDigitString(data[0])){
 				int index=Integer.parseInt(data[0]);//not support yet
 				frame=new AnimationFrame();
+				
+				if(data.length>1){
+					frame.setScaleX(ValuesUtils.toDouble(data[1], 1));
+				}
+				
+				if(data.length>2){
+					frame.setScaleY(ValuesUtils.toDouble(data[2], 1));
+				}
+				
 				//frame.setIndex(index);	//re-think index
 				animation.add(frame);
 			}else{

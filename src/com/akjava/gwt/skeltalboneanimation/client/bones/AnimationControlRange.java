@@ -21,6 +21,7 @@ public class AnimationControlRange extends VerticalPanel{
 	}
 
 	private SkeletalAnimation animation;
+	private LabeledInputRangeWidget scaleRange;
 	
 	/**
 	 * be careful this animation replace when new data loaded.
@@ -83,6 +84,7 @@ public class AnimationControlRange extends VerticalPanel{
 		int min=animationFrameSize>0?1:1;//must be 1 here
 		int max=animationFrameSize>0?animationFrameSize:1;
 		inputRange = new LabeledInputRangeWidget("1 of "+max , min, max, 1);
+		inputRange.setValue(1);
 		inputRange.addtRangeListener(new ValueChangeHandler<Number>() {
 			
 			@Override
@@ -92,6 +94,9 @@ public class AnimationControlRange extends VerticalPanel{
 				
 				
 				AnimationFrame frame=getSelection();
+				
+				scaleRange.setValue(frame.getScaleX(), false);
+				
 				if(listener!=null){
 					listener.changed(frame);//TODO support move
 					
@@ -99,7 +104,7 @@ public class AnimationControlRange extends VerticalPanel{
 				updateNameLabel();
 			}
 		});
-		inputRange.setValue(1);
+		
 		inputRange.getTextBox().setVisible(false);
 		
 		if(animationFrameSize>0){
@@ -143,8 +148,33 @@ public class AnimationControlRange extends VerticalPanel{
 		});
 		panel.add(next);
 		
+		scaleRange = new LabeledInputRangeWidget("Scale:" , 0.01, 5.0, 0.05);
+		scaleRange.setValue(1);
+		scaleRange.addtRangeListener(new ValueChangeHandler<Number>() {
+			
+			@Override
+			public void onValueChange(ValueChangeEvent<Number> event) {
+				if(getSelection()==null){
+					return;
+				}
+				LogUtils.log("scaleRange-changed");
+				getSelection().setScaleX(event.getValue().doubleValue());
+				getSelection().setScaleY(event.getValue().doubleValue());
+				
+				
+				if(listener!=null){
+					listener.changed(getSelection());
+					
+				}
+			}
+		});
+		panel.add(scaleRange);
+		
 		}
 	
+	public LabeledInputRangeWidget getScaleRange() {
+		return scaleRange;
+	}
 	public void updateNameLabel(){
 		int value=(int)inputRange.getValue();
 		inputRange.getNameLabel().setText(value+" of "+((int)inputRange.getRange().getMax()));
@@ -165,12 +195,19 @@ public class AnimationControlRange extends VerticalPanel{
 		updateNameLabel();
 	}
 	
+	/**
+	 * right now  not using.
+	 */
+	/**
+	 * @deprecated no one use this.
+	 */
 	private AnimationControlListener listener;
 		
 		public AnimationControlListener getListener() {
 		return listener;
 	}
 
+		
 	public void setListener(AnimationControlListener listener) {
 		this.listener = listener;
 	}
@@ -198,6 +235,8 @@ public class AnimationControlRange extends VerticalPanel{
 	public void setSelection(AnimationFrame frame,boolean fireEvent) {
 		checkNotNull(frame,"setSelection:need frame");
 		int index=animation.getFrames().indexOf(frame);
+		
+		scaleRange.setValue(frame.getScaleX(), false);
 		
 		//LogUtils.log("setSelection:"+index+","+inputRange.get);
 		if(index!=-1){

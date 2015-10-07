@@ -610,13 +610,18 @@ public void onDataModified(ImageDrawingData oldValue, ImageDrawingData value) {
 		
 		List<ImageDrawingData> datas=textureData.getImageDrawingDatas();
 		
+		drawingDataObjects.unselect();
 		drawingDataObjects.setDatas(datas);
+		
 		drawingDataObjects.update();
 		driver.edit(null);
 		
 		notDrawingItem.clear();//handle visible
 		
 		updateCanvas();
+		
+		//TODO think better way
+		easyCellTableObjectsUndoControler.clear();
 	}
 
 	@Override
@@ -1219,9 +1224,14 @@ public void onDataModified(ImageDrawingData oldValue, ImageDrawingData value) {
 		if(!confirm){
 			return;
 		}
+		List<ImageDrawingData> oldDatas=easyCellTableObjectsUndoControler.copyDatas();
 		drawingDataObjects.clearAllItems();
 		driver.edit(null);
 		updateCanvas();
+		
+		List<ImageDrawingData> newDatas=easyCellTableObjectsUndoControler.copyDatas();
+		
+		easyCellTableObjectsUndoControler.executeDataUpdate(oldDatas, newDatas);
 	}
 
 	private TextureData textureData;
@@ -1248,7 +1258,7 @@ public void onDataModified(ImageDrawingData oldValue, ImageDrawingData value) {
 		downloadLinks.clear();
 		downloadLinks.add(JSZipUtils.createDownloadAnchor(jszip, "2dbone-textures.zip", "download", true));
 		
-		manager.setTextureData(getEditorName(), data);
+		manager.setTextureData(getEditorName(), data.copy());
 	}
 
 	public String getEditorName(){

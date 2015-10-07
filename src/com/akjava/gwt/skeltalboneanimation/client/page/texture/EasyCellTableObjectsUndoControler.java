@@ -11,6 +11,7 @@ import com.akjava.gwt.skeltalboneanimation.client.page.texture.commands.OrderCha
 import com.akjava.gwt.skeltalboneanimation.client.page.texture.commands.RemoveDataCommand;
 import com.akjava.gwt.skeltalboneanimation.client.page.texture.commands.ReplaceDatasCommand;
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 public abstract class EasyCellTableObjectsUndoControler<T> extends SimpleUndoControler implements UndoDataControler<T>{
@@ -82,6 +83,7 @@ public abstract class EasyCellTableObjectsUndoControler<T> extends SimpleUndoCon
 
 	@Override
 	public void updateDatas() {
+		easyCellTableObjects.update();
 		dataUpdater.updateDatas();
 	}
 
@@ -95,11 +97,9 @@ public abstract class EasyCellTableObjectsUndoControler<T> extends SimpleUndoCon
 		LogUtils.log("updateData:invalidly can't find data:"+dataIndex);
 	}
 	
-	public List<T> copyOrder(){
-		List<T> order=Lists.newArrayList();
-		for(T data:easyCellTableObjects.getDatas()){
-			order.add(data);
-		}
+	//should i use immutable?
+	public List<T> copyDatas(){
+		List<T> order=ImmutableList.copyOf(easyCellTableObjects.getDatas());
 		return order;
 	}
 	

@@ -117,6 +117,8 @@ public class BonePositionControler {
 	}
 
 	protected void makeBoneAnimationData(List<InnerBoneAnimationData> list,TwoDimensionBone bone,AnimationFrame frame,InnerBoneAnimationData parent){
+		
+		
 		InnerBoneAnimationData calculator=new InnerBoneAnimationData(bone.getName(),bone.getX(),bone.getY());
 		calculator.setParent(parent);
 		list.add(calculator);

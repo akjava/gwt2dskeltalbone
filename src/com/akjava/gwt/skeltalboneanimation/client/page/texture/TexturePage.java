@@ -160,7 +160,7 @@ public ImageDrawingDataEditor(){
 	}));
 	add(movePanel);
 	
-	movePanel.add(new Button("Sync others",new ClickHandler() {
+	movePanel.add(new Button("Sync order",new ClickHandler() {
 		
 		@Override
 		public void onClick(ClickEvent event) {

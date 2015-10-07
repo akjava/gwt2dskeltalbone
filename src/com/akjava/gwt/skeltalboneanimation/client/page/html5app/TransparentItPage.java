@@ -32,16 +32,21 @@ import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingData;
 import com.akjava.gwt.skeltalboneanimation.client.MainManager;
 import com.akjava.gwt.skeltalboneanimation.client.TextureData;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneAndAnimationData;
+import com.akjava.gwt.skeltalboneanimation.client.functions.ImageDrawingDataIdFunction;
 import com.akjava.gwt.skeltalboneanimation.client.page.ListenerSystem.DataChangeListener;
 import com.akjava.gwt.skeltalboneanimation.client.page.ListenerSystem.DataOwner;
 import com.akjava.gwt.skeltalboneanimation.client.page.clippage.PointShape;
 import com.akjava.gwt.skeltalboneanimation.client.page.colorpick.ColorPickPage;
 import com.akjava.gwt.skeltalboneanimation.client.page.colorpick.ColorPickPage.ImageSender;
 import com.akjava.gwt.skeltalboneanimation.client.page.html5app.InpaintEngine.InpaintListener;
+import com.akjava.gwt.skeltalboneanimation.client.predicates.NotExistInIds;
 import com.akjava.gwt.skeltalboneanimation.client.ui.LabeledInputRangeWidget;
 import com.akjava.lib.common.utils.ColorUtils;
 import com.google.common.base.Optional;
+import com.google.common.base.Predicates;
 import com.google.common.base.Supplier;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.canvas.dom.client.Context2d.Composite;
@@ -1246,6 +1251,20 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 				
 				
 			}
+			
+			TextureData oldTextureData=manager.getTextureData();
+			if(oldTextureData!=null){
+				List<String> relatedTextureIds=FluentIterable.from(datas).transform(new ImageDrawingDataIdFunction()).filter(Predicates.notNull()).toList();
+				
+				List<ImageDrawingData> remains=FluentIterable.from(oldTextureData.getDatas()).filter(new NotExistInIds(relatedTextureIds)).toList();
+				Iterables.addAll(datas, remains);
+				if(remains.size()>0){
+					LogUtils.log(remains.size()+" texture data merged");
+				}
+			}else{
+				LogUtils.log("texture-data is null.skip merge");
+			}
+			
 			//TODO merge already exist textures.
 			
 			TextureData textureData=new TextureData();

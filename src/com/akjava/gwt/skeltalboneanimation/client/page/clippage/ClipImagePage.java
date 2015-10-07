@@ -37,6 +37,7 @@ import com.akjava.gwt.skeltalboneanimation.client.bones.BoneListBox;
 import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
 import com.akjava.gwt.skeltalboneanimation.client.converters.ClipImageDataConverter;
 import com.akjava.gwt.skeltalboneanimation.client.converters.TextureDataConverter;
+import com.akjava.gwt.skeltalboneanimation.client.functions.ClipDataToRelatedTextureIdFunction;
 import com.akjava.gwt.skeltalboneanimation.client.page.AbstractPage;
 import com.akjava.gwt.skeltalboneanimation.client.page.ListenerSystem.DataChangeListener;
 import com.akjava.gwt.skeltalboneanimation.client.page.ListenerSystem.DataOwner;
@@ -44,15 +45,18 @@ import com.akjava.gwt.skeltalboneanimation.client.page.bone.BoneControler;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.CanvasDrawingDataControlCanvas;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.CanvasUpdater;
 import com.akjava.gwt.skeltalboneanimation.client.page.html5app.TransparentItPage;
+import com.akjava.gwt.skeltalboneanimation.client.predicates.NotExistInIds;
 import com.akjava.lib.common.graphics.Point;
 import com.akjava.lib.common.graphics.Rect;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
+import com.google.common.base.Predicates;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
 import com.google.common.base.Supplier;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.canvas.dom.client.Context2d;
@@ -790,11 +794,30 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 			//TODO change uniq id & name.id not empty
 			data.setImageName(data.getId()+".png");
 		}
+		
+		
+		TextureData oldTextureData=manager.getTextureData();
+		if(oldTextureData!=null){
+			List<String> relatedTextureIds=FluentIterable.from(cellObjects.getDatas()).transform(new ClipDataToRelatedTextureIdFunction()).filter(Predicates.notNull()).toList();
+			
+			List<ImageDrawingData> remains=FluentIterable.from(oldTextureData.getDatas()).filter(new NotExistInIds(relatedTextureIds)).toList();
+			Iterables.addAll(datas, remains);
+			if(remains.size()>0){
+				LogUtils.log(remains.size()+" texture data merged");
+			}
+		}else{
+			LogUtils.log("texture-data is null.skip merge");
+		}
+		
 		TextureData textureData=new TextureData();
 		textureData.setBone(boneControler.getBone());
 		textureData.setImageDrawingDatas(datas);
 		return textureData;
 	}
+	
+
+	
+
 	
 
 
@@ -1322,7 +1345,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 			}));
 			add(movePanel);
 			
-			movePanel.add(new Button("Sync others",new ClickHandler() {
+			movePanel.add(new Button("Sync Order",new ClickHandler() {
 				
 				@Override
 				public void onClick(ClickEvent event) {

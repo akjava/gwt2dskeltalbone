@@ -45,6 +45,7 @@ import com.akjava.gwt.skeltalboneanimation.client.page.SimpleBoneEditorPage.Flus
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.BoneControler;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.CanvasDrawingDataControlCanvas;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.CanvasUpdater;
+import com.akjava.gwt.skeltalboneanimation.client.page.clippage.ClipData;
 import com.akjava.gwt.skeltalboneanimation.client.ui.LabeledInputRangeWidget;
 import com.akjava.lib.common.utils.CSVUtils;
 import com.akjava.lib.common.utils.FileNames;
@@ -75,7 +76,9 @@ import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Anchor;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.CheckBox;
+import com.google.gwt.user.client.ui.DoubleBox;
 import com.google.gwt.user.client.ui.HorizontalPanel;
+import com.google.gwt.user.client.ui.IntegerBox;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.ToggleButton;
@@ -103,7 +106,8 @@ private ValueListBox<String> boneNameList;
 private CheckBox flipHorizontalCheck;
 private CheckBox flipVerticalCheck;
 private CheckBox visibleCheck;
-private Label xLabel,yLabel,scaleLabel,angleLabel;
+private IntegerBox xLabel,yLabel;
+private DoubleBox scaleLabel,angleLabel;
 private FlushTextBox<ImageDrawingData> idEditor;
 private LabeledInputRangeWidget alphaRange;
 
@@ -231,20 +235,31 @@ public ImageDrawingDataEditor(){
 	add(status);
 	status.setVerticalAlignment(ALIGN_MIDDLE);
 	
+	int labelWidth=40;
 	status.add(new Label("X:"));
-	xLabel=new Label();
+	xLabel=new IntegerBox();
+	xLabel.setEnabled(false);
+	xLabel.setWidth(labelWidth+"px");
 	status.add(xLabel);
 	
 	status.add(new Label("Y:"));
-	yLabel=new Label();
+	
+	yLabel=new IntegerBox();
+	yLabel.setEnabled(false);
+	yLabel.setWidth(labelWidth+"px");
 	status.add(yLabel);
 	
 	status.add(new Label("Angle:"));
-	angleLabel=new Label();
+	angleLabel=new DoubleBox();
+	angleLabel.setEnabled(false);
+	angleLabel.setWidth(labelWidth+"px");
 	status.add(angleLabel);
 	
 	status.add(new Label("Scale:"));
-	scaleLabel=new Label();
+	
+	scaleLabel=new DoubleBox();
+	scaleLabel.setEnabled(false);
+	scaleLabel.setWidth(labelWidth+"px");
 	status.add(scaleLabel);
 	
 	HorizontalPanel namePanel=new HorizontalPanel();
@@ -302,12 +317,14 @@ public void updateValues(){
 	if(value==null){
 		return;
 	}
-	xLabel.setText(String.valueOf(value.getIntX()));
-	yLabel.setText(String.valueOf(value.getIntY()));
-	angleLabel.setText(String.valueOf(value.getAngle()));
-	scaleLabel.setText(String.valueOf(value.getScaleX()));
+	xLabel.setValue(value.getIntX());
+	yLabel.setValue(value.getIntY());
+	angleLabel.setValue(value.getAngle());
+	scaleLabel.setValue(value.getScaleX());
 
 	alphaRange.setValue(value.getAlpha(),false);
+	
+	oldValue=value.copy();
 }
 
 public void setBoneNames(List<String> names){
@@ -324,10 +341,13 @@ public void setBoneNames(List<String> names){
 	@Override
 	 public void flush() {
 		
-		// TODO Auto-generated method stub
+		
 		if(value==null){
 			return;
 		}
+		
+		
+		
 		
 		if(isExistDrawingDataName(value.getId(),idEditor.getValue())){
 			Window.alert(idEditor.getValue()+" is already exist.can't update.value id is "+value.getId());
@@ -347,6 +367,22 @@ public void setBoneNames(List<String> names){
 		value.setAlpha(alphaRange.getValue());
 		
 		onImageDrawingDataFlush();
+		
+		//oldValue.setX(value.getX());
+		/*
+		oldValue.setX(xLabel.getValue());
+		oldValue.setY(yLabel.getValue());
+		oldValue.setAngle(angleLabel.getValue());
+		oldValue.setScaleX(scaleLabel.getValue());
+		oldValue.setScaleY(scaleLabel.getValue());
+		*/
+		
+		if(!oldValue.equals(value)){
+			
+			
+			onDataModified(oldValue,value);
+			oldValue=value.copy();//need update
+		}
 	}
 
 	@Override
@@ -354,6 +390,7 @@ public void setBoneNames(List<String> names){
 		// TODO Auto-generated method stub
 	}
 
+	private ImageDrawingData oldValue;
 	@Override
 	 public void setValue(ImageDrawingData value) {
 		this.value=value;
@@ -362,6 +399,9 @@ public void setBoneNames(List<String> names){
 			this.setVisible(false);
 			return;
 		}
+		oldValue=value.copy();
+		//LogUtils.log("update old-value");
+		
 		this.setVisible(true);
 		boneNameList.setValue(value.getBoneName());
 		
@@ -381,6 +421,15 @@ public void setBoneNames(List<String> names){
 
 
 }
+
+public void onDataModified(ImageDrawingData oldValue, ImageDrawingData value) {
+	for(Integer index:drawingDataObjects.getSelectedIndex(value).asSet()){
+		easyCellTableObjectsUndoControler.execEditData(index, oldValue, value.copy(),false);
+		return;
+	}
+	LogUtils.log("onDataModified:not exist in datas");
+}
+
 	public TexturePage(MainManager manager) {
 		super(manager);
 		// TODO Auto-generated constructor stub
@@ -589,6 +638,7 @@ public void setBoneNames(List<String> names){
 
 				@Override
 				public void copyData(ImageDrawingData data, ImageDrawingData targetData) {
+					//LogUtils.log(data);
 					data.copyTo(targetData);
 				}
 

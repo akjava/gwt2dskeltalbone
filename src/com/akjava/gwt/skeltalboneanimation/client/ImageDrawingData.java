@@ -188,6 +188,10 @@ public String toString(){
 	values.add(String.valueOf(scaleY));
 	values.add(String.valueOf(alpha));
 	
+	values.add(String.valueOf(flipHorizontal));
+	values.add(String.valueOf(flipVertical));
+	values.add(String.valueOf(visible));
+	
 	return Joiner.on(",").join(values);
 }
 

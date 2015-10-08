@@ -386,7 +386,7 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 		boneControlerRange.setFrame(currentSelectionFrame);
 		
 		
-		animationControler.syncDatas();
+		animationControler.syncRangeMaxAndInvalidIndex();
 		
 		//no need always first frame would be selected.
 		//animationControler.setSelection(animations.getFrames().get(0), false);
@@ -562,8 +562,11 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 		AnimationFrame frame=animationControler.getSelection();
 		AnimationFrame copy=frame.copy();
 		animationControler.insertAfter(copy);
-		animationControler.syncDatas();
+		
+		animationControler.syncRangeMaxAndInvalidIndex();
 		animationControler.setSelection(copy,false);//update later
+		animationControler.updateNameLabel();
+		
 		onAnimationRangeChanged(animationControler.getSelectedIndex());
 		updateCanvas();
 		
@@ -579,8 +582,10 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 		AnimationFrame frame=animationControler.getSelection();
 		AnimationFrame copy=frame.copy();
 		animationControler.insertBefore(copy);
-		animationControler.syncDatas();
+		animationControler.syncRangeMaxAndInvalidIndex();
 		animationControler.setSelection(copy,false);//update later
+		animationControler.updateNameLabel();
+		
 		onAnimationRangeChanged(animationControler.getSelectedIndex());
 		updateCanvas();
 		
@@ -602,8 +607,10 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 		
 		AnimationFrame frame=animationControler.getSelection();
 		animationControler.removeFrame(frame);
-		animationControler.syncDatas();
+		
+		
 		onAnimationRangeChanged(animationControler.getSelectedIndex());
+		
 		updateCanvas();
 		
 		int newIndex=animationControler.getSelectedIndex();
@@ -612,6 +619,40 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 		
 	}
 	
+	protected void doAddBetweenAfterData() {
+		
+		SkeletalAnimation animation=animationControler.getAnimation();
+		
+		if(animation.getFrames().size()<=1){
+			doAddAfterData();//no need between
+			return;
+		}
+		
+		int oldIndex=animationControler.getSelectedIndex();
+		List<AnimationFrame> oldFrames=FluentIterable.from(animation.getFrames()).transform(new AnimationFrameCopyFunction()).toList();
+		
+		int nextIndex=oldIndex+1;
+		if(nextIndex>=animation.getFrames().size()){
+			nextIndex=0;
+		}
+		
+		AnimationFrame firstFrame=animationControler.getSelection();
+		AnimationFrame secondFrame=animation.getFrames().get(nextIndex);
+		
+		AnimationFrame copy=firstFrame.createBetween(secondFrame);
+		
+		animationControler.insertAfter(copy);
+		animationControler.syncRangeMaxAndInvalidIndex();
+		animationControler.setSelection(copy,false);//update later
+		animationControler.updateNameLabel();
+		
+		onAnimationRangeChanged(animationControler.getSelectedIndex());
+		updateCanvas();
+		
+		int newIndex=animationControler.getSelectedIndex();
+		List<AnimationFrame> newFrames=FluentIterable.from(animation.getFrames()).transform(new AnimationFrameCopyFunction()).toList();
+		undoControler.executeBoneAnimationChanged(oldFrames, newFrames, oldIndex, newIndex);
+	}	
 
 	
 	//private CircleLineBonePainter painter;
@@ -1271,12 +1312,39 @@ public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvas
 				doAddBeforeData();
 			}
 		}));
+	    
 	    upper.add(new Button("Insert After",new ClickHandler() {
 			@Override
 			public void onClick(ClickEvent event) {
 				doAddAfterData();
 			}
 		}));
+	    
+	    upper.add(new Button("Copy",new ClickHandler() {
+			@Override
+			public void onClick(ClickEvent event) {
+				doCopy();
+			}
+		}));
+	    upper.add(new Button("Cut",new ClickHandler() {
+			@Override
+			public void onClick(ClickEvent event) {
+				doCut();
+			}
+		}));
+	    upper.add(new Button("Paste",new ClickHandler() {
+			@Override
+			public void onClick(ClickEvent event) {
+				doPaste();
+			}
+		}));
+	    upper.add(new Button("Between After",new ClickHandler() {
+			@Override
+			public void onClick(ClickEvent event) {
+				doAddBetweenAfterData();
+			}
+		}));
+	    
 	    upper.add(new Button("Remove",new ClickHandler() {
 			
 			@Override
@@ -1336,6 +1404,55 @@ upper.add(new UndoButtons(undoControler));
 	
 	return panel;
 	}
+	
+	AnimationFrame copiedData;
+	
+	public Optional<AnimationFrame> getCopiedData(){
+		return Optional.fromNullable(copiedData);
+	}
+	
+	protected void doCopy() {
+		if(animationControler.getSelection()==null){
+			return;
+		}
+		copiedData=animationControler.getSelection().copy();
+	}
+	
+	/*
+	 * insert after
+	 */
+	protected void doPaste() {
+		for(AnimationFrame copy:getCopiedData().asSet()){
+			SkeletalAnimation animation=animationControler.getAnimation();
+			int oldIndex=animationControler.getSelectedIndex();
+			List<AnimationFrame> oldFrames=FluentIterable.from(animation.getFrames()).transform(new AnimationFrameCopyFunction()).toList();
+			
+			
+			animationControler.insertAfter(copy);
+			animationControler.syncRangeMaxAndInvalidIndex();
+			animationControler.setSelection(copy,false);//update later
+			animationControler.updateNameLabel();
+			
+			onAnimationRangeChanged(animationControler.getSelectedIndex());
+			updateCanvas();
+			
+			int newIndex=animationControler.getSelectedIndex();
+			List<AnimationFrame> newFrames=FluentIterable.from(animation.getFrames()).transform(new AnimationFrameCopyFunction()).toList();
+			undoControler.executeBoneAnimationChanged(oldFrames, newFrames, oldIndex, newIndex);
+		}
+		
+		
+	}
+	
+	protected void doCut() {
+		if(animationControler.getSelection()==null){
+			return;
+		}
+		doCopy();
+		doRemoveData();
+	}
+	
+	
 	
 	protected void doLoadFile(final String name, Uint8Array array) {
 		String extension=FileNames.getExtension(name).toLowerCase();
@@ -1492,7 +1609,7 @@ upper.add(new UndoButtons(undoControler));
 			
 			onAnimationRangeChanged(selectedIndex);
 			//animationControler.setSelection(frame, false);
-			animationControler.syncDatas();
+			animationControler.syncRangeMaxAndInvalidIndex();
 			
 			updateCanvas();
 			return;

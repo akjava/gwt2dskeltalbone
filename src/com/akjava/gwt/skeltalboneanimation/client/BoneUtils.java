@@ -30,8 +30,13 @@ public class BoneUtils {
 		return parents;
 	}
 	
+	public static double betweenAngle(double angleA,double angleB){
+		double angleBetween=Math.abs(angleA-angleB)<=180?angleA+(angleB-angleA)/2:angleA+(angleB-angleA)/2+180;
+		return clampAngle(angleBetween);
+	}
+	
 	//return -180 - 180
-	public int clampAngle(int angle){
+	public static double clampAngle(double angle){
 		angle%=360;
 		if(angle<-180){
 			angle=360+angle;

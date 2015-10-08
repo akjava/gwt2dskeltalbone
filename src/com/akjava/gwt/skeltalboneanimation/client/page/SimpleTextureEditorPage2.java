@@ -893,7 +893,7 @@ private LabeledInputRangeWidget alphaRange;
 		
 		
 		
-		animationControler.syncDatas();
+		animationControler.syncRangeMaxAndInvalidIndex();
 		
 		//no need always first frame would be selected.
 		//animationControler.setSelection(animations.getFrames().get(0), false);

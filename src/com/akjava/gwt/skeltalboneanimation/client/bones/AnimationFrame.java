@@ -1,8 +1,14 @@
 package com.akjava.gwt.skeltalboneanimation.client.bones;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
+import com.akjava.gwt.skeltalboneanimation.client.BoneUtils;
+import com.google.common.collect.Sets;
 
 public class AnimationFrame {
 	private double scaleX=1;
@@ -67,6 +73,47 @@ public void insertEmptyFrames(List<TwoDimensionBone> bones){
 	}
 	
 }
+public AnimationFrame createBetween(AnimationFrame second){
+	checkNotNull(second,"createBetween:second is null");
+	AnimationFrame frame=new AnimationFrame();
+	double newX=scaleX+(second.scaleX-scaleX)/2;
+	double newY=scaleY+(second.scaleY-scaleY)/2;
+	frame.setScaleX(newX);
+	frame.setScaleY(newY);
+	
+	Set<String> boneName=Sets.newHashSet();
+	for(BoneFrame bone:boneFrames.values()){
+		boneName.add(bone.getBoneName());
+	}
+	for(BoneFrame bone:second.boneFrames.values()){
+		boneName.add(bone.getBoneName());
+	}
+	
+	for(String name:boneName){
+		BoneFrame boneFrame=new BoneFrame(name);
+		frame.add(boneFrame);
+		
+		double angleA=boneFrames.get(name)!=null?boneFrames.get(name).getAngle():0;
+		double angleB=second.boneFrames.get(name)!=null?second.boneFrames.get(name).getAngle():0;
+		double angleBetween=BoneUtils.betweenAngle(angleA, angleB);
+		
+		double xa=boneFrames.get(name)!=null?boneFrames.get(name).getX():0;
+		double xb=second.boneFrames.get(name)!=null?second.boneFrames.get(name).getX():0;
+		double betweenX=xa+(xb-xa)/2;
+		
+		double ya=boneFrames.get(name)!=null?boneFrames.get(name).getY():0;
+		double yb=second.boneFrames.get(name)!=null?second.boneFrames.get(name).getY():0;
+		double betweenY=ya+(yb-ya)/2;
+		
+		boneFrame.setX(betweenX);
+		boneFrame.setY(betweenY);
+		boneFrame.setAngle(angleBetween);
+	}	
+	return frame;
+}
+
+
+
 
 public AnimationFrame copy(){
 	AnimationFrame frame=new AnimationFrame();

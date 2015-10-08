@@ -339,7 +339,7 @@ private BoneControlRange boneControlerRange;
 		boneControlerRange.setFrame(currentSelectionFrame);
 		
 		
-		animationControler.syncDatas();
+		animationControler.syncRangeMaxAndInvalidIndex();
 		
 		//no need always first frame would be selected.
 		//animationControler.setSelection(animations.getFrames().get(0), false);
@@ -430,7 +430,7 @@ private BoneControlRange boneControlerRange;
 		AnimationFrame frame=animationControler.getSelection();
 		AnimationFrame copy=frame.copy();
 		animationControler.insertAfter(copy);
-		animationControler.syncDatas();
+		animationControler.syncRangeMaxAndInvalidIndex();
 		animationControler.setSelection(copy,false);//update later
 		onAnimationRangeChanged(animationControler.getSelectedIndex());
 		updateCanvas();
@@ -439,7 +439,7 @@ private BoneControlRange boneControlerRange;
 		AnimationFrame frame=animationControler.getSelection();
 		AnimationFrame copy=frame.copy();
 		animationControler.insertBefore(copy);
-		animationControler.syncDatas();
+		animationControler.syncRangeMaxAndInvalidIndex();
 		animationControler.setSelection(copy,false);//update later
 		onAnimationRangeChanged(animationControler.getSelectedIndex());
 		updateCanvas();
@@ -447,7 +447,7 @@ private BoneControlRange boneControlerRange;
 	protected void doRemoveData() {
 		AnimationFrame frame=animationControler.getSelection();
 		animationControler.removeFrame(frame);
-		animationControler.syncDatas();
+		animationControler.syncRangeMaxAndInvalidIndex();
 		onAnimationRangeChanged(animationControler.getSelectedIndex());
 		updateCanvas();
 	}

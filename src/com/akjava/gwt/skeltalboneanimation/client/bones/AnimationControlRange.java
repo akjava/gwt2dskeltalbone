@@ -1,6 +1,7 @@
 package com.akjava.gwt.skeltalboneanimation.client.bones;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
 import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.skeltalboneanimation.client.ui.LabeledInputRangeWidget;
@@ -61,9 +62,12 @@ public class AnimationControlRange extends VerticalPanel{
 		animation.getFrames().add(index+1, frame);
 	}
 	public void removeFrame(AnimationFrame frame){
-		
 		animation.getFrames().remove(frame);
+		//i wonder should i limit here.
+		checkState(!animation.getFrames().isEmpty(),"animation must at least one frame");
 		
+		this.syncRangeMaxAndInvalidIndex();//this fix invalid selection
+		this.setSelection(animation.getFrames().get(getSelectedIndex()), false);//update scale value
 	}
 	
 	public AnimationFrame getSelection(){
@@ -205,7 +209,7 @@ public class AnimationControlRange extends VerticalPanel{
 	/*
 	 * same as last time & usually not call fire-changed
 	 */
-	public void syncDatas(){//for modified animation data
+	public void syncRangeMaxAndInvalidIndex(){//for modified animation data
 		inputRange.getRange().setMax(animation.getFrames().size());
 		//AnimationFrame frame=getSelection();
 		

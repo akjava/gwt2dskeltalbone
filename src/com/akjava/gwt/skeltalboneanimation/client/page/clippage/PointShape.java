@@ -56,7 +56,7 @@ public void addVector(double x,double y){
 public static PointShape createFromPoint(List<Point> pts){
 	PointShape shape=new PointShape();
 	for(Point pt:pts){
-		shape.addPoint(pt);
+		shape.addPoint(pt.copy());
 	}
 	return shape;
 }
@@ -64,7 +64,7 @@ public static PointShape createFromPoint(List<Point> pts){
 public static PointShape createFromPointXY(List<PointXY> pts){
 	PointShape shape=new PointShape();
 	for(PointXY pt:pts){
-		shape.addPoint(pt);
+		shape.addPoint(pt.copy());
 	}
 	return shape;
 }

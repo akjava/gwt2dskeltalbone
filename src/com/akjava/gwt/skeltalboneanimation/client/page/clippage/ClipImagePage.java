@@ -612,11 +612,14 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		@Override
 		public void executeOnClick() {
 			if(isClipDataSelected()){
+				LogUtils.log(getSelection().getBounds());
 				doTransparent(getSelection());
+				
 				//added data's order is invalid,fix it
 				doSyncTextureOrder();
 				
 				doSaveData();
+				
 				
 				manager.selectTab(MainManager.TransparentPageIndex);
 			}else{
@@ -704,19 +707,20 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 	
 
 	
-	protected void doTransparent(final ClipData clipData) {
-
+	protected void doTransparent(final ClipData original) {
+		ClipData clipData=original.copy(true);
+		
 		TextureData textureData=manager.getTextureData();
 		transparentItPage.removeItemById(clipData.getId());
 		TransparentData data=new ClipDataToTransparentDataFunction(textureData).apply(clipData);
+		
 		transparentItPage.addItem(new Supplier<String>() {
-			
 			@Override
 			public String get() {
-				// TODO Auto-generated method stub
-				return clipData.getId();
+				return original.getId();
 			}
 		},data.imageDrawingData, data.imageSrc,data.pointShape);
+		
 		
 	}
 	
@@ -743,7 +747,8 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		
 		//idea should do id with bone-name + bounds?
 		
-		for(final ClipData clip:cellObjects.getDatas()){
+		for(final ClipData original:cellObjects.getDatas()){
+			ClipData clip=original.copy(true);//use copy not plan to integrate or modify
 			//now only one image per bone support.
 			ImageDrawingData data=convertToImageDrawingData(clip);
 			datas.add(data);
@@ -775,7 +780,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 				@Override
 				public String get() {
 					// TODO Auto-generated method stub
-					return  clip.getId();
+					return  original.getId();//id must be share with original
 				}
 			},data, src,pointShape);
 			manager.selectTab(MainManager.TransparentPageIndex);

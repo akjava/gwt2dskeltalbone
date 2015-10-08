@@ -136,9 +136,33 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 				if(animationControler.getSelection()==null){
 					return;
 				}
+				double oldScale=animationControler.getSelection().getScaleX();
+				double newScale=event.getValue().doubleValue();
+				
+				boolean isReset=animationControler.isScaleRangeEventCalledFromResetButton();//TODO really not smart,find a way
+				animationControler.setScaleRangeEventCalledFromResetButton(false);
+				if(oldScale==newScale){
+					LogUtils.log("no need scale");
+					return;
+				}
+				
+				//LogUtils.log("scaleRange-changed");
+				animationControler.getSelection().setScaleX(newScale);
+				animationControler.getSelection().setScaleY(newScale);
+				
 				//LogUtils.log("scale-changed");
 				boneControler.getBonePositionControler().updateAnimationData(animationControler.getSelection());
 				updateCanvas();
+				
+				boolean collapse=isReset?false:true;
+				
+				int index=animationControler.getSelectedIndex();
+				for(String boneName:boneControlerRange.getSelectedBoneName().asSet()){
+					undoControler.executeBoneScaleChanged(index, boneName, oldScale, newScale,collapse);
+					return;
+				}
+				
+				LogUtils.log("no selected bone name,generate undo faild");
 			}
 			
 		});
@@ -626,19 +650,40 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 			if(bone==null){
 				return;
 			}
-			int value=(int) boneControlerRange.getInputRange().getValue();
-			if(delta>0){
-				value++;
+			
+			if(bone==getRootBone()){
+				//root-bone special scalling
+				double value=animationControler.getScaleRange().getValue();
+				if(delta>0){
+					value+=0.05;
+					if(value>animationControler.getScaleRange().getRange().getMax()){
+						value=animationControler.getScaleRange().getRange().getMax();
+					}
+				}else{
+					value-=0.05;
+					if(value<animationControler.getScaleRange().getRange().getMin()){
+						value=animationControler.getScaleRange().getRange().getMin();
+					}
+				}
+				animationControler.getScaleRange().setValue(value, true);
 			}else{
-				value--;
+				//normal angle-range adding.
+				int value=(int) boneControlerRange.getInputRange().getValue();
+				if(delta>0){
+					value++;
+				}else{
+					value--;
+				}
+				if(value>180){
+					value=value-360;
+				}
+				if(value<-180){
+					value=360+value;
+				}
+				boneControlerRange.getInputRange().setValue(value, true);
 			}
-			if(value>180){
-				value=value-360;
-			}
-			if(value<-180){
-				value=360+value;
-			}
-			boneControlerRange.getInputRange().setValue(value, true);
+			
+			
 		}
 
 		@Override
@@ -1470,6 +1515,24 @@ upper.add(new UndoButtons(undoControler));
 			}
 			
 			LogUtils.log("setRangeAt:can't find bone:"+boneName);
+			return;
+		}
+	}
+	@Override
+	public void setScaleAt(int frameIndex, String boneName, double scale) {
+		for(SkeletalAnimation animations:getSkeletalAnimation().asSet()){
+			//update widget & value
+			animationControler.getScaleRange().setValue(scale,false);
+			
+			animationControler.getSelection().setScaleX(scale);
+			animationControler.getSelection().setScaleY(scale);
+			
+			//LogUtils.log("scale-changed");
+			boneControler.getBonePositionControler().updateAnimationData(animationControler.getSelection());
+			updateCanvas();
+			
+			
+			
 			return;
 		}
 	}

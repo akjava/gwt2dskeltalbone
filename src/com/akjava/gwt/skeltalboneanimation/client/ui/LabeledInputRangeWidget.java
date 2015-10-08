@@ -74,6 +74,8 @@ public class LabeledInputRangeWidget extends HorizontalPanel{
 		} 
 		/**
 		 * watch out this set possible call flush in your editor
+		 * 
+		 * watch out this Widget fire event 
 		 * @param value
 		 */
 		public void setValue(double value){

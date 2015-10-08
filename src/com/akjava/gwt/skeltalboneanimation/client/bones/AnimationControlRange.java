@@ -157,9 +157,13 @@ public class AnimationControlRange extends VerticalPanel{
 				if(getSelection()==null){
 					return;
 				}
-				LogUtils.log("scaleRange-changed");
+				//not modify frame value here,because of undo-system.must handle on listener
+				/*
+				 LogUtils.log("scaleRange-changed");
 				getSelection().setScaleX(event.getValue().doubleValue());
 				getSelection().setScaleY(event.getValue().doubleValue());
+				 * 
+				 */
 				
 				
 				if(listener!=null){
@@ -169,9 +173,28 @@ public class AnimationControlRange extends VerticalPanel{
 			}
 		});
 		panel.add(scaleRange);
+		Button resetScale=new Button("Reset",new ClickHandler() {
+			
+			@Override
+			public void onClick(ClickEvent event) {
+				scaleRangeEventCalledFromResetButton=true;
+				scaleRange.setValue(1.0,true);
+				
+				//TODO create indivisual undo 
+			}
+		});
+		panel.add(resetScale);
 		
 		}
 	
+	private boolean scaleRangeEventCalledFromResetButton;
+	
+	public void setScaleRangeEventCalledFromResetButton(boolean scaleRangeEventCalledFromResetButton) {
+		this.scaleRangeEventCalledFromResetButton = scaleRangeEventCalledFromResetButton;
+	}
+	public boolean isScaleRangeEventCalledFromResetButton() {
+		return scaleRangeEventCalledFromResetButton;
+	}
 	public LabeledInputRangeWidget getScaleRange() {
 		return scaleRange;
 	}

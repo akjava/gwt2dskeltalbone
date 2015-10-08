@@ -6,6 +6,7 @@ import com.akjava.gwt.skeltalboneanimation.client.SimpleUndoControler;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationFrame;
 import com.akjava.gwt.skeltalboneanimation.client.page.animation.BoneFramePositionCommand.BoneFramePositionCommandIndexNamePredicate;
 import com.akjava.gwt.skeltalboneanimation.client.page.animation.BoneFrameRangeCommand.BoneFrameRangeCommandIndexNamePredicate;
+import com.akjava.gwt.skeltalboneanimation.client.page.animation.BoneFrameScaleCommand.BoneFrameScaleCommandIndexNamePredicate;
 import com.akjava.lib.common.graphics.Point;
 import com.google.common.base.Optional;
 
@@ -43,6 +44,17 @@ private BoneFrameRangeControler controler;
 		}
 		return Optional.absent();
 	}
+	protected Optional<BoneFrameScaleCommand> getLastCommandIfBoneFrameScaleCommand(int frameIndex,String boneName){
+		for(Command command:getLastUndoCommand().asSet()){
+			if(command instanceof BoneFrameScaleCommand){
+				BoneFrameScaleCommand boneCommand= (BoneFrameScaleCommand)command;
+				if(boneCommand.isCollapse() && new BoneFrameScaleCommandIndexNamePredicate(frameIndex,boneName).apply(boneCommand)){
+					return Optional.fromNullable(boneCommand);
+				}
+			}
+		}
+		return Optional.absent();
+	}
 
 	//collapse command inside
 	public void executeBoneAngleRangeChanged(int index, String boneName, double oldAngle, int newAngle) {
@@ -68,6 +80,16 @@ private BoneFrameRangeControler controler;
 		
 		//LogUtils.log("executeBoneAngleRangeChanged");
 		
+	}
+	
+	public void executeBoneScaleChanged(int index, String boneName, double oldScale,double newScale,boolean collapse) {
+		Optional<BoneFrameScaleCommand> command=this.getLastCommandIfBoneFrameScaleCommand(index,boneName);
+		if(command.isPresent() && collapse){
+			command.get().setNewScale(newScale);
+		}else{
+			BoneFrameScaleCommand newCommand=new BoneFrameScaleCommand(index,boneName,oldScale,newScale,collapse,controler);
+			this.execute(newCommand);
+		}
 	}
 	public void executeBoneAnimationChanged(List<AnimationFrame> oldFrames, List<AnimationFrame> newFrames, int oldSelection,int newSelection){
 		//LogUtils.log("executeBoneAnimationChanged");

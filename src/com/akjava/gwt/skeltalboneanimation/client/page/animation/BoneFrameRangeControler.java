@@ -8,5 +8,6 @@ import com.akjava.lib.common.graphics.Point;
 public interface BoneFrameRangeControler {
 	public void setRangeAt(int frameIndex,String boneName,double angle);
 	public void setPositionAt(int frameIndex,String boneName,Point position);
+	public void setScaleAt(int frameIndex,String boneName,double scale);
 	public void replaceAnimations(List<AnimationFrame> frames,int selectedIndex);
 }

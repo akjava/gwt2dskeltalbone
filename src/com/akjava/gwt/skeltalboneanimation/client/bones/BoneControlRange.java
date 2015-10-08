@@ -10,6 +10,7 @@ import javax.annotation.Nullable;
 import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.skeltalboneanimation.client.BoneUtils;
 import com.akjava.gwt.skeltalboneanimation.client.ui.LabeledInputRangeWidget;
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
@@ -278,6 +279,14 @@ public class BoneControlRange extends VerticalPanel{
 		return boneListBox.getValue();
 	}
 
+	public Optional<String> getSelectedBoneName(){
+		if(getSelection()!=null){
+			String name=getSelection().getName();
+			return Optional.fromNullable(name);
+		}
+		
+		return Optional.absent();
+	}
 
 
 

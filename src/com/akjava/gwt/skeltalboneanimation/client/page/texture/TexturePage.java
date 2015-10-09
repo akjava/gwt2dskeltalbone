@@ -1,8 +1,12 @@
 package com.akjava.gwt.skeltalboneanimation.client.page.texture;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.annotation.Nullable;
 
 import com.akjava.gwt.html5.client.download.HTML5Download;
 import com.akjava.gwt.html5.client.file.File;
@@ -90,7 +94,7 @@ public class TexturePage extends AbstractPage implements HasSelectionName,DataUp
 	
 
 //private CanvasDragMoveControler canvasControler;
-private BonePositionControler bonePositionControler;
+//private BonePositionControler bonePositionControler;
 
 interface Driver extends SimpleBeanEditorDriver< ImageDrawingData,  ImageDrawingDataEditor> {}
 Driver driver;
@@ -595,7 +599,8 @@ public void onDataModified(ImageDrawingData oldValue, ImageDrawingData value) {
 		if(data.getBone()==null){
 			LogUtils.log("TexturePage:invalidly bone is null");
 		}
-		boneControler.setBone(data.getBone());
+		setNewBoneAndAnimation(data.getBone(), data.getAnimation());
+		
 		updateCanvas();
 	}
 
@@ -703,6 +708,7 @@ public void onDataModified(ImageDrawingData oldValue, ImageDrawingData value) {
 		
 		
 		//cerate default bone
+		/*
 		TwoDimensionBone rootBone = new TwoDimensionBone("root",0, 0,null);
 		
 		TwoDimensionBone back=rootBone.addBone(new TwoDimensionBone("back",0, -100));
@@ -711,10 +717,12 @@ public void onDataModified(ImageDrawingData oldValue, ImageDrawingData value) {
 		
 		//allbones = BoneUtils.getAllBone(rootBone);
 		SkeletalAnimation animations = new SkeletalAnimation("test", 33.3);
+		*/
 		 
 		initializeCanvas();
 		canvasDrawingDataControlCanvas=new CanvasDrawingDataControlCanvas(canvas,800,800,this);
-		createBoneControls(animations,rootBone,canvas);
+		
+		//createBoneControls(animations,rootBone,canvas);
 		
 		boneControler =new BoneControler(canvas){
 			@Override
@@ -792,7 +800,7 @@ public void onDataModified(ImageDrawingData oldValue, ImageDrawingData value) {
 		    
 		    
 		   //create default animation
-			currentSelectionFrame = BoneUtils.createEmptyAnimationFrame(getRootBone());
+			/*currentSelectionFrame = BoneUtils.createEmptyAnimationFrame(getRootBone());
 			animations.add(currentSelectionFrame);
 			
 			for(BoneFrame frame:currentSelectionFrame.getBoneFrames().values()){
@@ -802,18 +810,18 @@ public void onDataModified(ImageDrawingData oldValue, ImageDrawingData value) {
 			
 			
 			animations.add(BoneUtils.createEmptyAnimationFrame(getRootBone()));
-			bonePositionControler.updateBoth(currentSelectionFrame);
+			boneControler.getBonePositionControler().updateBoth(currentSelectionFrame);*/
 		
 		//panel.add(createBackgroundButtons());
 		panel.add(createAnimationLoadButtons());
-		panel.add(createAnimationFrameControlButtons(animations));    
+		//panel.add(createAnimationFrameControlButtons(animations));    
 		
 		
 		
 		    
 		panel.add(canvasDrawingDataControlCanvas);
 		
-		setNewBoneAndAnimation(rootBone, animations);
+		//setNewBoneAndAnimation(rootBone, animations);
 		
 		
 		textureDrawingDataControler = new TextureDrawingDataControler();
@@ -843,7 +851,7 @@ public void onDataModified(ImageDrawingData oldValue, ImageDrawingData value) {
 		}
 		//TODO support chose base bone
 		int index=0;
-		int centerX=bonePositionControler.getRawInitialData().get(index).getX()+bonePositionControler.getSettings().getOffsetX();
+		int centerX=boneControler.getBonePositionControler().getRawInitialData().get(index).getX()+boneControler.getBonePositionControler().getSettings().getOffsetX();
 		
 		ImageDrawingData newData=selection.copy();
 		newData.setId(getUniqDrawingName(newData.getId()));
@@ -873,7 +881,7 @@ public void onDataModified(ImageDrawingData oldValue, ImageDrawingData value) {
 		}
 		//TODO support chose base bone
 		int index=0;
-		int centerY=bonePositionControler.getRawInitialData().get(index).getY()+bonePositionControler.getSettings().getOffsetY();
+		int centerY=boneControler.getBonePositionControler().getRawInitialData().get(index).getY()+boneControler.getBonePositionControler().getSettings().getOffsetY();
 		
 		ImageDrawingData newData=selection.copy();
 		newData.setId(getUniqDrawingName(newData.getId()));
@@ -1071,18 +1079,18 @@ public void onDataModified(ImageDrawingData oldValue, ImageDrawingData value) {
 	}
 	
 	private void onAnimationRangeChanged(int index){
-		currentSelectionFrame=animationControler.getSelection();
+		//currentSelectionFrame=animationControler.getSelection();
 		
 		
 		
-		bonePositionControler.updateBoth(currentSelectionFrame);
+		boneControler.getBonePositionControler().updateBoth(currentSelectionFrame);
 		updateCanvas();
 	}
 	
 	
 	private List<Canvas> convertedDatas;
 	
-	private Widget createAnimationFrameControlButtons(SkeletalAnimation animations) {
+/*	private Widget createAnimationFrameControlButtons(SkeletalAnimation animations) {
 		
 		HorizontalPanel panel=new HorizontalPanel();
 		panel.setHeight("32px");
@@ -1125,34 +1133,44 @@ public void onDataModified(ImageDrawingData oldValue, ImageDrawingData value) {
 		animationControler.setVisible(false);
 		
 		return panel;
-	}
+	}*/
+	
 	private boolean modeAnimation;
 	
 	
-	private void setNewBoneAndAnimation(TwoDimensionBone newRoot,SkeletalAnimation animations){
+	private void setNewBoneAndAnimation(TwoDimensionBone newRoot,@Nullable SkeletalAnimation animations){
 		setRootBone(newRoot);
 		
+		
+		//these code exist for future animation support.
 		if(animations==null || animations.getFrames().size()==0){
 			LogUtils.log("animation null or empty.create dummy");
+			if(animations==null){
+				LogUtils.log("SkeletalAnimation created from null");
+				animations=new SkeletalAnimation();
+			}
+			
 			//usually select bone-only this happen,create dammy empty frame
 			if(animations.getFrames().isEmpty()){
 				animations.getFrames().add(BoneUtils.createEmptyAnimationFrame(newRoot));
 			}
 		}
 		
-		animationControler.setAnimation(animations);
+		//animationControler.setAnimation(animations);
 		
 		currentSelectionFrame = animations.getFrames().get(0);
 		
 		
 		
 		
-		animationControler.syncRangeMaxAndInvalidIndex();
+		//animationControler.syncRangeMaxAndInvalidIndex();
 		
 		//no need always first frame would be selected.
 		//animationControler.setSelection(animations.getFrames().get(0), false);
 		
-		bonePositionControler.updateBoth(currentSelectionFrame);
+		
+		
+		boneControler.getBonePositionControler().updateBoth(currentSelectionFrame);
 		
 		List<String> names=BoneUtils.getAllBoneName(newRoot);
 		drawingDataEditor.setBoneNames(names);
@@ -1298,7 +1316,7 @@ public void onDataModified(ImageDrawingData oldValue, ImageDrawingData value) {
 	//private CircleLineBonePainter painter;
 
 
-	private void createBoneControls(SkeletalAnimation animations,TwoDimensionBone rootBone,final Canvas canvas){
+/*	private void createBoneControls(SkeletalAnimation animations,TwoDimensionBone rootBone,final Canvas canvas){
 		settings=new CanvasBoneSettings(canvas, rootBone);
 		
 		
@@ -1317,7 +1335,7 @@ public void onDataModified(ImageDrawingData oldValue, ImageDrawingData value) {
 		
 
 		
-	}
+	}*/
 	private Background background;
 	private Widget createBackgroundButtons() {
 		HorizontalPanel panel=new HorizontalPanel();
@@ -1333,8 +1351,8 @@ public void onDataModified(ImageDrawingData oldValue, ImageDrawingData value) {
 				background.setBackground(file.getFileName(), element);
 				
 				
-				background.getBackgroundData().setX(bonePositionControler.getSettings().getOffsetX());
-				background.getBackgroundData().setY(bonePositionControler.getSettings().getOffsetY());
+				background.getBackgroundData().setX(boneControler.getBonePositionControler().getSettings().getOffsetX());
+				background.getBackgroundData().setY(boneControler.getBonePositionControler().getSettings().getOffsetY());
 				
 				backgroundVisibleCheck.setValue(true);
 				background.setVisible(true);
@@ -1459,7 +1477,8 @@ public void onDataModified(ImageDrawingData oldValue, ImageDrawingData value) {
 		
 		
 		if(modeAnimation){
-			updateCanvasOnAnimation();
+			throw new UnsupportedOperationException("mode animation not support now");
+			//updateCanvasOnAnimation();
 		}else{
 			updateCanvasOnEdit();
 		}
@@ -1469,22 +1488,26 @@ public void onDataModified(ImageDrawingData oldValue, ImageDrawingData value) {
 	 */
 	private void updateCanvasOnAnimation() {
 		
+		if(boneControler.getBone()==null || currentSelectionFrame==null){
+			LogUtils.log("something null.no need update");
+			return;
+		}
 		
 		//switch mode
 		
-		bonePositionControler.updateBoth(currentSelectionFrame);//TODO update on value changed only
+		boneControler.getBonePositionControler().updateBoth(currentSelectionFrame);//TODO update on value changed only
 		//TODO add show bone check
 		//TODO make class,it's hard to understand
-		 List<BoneWithXYAngle> emptyBonePosition=bonePositionControler.getRawInitialData();
-		 List<BoneWithXYAngle> movedBonePosition=bonePositionControler.getRawAnimationedData();
+		 List<BoneWithXYAngle> emptyBonePosition=boneControler.getBonePositionControler().getRawInitialData();
+		 List<BoneWithXYAngle> movedBonePosition=boneControler.getBonePositionControler().getRawAnimationedData();
 		 
 		
 		
 		//int offsetX=painter.getOffsetX();
 		//int offsetY=painter.getOffsetY();
 		
-		int offsetX=bonePositionControler.getSettings().getOffsetX();
-		int offsetY=bonePositionControler.getSettings().getOffsetY();
+		int offsetX=boneControler.getBonePositionControler().getSettings().getOffsetX();
+		int offsetY=boneControler.getBonePositionControler().getSettings().getOffsetY();
 		
 		List<ImageDrawingData> imageDrawingDatas=drawingDataObjects.getDatas();
 		for(int i=0;i<imageDrawingDatas.size();i++){
@@ -1576,13 +1599,13 @@ public void onDataModified(ImageDrawingData oldValue, ImageDrawingData value) {
 	
 	
 	private AnimationFrame currentSelectionFrame;//should contain all bone
-	private CanvasBoneSettings settings;
+	//private CanvasBoneSettings settings;
 	
 	public TwoDimensionBone getRootBone() {
-		return settings.getBone();
+		return boneControler.getBone();
 	}
 	public void setRootBone(TwoDimensionBone rootBone) {
-		settings.setBone(rootBone);
+		boneControler.setBone(rootBone);
 		
 		//update all bone-relative-name to root-bone
 		
@@ -1596,7 +1619,7 @@ public void onDataModified(ImageDrawingData oldValue, ImageDrawingData value) {
 
 	private HorizontalPanel downloadLinks;
 	
-	private AnimationControlRange animationControler;
+	//private AnimationControlRange animationControler;
 	private EasyCellTableObjects<ImageDrawingData> drawingDataObjects;
 	private CheckBox showBoneCheck;
 	private ToggleButton animationModeToggle;

@@ -653,6 +653,37 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 		List<AnimationFrame> newFrames=FluentIterable.from(animation.getFrames()).transform(new AnimationFrameCopyFunction()).toList();
 		undoControler.executeBoneAnimationChanged(oldFrames, newFrames, oldIndex, newIndex);
 	}	
+	
+	protected void doAddBetweenBeforeData() {
+		SkeletalAnimation animation=animationControler.getAnimation();
+		int oldIndex=animationControler.getSelectedIndex();
+		List<AnimationFrame> oldFrames=FluentIterable.from(animation.getFrames()).transform(new AnimationFrameCopyFunction()).toList();
+		
+		
+		int prevIndex=oldIndex-1;
+		if(prevIndex<0){
+			prevIndex=animation.getFrames().size()-1;
+		}
+		
+		AnimationFrame firstFrame=animationControler.getSelection();
+		AnimationFrame secondFrame=animation.getFrames().get(prevIndex);
+		
+		AnimationFrame copy=firstFrame.createBetween(secondFrame);
+		
+		
+		animationControler.insertBefore(copy);
+		animationControler.syncRangeMaxAndInvalidIndex();
+		animationControler.setSelection(copy,false);//update later
+		animationControler.updateNameLabel();
+		
+		onAnimationRangeChanged(animationControler.getSelectedIndex());
+		updateCanvas();
+		
+		int newIndex=animationControler.getSelectedIndex();
+		List<AnimationFrame> newFrames=FluentIterable.from(animation.getFrames()).transform(new AnimationFrameCopyFunction()).toList();
+		undoControler.executeBoneAnimationChanged(oldFrames, newFrames, oldIndex, newIndex);
+		
+	}
 
 	
 	//private CircleLineBonePainter painter;
@@ -1338,6 +1369,13 @@ public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvas
 				doPaste();
 			}
 		}));
+	    upper.add(new Button("Between Before",new ClickHandler() {
+			@Override
+			public void onClick(ClickEvent event) {
+				doAddBetweenBeforeData();
+			}
+		}));
+	    
 	    upper.add(new Button("Between After",new ClickHandler() {
 			@Override
 			public void onClick(ClickEvent event) {
@@ -1505,11 +1543,11 @@ upper.add(new UndoButtons(undoControler));
 	protected void doSaveAll() {
 		
 		//set new-bone
-		TextureData textureData=manager.getTextureData();
-		ClipImageData clipData=manager.getUploadedFileManager().getClipImageData();
+		TextureData textureData=manager.getTextureDataWithNewestBone();
+		ClipImageData clipData=manager.getClipImageDataWithNewestBone();
 		
 		if(textureData==null ){
-			Window.alert("texture data is not exist.cant save all\njust do try save animation!");
+			Window.alert("texture data is not exist.cant save all\njust do  save animation!");
 			return;
 		}
 		

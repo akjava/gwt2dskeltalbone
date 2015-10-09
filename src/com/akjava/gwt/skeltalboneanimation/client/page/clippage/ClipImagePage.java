@@ -710,7 +710,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 	protected void doTransparent(final ClipData original) {
 		ClipData clipData=original.copy(true);
 		
-		TextureData textureData=manager.getTextureData();
+		TextureData textureData=manager.getTextureDataWithNewestBone();
 		transparentItPage.removeItemById(clipData.getId());
 		TransparentData data=new ClipDataToTransparentDataFunction(textureData).apply(clipData);
 		
@@ -801,7 +801,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		}
 		
 		
-		TextureData oldTextureData=manager.getTextureData();
+		TextureData oldTextureData=manager.getTextureDataWithNewestBone();
 		if(oldTextureData!=null){
 			List<String> relatedTextureIds=FluentIterable.from(cellObjects.getDatas()).transform(new ClipDataToRelatedTextureIdFunction()).filter(Predicates.notNull()).toList();
 			

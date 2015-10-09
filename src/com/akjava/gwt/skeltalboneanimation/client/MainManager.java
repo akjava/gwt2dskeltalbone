@@ -81,7 +81,7 @@ public void setTextureData(String fileName,TextureData textureData){
 /*
  * this auto replace newer bone
  */
-public TextureData getTextureData(){
+public TextureData getTextureDataWithNewestBone(){
 	TextureData data= getUploadedFileManager().getTextureData();
 	if(data!=null){
 		data.setBone(getBone());//replace latest bone
@@ -90,7 +90,7 @@ public TextureData getTextureData(){
 }
 
 //replace newer-bone
-public ClipImageData getClipImageData(){
+public ClipImageData getClipImageDataWithNewestBone(){
 	ClipImageData data=getUploadedFileManager().getClipImageData();
 	if(data!=null){
 		data.setBone(getBone());

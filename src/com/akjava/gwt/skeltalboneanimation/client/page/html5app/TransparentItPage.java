@@ -1252,7 +1252,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 				
 			}
 			
-			TextureData oldTextureData=manager.getTextureData();
+			TextureData oldTextureData=manager.getTextureDataWithNewestBone();
 			if(oldTextureData!=null){
 				List<String> relatedTextureIds=FluentIterable.from(datas).transform(new ImageDrawingDataIdFunction()).filter(Predicates.notNull()).toList();
 				

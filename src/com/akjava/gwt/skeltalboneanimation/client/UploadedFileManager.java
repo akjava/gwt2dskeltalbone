@@ -105,6 +105,9 @@ public void removeBoneAndAnimationChangeListener(BoneAndAnimationChangeListener 
 		private ClipImageData clipImageData;
 
 
+		/*
+		 * this return just save data.possible bone  old
+		 */
 		public ClipImageData getClipImageData() {
 			return clipImageData;
 		}

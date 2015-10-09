@@ -827,7 +827,7 @@ public void onDataModified(ImageDrawingData oldValue, ImageDrawingData value) {
 	
 
 	protected void doReloadData() {
-		onTextureDataChanged(manager.getTextureData().copy());
+		onTextureDataChanged(manager.getTextureDataWithNewestBone().copy());
 	}
 
 	public void onImageDrawingDataFlush() {
@@ -1705,11 +1705,11 @@ public void onDataModified(ImageDrawingData oldValue, ImageDrawingData value) {
 							public void update(int index, ImageDrawingData object,
 									String value) {
 								
-								if(manager.getTextureData()==null){
+								if(manager.getTextureDataWithNewestBone()==null){
 									return;
 								}
 								
-								for(ImageDrawingData original:manager.getTextureData().findDataById(object.getId()).asSet()){
+								for(ImageDrawingData original:manager.getTextureDataWithNewestBone().findDataById(object.getId()).asSet()){
 									original.copyToWithoutImageElementAndId(object);
 									updateCanvas();
 								}
@@ -1718,7 +1718,7 @@ public void onDataModified(ImageDrawingData oldValue, ImageDrawingData value) {
 							}
 							@Override
 							public String getValue(ImageDrawingData object) {
-								if(manager.getTextureData()==null){
+								if(manager.getTextureDataWithNewestBone()==null){
 									return "";
 								}
 								

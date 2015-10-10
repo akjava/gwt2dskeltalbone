@@ -36,7 +36,7 @@ public class FileManagerBar extends VerticalPanel{
 		panel.setVerticalAlignment(ALIGN_MIDDLE);
 		this.add(panel);
 		
-		panel.add(new Label("Bone/Animation"));
+		panel.add(new Label("Bone/Animation:"));
 		boneNameLabel = createLabel("");
 		panel.add(boneNameLabel);
 		
@@ -173,6 +173,7 @@ public class FileManagerBar extends VerticalPanel{
 		if(data.getBone()!=null){
 			BoneAndAnimationData baa=new BoneAndAnimationData();
 			baa.setBone(data.getBone());
+			LogUtils.log("setBoneAndAnimation from clipImageData");
 			setBoneAndAnimation(fileName,baa);
 		}
 	}

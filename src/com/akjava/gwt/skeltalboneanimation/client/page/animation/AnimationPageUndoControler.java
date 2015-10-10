@@ -63,6 +63,7 @@ private BoneFrameRangeControler controler;
 		Optional<BoneFrameRangeCommand> command=this.getLastCommandIfBoneFrameRangeCommand(index,boneName);
 		if(command.isPresent()){
 			command.get().setNewAngle(newAngle);
+			this.update(command.get());
 		}else{
 			BoneFrameRangeCommand newCommand=new BoneFrameRangeCommand(index,boneName,oldAngle,newAngle,controler);
 			this.execute(newCommand);
@@ -73,6 +74,7 @@ private BoneFrameRangeControler controler;
 		Optional<BoneFramePositionCommand> command=this.getLastCommandIfBoneFramePositionCommand(index,boneName);
 		if(command.isPresent()){
 			command.get().setNewPosition(newPoint);
+			this.update(command.get());
 		}else{
 			BoneFramePositionCommand newCommand=new BoneFramePositionCommand(index,boneName,oldPoint,newPoint,controler);
 			this.execute(newCommand);
@@ -87,6 +89,7 @@ private BoneFrameRangeControler controler;
 		Optional<BoneFrameScaleCommand> command=this.getLastCommandIfBoneFrameScaleCommand(index,boneName);
 		if(command.isPresent() && collapse){
 			command.get().setNewScale(newScale);
+			this.update(command.get());
 		}else{
 			BoneFrameScaleCommand newCommand=new BoneFrameScaleCommand(index,boneName,oldScale,newScale,collapse,controler);
 			this.execute(newCommand);

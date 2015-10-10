@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import javax.management.RuntimeErrorException;
+
 import com.akjava.gwt.html5.client.download.HTML5Download;
 import com.akjava.gwt.html5.client.file.Blob;
 import com.akjava.gwt.html5.client.file.File;
@@ -30,8 +32,10 @@ import com.akjava.gwt.lib.client.datalist.TextAreaBasedDataList.TextAreaBasedDat
 import com.akjava.gwt.lib.client.experimental.CanvasDragMoveControler.KeyDownState;
 import com.akjava.gwt.lib.client.experimental.ExecuteButton;
 import com.akjava.gwt.lib.client.experimental.RectCanvasUtils;
+import com.akjava.gwt.lib.client.experimental.undo.Command;
 import com.akjava.gwt.lib.client.experimental.undo.SimpleUndoControler;
 import com.akjava.gwt.lib.client.experimental.undo.UndoButtons;
+import com.akjava.gwt.lib.client.experimental.undo.UndoListener;
 import com.akjava.gwt.lib.client.storage.MemoryStorageControler;
 import com.akjava.gwt.skeltalboneanimation.client.BoneUtils;
 import com.akjava.gwt.skeltalboneanimation.client.CanvasDrawingDataControler;
@@ -49,9 +53,11 @@ import com.akjava.gwt.skeltalboneanimation.client.bones.BoneFrame;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneWithXYAngle;
 import com.akjava.gwt.skeltalboneanimation.client.bones.SkeletalAnimation;
 import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
+import com.akjava.gwt.skeltalboneanimation.client.converters.AnimationConverter;
 import com.akjava.gwt.skeltalboneanimation.client.converters.BoneAndAnimationConverter;
 import com.akjava.gwt.skeltalboneanimation.client.converters.BoneConverter;
 import com.akjava.gwt.skeltalboneanimation.client.converters.ClipImageDataConverter;
+import com.akjava.gwt.skeltalboneanimation.client.converters.SimpleTextDataConverter;
 import com.akjava.gwt.skeltalboneanimation.client.converters.TextureDataConverter;
 import com.akjava.gwt.skeltalboneanimation.client.page.AbstractPage;
 import com.akjava.gwt.skeltalboneanimation.client.page.HasSelectionName;
@@ -67,6 +73,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Lists;
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.dom.client.CanvasElement;
 import com.google.gwt.dom.client.ImageElement;
@@ -542,6 +549,11 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 		
 	
 	}
+	/**
+	 * @deprecated
+	 * for old file.right now no plan to support
+	 * @return
+	 */
 	private String createAnimationSaveData(){
 		BoneAndAnimationData data=new BoneAndAnimationData();
 		data.setBone(getRootBone());
@@ -550,6 +562,10 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 		
 		List<String> lines=new BoneAndAnimationConverter().convert(data);
 		return Joiner.on("\r\n").join(lines);
+	}
+	private String createAnimationsSaveData(){
+		String csv=new SimpleTextDataConverter().convert(dataList.getDataList().getDataList());
+		return csv;
 	}
 	
 	private String createBoneSaveData(){
@@ -1262,7 +1278,36 @@ public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvas
 		//controler.setUndoControler(undoControler,this);
 		
 		canvasDrawingDataControlCanvas.add(controler);
+		
+		undoControler.setUndoListener(new UndoListener() {
+			
+			@Override
+			public void onUndo(SimpleUndoControler controler, Command command) {
+				writeToDataList();
+			}
+			
+			@Override
+			public void onRedo(SimpleUndoControler controler, Command command) {
+				writeToDataList();
+			}
+			
+			@Override
+			public void onExecute(SimpleUndoControler controler, Command command) {
+				writeToDataList();
+			}
+
+			@Override
+			public void onUpdate(SimpleUndoControler controler, Command command) {
+				writeToDataList();
+			}
+		});
 	
+	}
+	protected void writeToDataList() {
+		LogUtils.log("writeToDataList");
+		String text=Joiner.on("\r\n").join(new AnimationConverter().convert(animationControler.getAnimation()));
+		dataList.getTextArea().setText(text);
+		dataList.save();
 	}
 	@Override
 	protected Widget createCenterPanel() {
@@ -1503,10 +1548,30 @@ upper.add(new UndoButtons(undoControler));
 	
 	private void loadFromDataList(Optional<SimpleTextData> hv){
 		if(hv.isPresent()){
+			String dataText=hv.get().getData();
 			LogUtils.log("loadFromDataList:"+hv.get().getName());
+			
+			SkeletalAnimation animation=null;
+			if(dataText.isEmpty()){
+				animation=new SkeletalAnimation();
+				animation.add(new AnimationFrame());//test empty
+			}else{
+				animation=new AnimationConverter().reverse().convert(CSVUtils.splitLinesWithGuava(dataText));
+			}
+			
+			if(manager.getBoneSupplier().get()==null){
+				LogUtils.log("initial bone is null skipped");
+				return;
+			}
+			
+			BoneAndAnimationData data=new BoneAndAnimationData();
+			data.setBone(manager.getBoneSupplier().get());
+			data.setAnimation(animation);
+			LogUtils.log("setBoneAndAnimation from datalist");
+			manager.getFileManagerBar().setBoneAndAnimation(hv.get().getName(),data);
 			//get annimation
 		}else{
-			LogUtils.log("loadFromDataList:"+null);
+			LogUtils.log("loadFromDataList-never happen:"+null);
 		}
 	}
 	
@@ -1562,24 +1627,83 @@ upper.add(new UndoButtons(undoControler));
 	protected void doLoadFile(final String name, Uint8Array array) {
 		String extension=FileNames.getExtension(name).toLowerCase();
 		if(extension.equals("zip")){
+			//must clear data-list
+			
+			
 			
 			//load animation
 			JSZip zip=JSZip.loadFromArray(array);
-			JSFile jsFile=zip.getFile(SkeltalFileFormat.ANIMATION_FILE);
-			if(jsFile!=null){
-				String text=jsFile.asText();
-				setBoneAndAnimationText(name,text);
+			
+			//load old single animation & import & select.any way at least one animation must be exist
+			List<SimpleTextData> animationDatas=null;
+			JSFile jsAnimationsFile=zip.getFile(SkeltalFileFormat.ANIMATIONS_FILE);
+			if(jsAnimationsFile!=null){
+				String text=jsAnimationsFile.asText();
+				animationDatas=new SimpleTextDataConverter().reverse().convert(text);
 			}else{
-				Window.alert("not contain "+SkeltalFileFormat.ANIMATION_FILE);
+				LogUtils.log("not contain "+SkeltalFileFormat.ANIMATIONS_FILE);
+				animationDatas=Lists.newArrayList();
+			}
+			
+			
+			JSFile jsFile=zip.getFile(SkeltalFileFormat.ANIMATION_FILE);
+			if(jsFile!=null && animationDatas.isEmpty()){
+				LogUtils.log("exist old animation text.this would replace 0 index data");
+				String text=jsFile.asText();
+				BoneAndAnimationData data=new BoneAndAnimationConverter().reverse().convert(CSVUtils.splitLinesWithGuava(text));
+				SimpleTextData animationData=new SimpleTextData("default", 
+						Joiner.on("\r\n").join(new AnimationConverter().convert(data.getAnimation()))
+						);
+				animationData.setId(0);
+				animationDatas.add(animationData);
+				
+			}else{
+				LogUtils.log("not contain "+SkeltalFileFormat.ANIMATION_FILE);
 			}
 			
 			//parse datas.
 			TextureData textureData=new TextureDataConverter().convert(zip);
-			manager.getFileManagerBar().setTexture(name, textureData);
+			
 			
 			//this call background & bone
 			ClipImageData clipImageData=new ClipImageDataConverter().convert(zip);
+			
+			
+			TwoDimensionBone bone=clipImageData.getBone();
+			if(bone==null){
+				LogUtils.log("bone not exist in clipImageData.means not exist in zip.quit");
+				return;
+			}
+			
+			//at least one data need
+			if(animationDatas.isEmpty()){
+				SkeletalAnimation animation=new SkeletalAnimation();
+				AnimationFrame frame=BoneUtils.createEmptyAnimationFrame(bone);
+				animation.add(frame);
+				SimpleTextData animationData=new SimpleTextData("default", 
+						Joiner.on("\r\n").join(new AnimationConverter().convert(animation))
+						);
+				animationDatas.add(animationData);
+			}
+			
+			dataList.execRestore(animationDatas);
+			dataList.next();//select first
+			//why???
+			
+			
+			if(clipImageData.getBone()!=null){
+				setRootBone(clipImageData.getBone());
+			}
+			
+			//these set single bone
+			manager.getFileManagerBar().setTexture(name, textureData);
 			manager.getFileManagerBar().setClipImageData(name, clipImageData);
+			
+			
+			
+			//BoneAndAnimationData boneAndAnimation=new BoneAndAnimationData(bone, animation)
+			//manager.getFileManagerBar().setBoneAndAnimation(name, boneAndAnimation);
+			
 			
 			Optional<ImageElement> bg2Image=JSZipUtils.getImagheFile(zip, SkeltalFileFormat.BACKGROUND_IMAGE2);
 			for(ImageElement image:bg2Image.asSet()){
@@ -1589,6 +1713,8 @@ upper.add(new UndoButtons(undoControler));
 			
 			
 		}else{
+			LogUtils.log("load single animation.almost deprecatd so far");
+			//TODO import 
 			Blob blob=Blob.createBlob(array, "plain/text");
 			final FileReader reader=FileReader.createFileReader();
 			reader.setOnLoad(new FileHandler() {
@@ -1602,6 +1728,11 @@ upper.add(new UndoButtons(undoControler));
 			reader.readAsText((File)blob.cast(), "uff8");
 		}
 	}
+	/**
+	 * @deprecated
+	 * @param name
+	 * @param text
+	 */
 	private void setBoneAndAnimationText(String name,String text){
 		BoneAndAnimationData data=new BoneAndAnimationConverter().reverse().convert(CSVUtils.splitLinesWithGuava(text));
 		manager.getFileManagerBar().setBoneAndAnimation(name, data);
@@ -1632,8 +1763,13 @@ upper.add(new UndoButtons(undoControler));
 		}
 		//add animation. bone is created by textureData
 		
-		String animationText=createAnimationSaveData();
-		jszip.file(SkeltalFileFormat.ANIMATION_FILE, animationText);
+		//String animationText=createAnimationSaveData();
+	//	jszip.file(SkeltalFileFormat.ANIMATION_FILE, animationText);
+		
+		//save data list
+		String animationsText=createAnimationsSaveData();
+		jszip.file(SkeltalFileFormat.ANIMATIONS_FILE, animationsText);
+		
 		
 		//bg2
 		if(bg2!=null){

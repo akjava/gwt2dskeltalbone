@@ -103,6 +103,9 @@ public BoneAndAnimationData getBoneAndAnimation() {
 }
 
 private TwoDimensionBone getBone() {
+	if(getUploadedFileManager().getBoneAndAnimation()==null){
+		return null;
+	}
 	return getUploadedFileManager().getBoneAndAnimation().getBone();
 }
 public void setTextureOrder(List<String> names,DataOwner owner){

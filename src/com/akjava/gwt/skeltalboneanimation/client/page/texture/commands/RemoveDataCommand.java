@@ -1,5 +1,5 @@
 package com.akjava.gwt.skeltalboneanimation.client.page.texture.commands;
-import com.akjava.gwt.skeltalboneanimation.client.SimpleUndoControler.Command;
+import com.akjava.gwt.lib.client.experimental.undo.Command;
 import com.akjava.gwt.skeltalboneanimation.client.page.texture.UndoDataControler;
 
 public class RemoveDataCommand<T> implements Command{

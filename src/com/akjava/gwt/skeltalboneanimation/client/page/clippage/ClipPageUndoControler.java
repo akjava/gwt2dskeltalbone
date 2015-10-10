@@ -3,7 +3,7 @@ package com.akjava.gwt.skeltalboneanimation.client.page.clippage;
 import java.util.List;
 
 import com.akjava.gwt.lib.client.LogUtils;
-import com.akjava.gwt.skeltalboneanimation.client.SimpleUndoControler;
+import com.akjava.gwt.lib.client.experimental.undo.SimpleUndoControler;
 import com.akjava.gwt.skeltalboneanimation.client.page.clippage.commands.AddDataCommand;
 import com.akjava.gwt.skeltalboneanimation.client.page.clippage.commands.AddPointCommand;
 import com.akjava.gwt.skeltalboneanimation.client.page.clippage.commands.ClipImageDataCommand;

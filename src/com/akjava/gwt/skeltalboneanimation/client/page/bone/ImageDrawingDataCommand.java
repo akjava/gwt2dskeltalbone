@@ -2,8 +2,8 @@ package com.akjava.gwt.skeltalboneanimation.client.page.bone;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.akjava.gwt.lib.client.experimental.undo.Command;
 import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingData;
-import com.akjava.gwt.skeltalboneanimation.client.SimpleUndoControler.Command;
 
 public class ImageDrawingDataCommand implements Command{
 	private ImageDrawingData beforeData;

@@ -1,7 +1,7 @@
 package com.akjava.gwt.skeltalboneanimation.client.page.texture.commands;
 import java.util.List;
 
-import com.akjava.gwt.skeltalboneanimation.client.SimpleUndoControler.Command;
+import com.akjava.gwt.lib.client.experimental.undo.Command;
 import com.akjava.gwt.skeltalboneanimation.client.page.texture.UndoDataControler;
 /*
  * Called when

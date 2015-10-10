@@ -2,7 +2,8 @@ package com.akjava.gwt.skeltalboneanimation.client.page.animation;
 
 import java.util.List;
 
-import com.akjava.gwt.skeltalboneanimation.client.SimpleUndoControler;
+import com.akjava.gwt.lib.client.experimental.undo.Command;
+import com.akjava.gwt.lib.client.experimental.undo.SimpleUndoControler;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationFrame;
 import com.akjava.gwt.skeltalboneanimation.client.page.animation.BoneFramePositionCommand.BoneFramePositionCommandIndexNamePredicate;
 import com.akjava.gwt.skeltalboneanimation.client.page.animation.BoneFrameRangeCommand.BoneFrameRangeCommandIndexNamePredicate;

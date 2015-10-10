@@ -20,22 +20,25 @@ import com.akjava.gwt.jszip.client.JSFile;
 import com.akjava.gwt.jszip.client.JSZip;
 import com.akjava.gwt.jszip.client.JSZipUtils;
 import com.akjava.gwt.lib.client.CanvasUtils;
-import com.akjava.gwt.lib.client.GWTHTMLUtils;
 import com.akjava.gwt.lib.client.ImageElementUtils;
 import com.akjava.gwt.lib.client.LogUtils;
-import com.akjava.gwt.lib.client.experimental.CanvasDragMoveControler;
+import com.akjava.gwt.lib.client.StorageControler;
+import com.akjava.gwt.lib.client.StorageDataList;
+import com.akjava.gwt.lib.client.datalist.SimpleTextData;
+import com.akjava.gwt.lib.client.datalist.TextAreaBasedDataList;
+import com.akjava.gwt.lib.client.datalist.TextAreaBasedDataList.TextAreaBasedDataListListener;
 import com.akjava.gwt.lib.client.experimental.CanvasDragMoveControler.KeyDownState;
-import com.akjava.gwt.lib.client.experimental.CanvasMoveListener;
 import com.akjava.gwt.lib.client.experimental.ExecuteButton;
 import com.akjava.gwt.lib.client.experimental.RectCanvasUtils;
+import com.akjava.gwt.lib.client.experimental.undo.SimpleUndoControler;
+import com.akjava.gwt.lib.client.experimental.undo.UndoButtons;
+import com.akjava.gwt.lib.client.storage.MemoryStorageControler;
 import com.akjava.gwt.skeltalboneanimation.client.BoneUtils;
 import com.akjava.gwt.skeltalboneanimation.client.CanvasDrawingDataControler;
 import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingData;
-import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingDataControler;
 import com.akjava.gwt.skeltalboneanimation.client.MainManager;
 import com.akjava.gwt.skeltalboneanimation.client.SkeltalFileFormat;
 import com.akjava.gwt.skeltalboneanimation.client.TextureData;
-import com.akjava.gwt.skeltalboneanimation.client.UndoButtons;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationControlRange;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationFrame;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationFrameCopyFunction;
@@ -69,8 +72,6 @@ import com.google.gwt.dom.client.CanvasElement;
 import com.google.gwt.dom.client.ImageElement;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.event.dom.client.MouseWheelEvent;
-import com.google.gwt.event.dom.client.MouseWheelHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.user.client.Window;
@@ -81,6 +82,7 @@ import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Panel;
+import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 
@@ -1196,6 +1198,8 @@ public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvas
 	private CheckBox autoReplaceBoneCheck;
 	private CanvasDrawingDataControlCanvas canvasDrawingDataControlCanvas;
 
+	private TextAreaBasedDataList dataList;
+
 
 	@Override
 	protected void onCanvasTouchEnd(int sx, int sy) {
@@ -1262,7 +1266,11 @@ public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvas
 	}
 	@Override
 	protected Widget createCenterPanel() {
+		HorizontalPanel panel0=new HorizontalPanel();
+		
 		Panel panel=new VerticalPanel();
+		panel0.add(panel);
+		
 	    HorizontalPanel upper=new HorizontalPanel();
 	    
 	    upper.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
@@ -1440,7 +1448,66 @@ upper.add(new UndoButtons(undoControler));
 	
 	updateCanvas();
 	
-	return panel;
+	panel0.add(createRightPanel());
+	
+	return panel0;
+	}
+	
+	private Widget createRightPanel() {
+		VerticalPanel panel=new VerticalPanel();
+		
+
+		MemoryStorageControler memoryStorageControler=new MemoryStorageControler();
+		
+		dataList = new TextAreaBasedDataList(new StorageDataList(memoryStorageControler, "gwtdatalist"),new SimpleTextData( "default", ""));
+		HorizontalPanel h=new HorizontalPanel();
+		panel.add(h);
+		
+		dataList.setTextAreaBasedDataListListener(new TextAreaBasedDataListListener() {
+			
+			@Override
+			public void onLoad(Optional<SimpleTextData> hv) {
+				loadFromDataList(hv);
+			}
+		});
+		
+		
+		
+		
+		panel.add(dataList.getTextArea());
+		
+		
+		h.add(dataList.getSimpleDataListWidget());
+		
+		
+		//modify datalist
+		dataList.getSimpleDataListWidget().getSaveBt().setVisible(false);
+		dataList.getSimpleDataListWidget().getSaveAsBt().setVisible(false);
+		dataList.getSimpleDataListWidget().getCopyBt().setVisible(false);
+		dataList.getSimpleDataListWidget().getPasteBt().setVisible(false);
+		dataList.getSimpleDataListWidget().getCloneBt().setVisible(true);
+		dataList.getSimpleDataListWidget().getExpandButton().setVisible(false);
+		dataList.getSimpleDataListWidget().getUnselectBt().setVisible(false);
+		dataList.getSimpleDataListWidget().getReloadBt().setVisible(false);
+		
+		dataList.getSimpleDataListWidget().getBackBt().setVisible(false);
+		
+		dataList.getSimpleDataListWidget().mergeButton1AndButton2();
+		dataList.getSimpleDataListWidget().moveClearAllToButton1();
+		
+		SimpleUndoControler undoControler=new SimpleUndoControler();
+		dataList.setUndoControler(undoControler);
+		
+		return panel;
+	}
+	
+	private void loadFromDataList(Optional<SimpleTextData> hv){
+		if(hv.isPresent()){
+			LogUtils.log("loadFromDataList:"+hv.get().getName());
+			//get annimation
+		}else{
+			LogUtils.log("loadFromDataList:"+null);
+		}
 	}
 	
 	AnimationFrame copiedData;

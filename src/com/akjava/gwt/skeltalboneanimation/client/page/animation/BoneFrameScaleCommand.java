@@ -2,7 +2,7 @@ package com.akjava.gwt.skeltalboneanimation.client.page.animation;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.akjava.gwt.skeltalboneanimation.client.SimpleUndoControler.Command;
+import com.akjava.gwt.lib.client.experimental.undo.Command;
 import com.akjava.lib.common.graphics.Point;
 import com.google.common.base.Equivalence;
 import com.google.common.base.Objects;

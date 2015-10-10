@@ -1,7 +1,8 @@
 package com.akjava.gwt.skeltalboneanimation.client;
 
 import com.akjava.gwt.lib.client.experimental.CanvasDragMoveControler.KeyDownState;
-import com.akjava.gwt.skeltalboneanimation.client.SimpleUndoControler.Command;
+import com.akjava.gwt.lib.client.experimental.undo.Command;
+import com.akjava.gwt.lib.client.experimental.undo.SimpleUndoControler;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.ImageDrawingDataCommand;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.ImageDrawingDatasUpdater;
 import com.google.common.base.Equivalence;

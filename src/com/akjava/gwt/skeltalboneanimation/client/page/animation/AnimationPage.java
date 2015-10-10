@@ -391,9 +391,12 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 		
 		AnimationFrame currentSelectionFrame = animations.getFrames().get(0);
 		
+		animationControler.setSelection(currentSelectionFrame, true);
+		
 		boneControlerRange.setRootBone(newRoot);//reset
 		boneControlerRange.setFrame(currentSelectionFrame);
 		
+		//int index=animationControler.getSelectedIndex();
 		
 		animationControler.syncRangeMaxAndInvalidIndex();
 		

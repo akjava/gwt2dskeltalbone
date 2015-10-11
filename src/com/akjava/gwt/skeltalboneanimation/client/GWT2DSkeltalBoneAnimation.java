@@ -17,6 +17,9 @@ import com.google.gwt.http.client.RequestBuilder;
 import com.google.gwt.http.client.RequestCallback;
 import com.google.gwt.http.client.RequestException;
 import com.google.gwt.http.client.Response;
+import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.Window.ClosingEvent;
+import com.google.gwt.user.client.Window.ClosingHandler;
 import com.google.gwt.user.client.ui.DockLayoutPanel;
 import com.google.gwt.user.client.ui.RootLayoutPanel;
 import com.google.gwt.user.client.ui.TabLayoutPanel;
@@ -139,6 +142,12 @@ public class GWT2DSkeltalBoneAnimation implements EntryPoint {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+		Window.addWindowClosingHandler(new ClosingHandler() {
+			
+			@Override
+			public void onWindowClosing(ClosingEvent event) {
+				//event.setMessage("really close.unsaved data everything would gone.");
+			}
+		});
 	}
 }

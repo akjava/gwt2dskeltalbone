@@ -150,11 +150,18 @@ public class ColorPickPage extends AbstractPage{
 	}
 
 	@Override
+	public void onSelectedFromTab() {
+		super.onSelectedFromTab();
+		positiveCheck.setValue(true);//always select when page open
+	}
+	@Override
 	protected void initialize() {
+		
 		scale=1;
 		isPositive=true;
 		history=Lists.newArrayList();
 		initDatas();
+		strategy=LENGTH_LUV;
 		
 	}
 
@@ -240,6 +247,7 @@ public class ColorPickPage extends AbstractPage{
 				paintResult();
 			}
 		});
+		strategyBox.setSelectedIndex(strategy);
 		strategyPanel.add(strategyBox);
 		
 		RadioButton testCheck = new RadioButton("type","test point");
@@ -286,7 +294,7 @@ public class ColorPickPage extends AbstractPage{
 		
 		HorizontalPanel h0=new HorizontalPanel();
 		topPanel.add(h0);
-		RadioButton positiveCheck = new RadioButton("type","add Positive point");
+		positiveCheck = new RadioButton("type","add Positive point");
 		positiveCheck.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
 			
 			@Override
@@ -1037,6 +1045,7 @@ public class ColorPickPage extends AbstractPage{
 	private HorizontalPanel debugPanel;
 	private CheckBox clipCheck;
 	private CheckBox enableClip;
+	private RadioButton positiveCheck;
 
 
 	/*

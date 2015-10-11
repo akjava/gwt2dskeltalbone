@@ -16,9 +16,9 @@ import com.akjava.gwt.lib.client.CanvasUtils;
 import com.akjava.gwt.lib.client.ImageElementUtils;
 import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.lib.client.experimental.CanvasDragMoveControler.KeyDownState;
-import com.akjava.gwt.lib.client.experimental.undo.UndoButtons;
 import com.akjava.gwt.lib.client.experimental.ExecuteButton;
 import com.akjava.gwt.lib.client.experimental.RectCanvasUtils;
+import com.akjava.gwt.lib.client.experimental.undo.UndoButtons;
 import com.akjava.gwt.lib.client.game.PointD;
 import com.akjava.gwt.lib.client.graphics.Graphics;
 import com.akjava.gwt.lib.client.widget.cell.EasyCellTableObjects;
@@ -44,6 +44,7 @@ import com.akjava.gwt.skeltalboneanimation.client.page.ListenerSystem.DataOwner;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.BoneControler;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.CanvasDrawingDataControlCanvas;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.CanvasUpdater;
+import com.akjava.gwt.skeltalboneanimation.client.page.bone.ImageDrawingDatasUpdater;
 import com.akjava.gwt.skeltalboneanimation.client.page.html5app.TransparentItPage;
 import com.akjava.gwt.skeltalboneanimation.client.predicates.NotExistInIds;
 import com.akjava.lib.common.graphics.Point;
@@ -86,7 +87,7 @@ import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 
-public class ClipImagePage extends AbstractPage implements DataOwner,ClipImageDataControler,CanvasUpdater{
+public class ClipImagePage extends AbstractPage implements DataOwner,ClipImageDataControler,CanvasUpdater,ImageDrawingDatasUpdater{
 	 interface Driver extends SimpleBeanEditorDriver< ClipData,  ClipDataEditor> {}
 	
 	 //dont initialize here
@@ -395,7 +396,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		ImageDrawingDataControler controler=new ImageDrawingDataControler(background);
 		canvasDrawingDataControlCanvas.add(controler);
 		
-		
+		controler.setUndoControler(undoControler,this);
 		
 		return panel;
 	}
@@ -1988,7 +1989,10 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 
 
 
-
+	@Override
+	public void updateImageDrawingDatas() {
+		updateCanvas();
+	}
 	
 	
 }

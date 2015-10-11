@@ -1,5 +1,6 @@
 package com.akjava.gwt.skeltalboneanimation.client;
 
+import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.lib.client.experimental.CanvasDragMoveControler.KeyDownState;
 import com.akjava.gwt.lib.client.experimental.undo.Command;
 import com.akjava.gwt.lib.client.experimental.undo.SimpleUndoControler;
@@ -70,7 +71,9 @@ public class ImageDrawingDataControler implements CanvasDrawingDataControler{
 	}
 	
 	private Optional<ImageDrawingDataCommand> getLastImageDrawingDataCommandIfExist(){
-		
+		if(undoControler==null){
+			return Optional.absent();
+		}
 		for(Command command:undoControler.getLastUndoCommand().asSet()){
 			if(command instanceof ImageDrawingDataCommand){
 				ImageDrawingDataCommand dCommand=(ImageDrawingDataCommand)command;
@@ -84,22 +87,30 @@ public class ImageDrawingDataControler implements CanvasDrawingDataControler{
 	}
 	
 	private void onWheelEnd() {
+		if(!isSupportUndo()){
+			return;
+		}
+		
 		Optional<ImageDrawingDataCommand> optional=getLastImageDrawingDataCommandIfExist();
 		if(optional.isPresent()){
+			
 			ImageDrawingData after=collisioned.copy();
 			optional.get().setAfterData(after);
 			before=null;
 		}else{
+			
 			ImageDrawingData after=collisioned.copy();
 			undoControler.execute(new ImageDrawingDataCommand(updater,collisioned,before,after,true));
 			before=null;
 		}
+		
 	}
 
 	private void onWheelStart() {
 		if(isSupportUndo() & collisioned!=null){
 			before=collisioned.copy();
 		}
+		
 	}
 
 	@Override

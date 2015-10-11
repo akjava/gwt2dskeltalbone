@@ -95,7 +95,9 @@ public void copyTo(ClipData data, boolean deepCopy) {
 	data.getPoints().clear();
 	
 	if(deepCopy){
-		data.setLinkedImageDrawingData(linkedImageDrawingData.copy());
+		if(linkedImageDrawingData!=null){
+			data.setLinkedImageDrawingData(linkedImageDrawingData.copy());
+		}
 		for(Point pt:points){
 			data.getPoints().add(pt.copy());
 		}

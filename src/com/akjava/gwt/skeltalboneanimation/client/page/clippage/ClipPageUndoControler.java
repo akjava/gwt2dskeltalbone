@@ -25,14 +25,14 @@ public ClipPageUndoControler(ClipImageDataControler controler) {
 
 
 public void execMovePoint(int dataIndex,int index,Point oldPoint,Point newPoint){
-	LogUtils.log("execMovePoint");
+	//LogUtils.log("execMovePoint");
 	execute(new MovePointCommand(dataIndex,index, oldPoint,newPoint, controler));
 	
 	
 }
 
 public Point execAddPoint(int dataIndex,int index,double x,double y){
-	LogUtils.log("execAddPoint");
+	//LogUtils.log("execAddPoint");
 	Point pt=new Point(x,y);
 	
 	execute(new AddPointCommand(dataIndex,index, pt, controler));
@@ -41,13 +41,13 @@ public Point execAddPoint(int dataIndex,int index,double x,double y){
 }
 
 public void execRemovePoint(int dataIndex,int index) {
-	LogUtils.log("execRemovePoint");
+	//LogUtils.log("execRemovePoint");
 	execute(new RemovePointCommand(dataIndex,index, controler));
 }
 
 
 public ClipData execAddData(int dataIndex,ClipData data){
-	LogUtils.log("execAddData");
+	//LogUtils.log("execAddData");
 	
 	execute(new AddDataCommand(dataIndex,data, controler));
 	
@@ -55,21 +55,21 @@ public ClipData execAddData(int dataIndex,ClipData data){
 }
 
 public void execRemoveData(int dataIndex) {
-	LogUtils.log("execRemoveData");
+	//LogUtils.log("execRemoveData");
 	execute(new RemoveDataCommand(dataIndex, controler));
 }
 
 public void execEditData(int dataIndex,ClipData oldData,ClipData newData) {
-	LogUtils.log("execEditData");
+	//LogUtils.log("execEditData");
 	execute(new EditDataCommand(dataIndex, oldData,newData,controler));
 }
 
 public void executeOrder(List<ClipData> oldOrder,List<ClipData> newOrder){
-	LogUtils.log("executeOrder");
+	//LogUtils.log("executeOrder");
 	execute(new OrderChangeCommand(oldOrder, newOrder, controler));
 }
 public void executeDataUpdate(List<ClipData> oldDatas,List<ClipData> newDatas){
-	LogUtils.log("executeDataUpdate");
+	//LogUtils.log("executeDataUpdate");
 	execute(new ClipImageDataCommand(oldDatas, newDatas, controler));
 }
 

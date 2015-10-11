@@ -613,7 +613,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		@Override
 		public void executeOnClick() {
 			if(isClipDataSelected()){
-				LogUtils.log(getSelection().getBounds());
+				//LogUtils.log(getSelection().getBounds());
 				doTransparent(getSelection());
 				
 				//added data's order is invalid,fix it
@@ -709,11 +709,16 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 
 	
 	protected void doTransparent(final ClipData original) {
+		
 		ClipData clipData=original.copy(true);
 		
 		TextureData textureData=manager.getTextureDataWithNewestBone();
+		
 		transparentItPage.removeItemById(clipData.getId());
+		
 		TransparentData data=new ClipDataToTransparentDataFunction(textureData).apply(clipData);
+		
+		
 		
 		transparentItPage.addItem(new Supplier<String>() {
 			@Override

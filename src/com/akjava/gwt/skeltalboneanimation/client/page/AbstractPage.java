@@ -47,7 +47,7 @@ protected int westPanelWidth=300;
 		if(westWidget!=null){
 			this.addWest(westWidget,westPanelWidth);
 		}else{
-			LogUtils.log("AbstractPage:west-widget is null");
+			//LogUtils.log("AbstractPage:west-widget is null");
 		}
 		Widget centerWidget=createCenterPanel();
 		if(centerWidget!=null){

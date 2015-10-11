@@ -173,7 +173,7 @@ public class FileManagerBar extends VerticalPanel{
 		if(data.getBone()!=null){
 			BoneAndAnimationData baa=new BoneAndAnimationData();
 			baa.setBone(data.getBone());
-			LogUtils.log("setBoneAndAnimation from clipImageData");
+			//LogUtils.log("setBoneAndAnimation from clipImageData");
 			setBoneAndAnimation(fileName,baa);
 		}
 	}

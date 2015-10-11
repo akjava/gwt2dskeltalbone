@@ -3,6 +3,7 @@ package com.akjava.gwt.skeltalboneanimation.client.converters;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.skeltalboneanimation.client.IgnoreStartWithShape;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationFrame;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneFrame;
@@ -49,11 +50,18 @@ public class AnimationConverter extends Converter<SkeletalAnimation,List<String>
 		AnimationFrame frame=null;
 		boolean firstLineParsed=false;
 		for(String line:filterd){
+			try{
 			String[] data=line.trim().split(",");
-			if(data[0].isEmpty()){
+			if(data[0].isEmpty()){ //if bone name is empty skipped
 				continue;
 			}
-			//first line control
+			//first line control 
+			/**
+			 * 
+			 * FORMAT_KEY,fps,name
+			 * skeletalanimation,33.34,test
+			 * 
+			 */
 			if(!firstLineParsed && data[0].equals(FORMAT_KEY)){
 				if(data.length>1){
 					animation.setFps(Double.parseDouble(data[1]));
@@ -63,7 +71,12 @@ public class AnimationConverter extends Converter<SkeletalAnimation,List<String>
 				}
 				
 			}else if(ValuesUtils.isDigitString(data[0])){
-				int index=Integer.parseInt(data[0]);//not support yet
+				int index=0;
+				try{
+				index=Integer.parseInt(data[0]);//not support yet
+				}catch (Exception e) {
+					LogUtils.log("parse-frame index faild input=:"+data[0]);
+				}
 				frame=new AnimationFrame();
 				
 				if(data.length>1){
@@ -78,8 +91,8 @@ public class AnimationConverter extends Converter<SkeletalAnimation,List<String>
 				animation.add(frame);
 			}else{
 				String boneName=data[0];
-				int x=0;
-				int y=0;
+				double x=0;
+				double y=0;
 				double angle=0;
 				
 				if(data.length>1){
@@ -87,10 +100,10 @@ public class AnimationConverter extends Converter<SkeletalAnimation,List<String>
 				}
 				
 				if(data.length>2){
-					x=Integer.parseInt(data[2]);
+					x=Double.parseDouble(data[2]);
 				}
 				if(data.length>3){
-					y=Integer.parseInt(data[3]);
+					y=Double.parseDouble(data[3]);
 				}
 				
 				BoneFrame boneFrame=new BoneFrame(boneName, x, y, angle);
@@ -101,6 +114,10 @@ public class AnimationConverter extends Converter<SkeletalAnimation,List<String>
 				frame.add(boneFrame);
 			}
 			firstLineParsed=true;
+			}catch (Exception e) {
+				LogUtils.log("parse-faild:"+line);
+				throw new RuntimeException("AnimationConverter:parse faild:"+line);
+			}
 		}
 		
 		return animation;

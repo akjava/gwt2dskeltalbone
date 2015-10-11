@@ -1307,7 +1307,7 @@ public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvas
 	
 	}
 	protected void writeToDataList() {
-		LogUtils.log("writeToDataList");
+		//LogUtils.log("writeToDataList");
 		String text=Joiner.on("\r\n").join(new AnimationConverter().convert(animationControler.getAnimation()));
 		dataList.getTextArea().setText(text);
 		dataList.save();
@@ -1552,7 +1552,9 @@ upper.add(new UndoButtons(undoControler));
 	private void loadFromDataList(Optional<SimpleTextData> hv){
 		if(hv.isPresent()){
 			String dataText=hv.get().getData();
-			LogUtils.log("loadFromDataList:"+hv.get().getName());
+			//LogUtils.log("loadFromDataList:"+hv.get().getName());
+			//LogUtils.log(dataText);
+			
 			
 			SkeletalAnimation animation=null;
 			if(dataText.isEmpty()){
@@ -1567,10 +1569,12 @@ upper.add(new UndoButtons(undoControler));
 				return;
 			}
 			
+			
+			
 			BoneAndAnimationData data=new BoneAndAnimationData();
 			data.setBone(manager.getBoneSupplier().get());
 			data.setAnimation(animation);
-			LogUtils.log("setBoneAndAnimation from datalist");
+			//LogUtils.log("setBoneAndAnimation from datalist");
 			manager.getFileManagerBar().setBoneAndAnimation(hv.get().getName(),data);
 			//get annimation
 		}else{

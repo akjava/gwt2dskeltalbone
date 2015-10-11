@@ -76,8 +76,9 @@ public class BoneControlRange extends VerticalPanel{
 		xBox.setValue(getBoneFrameX(boneName));
 		yBox.setValue(getBoneFrameY(boneName));
 		
-		xBox.setEnabled(isRootBone(boneName));
-		yBox.setEnabled(isRootBone(boneName));
+		
+		//xBox.setEnabled(isRootBone(boneName));
+		//yBox.setEnabled(isRootBone(boneName));
 	}
 	
 	private boolean isRootBone(String boneName){

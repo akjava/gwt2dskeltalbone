@@ -102,6 +102,8 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 	//private CanvasDragMoveControler canvasControler;
 	//private BonePositionControler bonePositionControler;
 	private BoneControlRange boneControlerRange;
+
+	private CheckBox moveRootOnlyCheck;
 	
 
 	private void onAnimationRangeChanged(int index){
@@ -236,6 +238,9 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 		});
 		panel.add(showBoneCheck);
 		
+		moveRootOnlyCheck = new CheckBox("move only  root-bone");
+		moveRootOnlyCheck.setValue(true);
+		panel.add(moveRootOnlyCheck);
 		return panel;
 	}
 	
@@ -787,33 +792,38 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 			}
 			if(boneSelectionOnCanvas!=null && !boneSelectionOnCanvas.isLocked()){
 				
-				if(rightButton || !rightButton){//temporaly every mouse move support
-					
+				
+					//root bone moving
 					if(boneSelectionOnCanvas==getRootBone()){//handling root-bone
 						
-					if(rightButton){
+					if (rightButton) {
+						//angle
 						
-					//TODO create fake circle
-					int angle=(int) boneControlerRange.getInputRange().getValue();
-					
-					//LogUtils.log("angle changed:"+angle);
-					
-					angle+=vectorX;
-					if(angle<-180){
-						angle=360+angle;
-					}else if(angle>180){
-						angle=angle-360;
-					}
+						// TODO create fake circle
+						int angle = (int) boneControlerRange.getInputRange().getValue();
+
+						// LogUtils.log("angle changed:"+angle);
+
+						angle += vectorX;
+						if (angle < -180) {
+							angle = 360 + angle;
+						} else if (angle > 180) {
+							angle = angle - 360;
+						}
 						boneControlerRange.getInputRange().setValue(angle);
-					}else{
-						int x=boneControlerRange.getX();
-						int y=boneControlerRange.getY();
-						
-						boneControlerRange.setPosition(x+vectorX,y+vectorY);
+					} else {
+						//move
+						int x = boneControlerRange.getX();
+						int y = boneControlerRange.getY();
+
+						boneControlerRange.setPosition(x + vectorX, y + vectorY);
 					}
 					
 					
 					}else{
+						
+						
+						if(rightButton || moveRootOnlyCheck.getValue()){
 						//draw angles
 						int mouseX=canvasDrawingDataControlCanvas.getCanvasControler().getMovedX();
 						int mouseY=canvasDrawingDataControlCanvas.getCanvasControler().getMovedY();
@@ -886,11 +896,15 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 						}
 						
 						boneControlerRange.getInputRange().setValue(newAngle);
+						}else{
+							int x = boneControlerRange.getX();
+							int y = boneControlerRange.getY();
+
+							boneControlerRange.setPosition(x + vectorX, y + vectorY);
+						}
 					}
 					
-				}else{
-					
-				}
+				
 				
 				AnimationFrame currentSelectionFrame=animationControler.getSelection();
 				

@@ -1762,6 +1762,9 @@ upper.add(new UndoButtons(undoControler));
 				updateCanvas();
 			}
 			
+			String removeExtension=FileNames.getRemovedExtensionName(name);
+			defaultAllDataSaveName=FileNames.getRemovedLastDownloadNumbers(removeExtension);
+			
 			
 		}else{
 			LogUtils.log("load single animation.almost deprecatd so far");
@@ -1789,8 +1792,10 @@ upper.add(new UndoButtons(undoControler));
 		manager.getFileManagerBar().setBoneAndAnimation(name, data);
 	}
 	
+	private String defaultAllDataSaveName="2dbone-all-data";
+	
 	protected void doSaveAll() {
-		
+		LogUtils.log(defaultAllDataSaveName);
 		//set new-bone
 		TextureData textureData=manager.getTextureDataWithNewestBone();
 		ClipImageData clipData=manager.getClipImageDataWithNewestBone();
@@ -1829,7 +1834,7 @@ upper.add(new UndoButtons(undoControler));
 		}
 		
 		
-		downloadLinks.add(JSZipUtils.createDownloadAnchor(jszip, "2dbone-all-data.zip", "download", true));
+		downloadLinks.add(JSZipUtils.createDownloadAnchor(jszip, defaultAllDataSaveName+".zip", "download", true));
 	
 		double time=watch.elapsed(TimeUnit.MILLISECONDS);
 		LogUtils.log("clip-zip generation-millisecond "+time+" ms");

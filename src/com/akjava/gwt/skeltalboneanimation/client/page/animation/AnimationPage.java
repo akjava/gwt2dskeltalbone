@@ -1344,6 +1344,7 @@ public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvas
 		String text=Joiner.on("\r\n").join(new AnimationConverter().convert(animationControler.getAnimation()));
 		dataList.getTextArea().setText(text);
 		dataList.save();
+		dataList.getSimpleDataListWidget().getSelection();
 	}
 	@Override
 	protected Widget createCenterPanel() {
@@ -1611,6 +1612,7 @@ upper.add(new UndoButtons(undoControler));
 			manager.getFileManagerBar().setBoneAndAnimation(hv.get().getName(),data);
 			//get annimation
 		}else{
+			//when delete it's happen.
 			LogUtils.log("loadFromDataList-never happen:"+null);
 		}
 	}

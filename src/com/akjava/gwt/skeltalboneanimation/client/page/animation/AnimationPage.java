@@ -820,11 +820,13 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 						}
 						boneControlerRange.getInputRange().setValue(angle);
 					} else {
+						double scaledVectorX=vectorX/animationControler.getScaleRange().getValue();
+						double scaledVectorY=vectorY/animationControler.getScaleRange().getValue();
 						//move
 						double x = boneControlerRange.getX();
 						double y = boneControlerRange.getY();
 
-						boneControlerRange.setPosition(x + vectorX, y + vectorY);
+						boneControlerRange.setPosition(x + scaledVectorX, y + scaledVectorY);
 					}
 					
 					
@@ -905,6 +907,8 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 						
 						boneControlerRange.getInputRange().setValue(newAngle);
 						}else{
+							double scaledVectorX=vectorX/animationControler.getScaleRange().getValue();
+							double scaledVectorY=vectorY/animationControler.getScaleRange().getValue();
 							//change position
 							String name=boneControlerRange.getSelection().getName();
 							BoneWithXYAngle boneData=boneControler.getBonePositionControler().getAnimationedDataByName(name);
@@ -914,7 +918,7 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 							double x = boneControlerRange.getX();
 							double y = boneControlerRange.getY();
 							
-							double[] pts=BoneUtils.turnedAngle(vectorX, vectorY, -boneData.getAngle());
+							double[] pts=BoneUtils.turnedAngle(scaledVectorX, scaledVectorY, -boneData.getAngle());
 							
 							double newX=(x+pts[0]);
 							double newY=(y+pts[1]);

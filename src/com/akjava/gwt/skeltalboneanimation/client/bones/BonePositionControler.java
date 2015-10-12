@@ -128,7 +128,7 @@ public class BonePositionControler {
 		
 		if(frame.getBoneFrames().get(bone.getName())!=null){
 			BoneFrame boneFrame=frame.getBoneFrames().get(bone.getName());
-			calculator.setX(calculator.getX()+boneFrame.getX()*scaleX);//frame xy no scale effect
+			calculator.setX(calculator.getX()+boneFrame.getX()*scaleX);//root xy seems no need on effect
 			calculator.setY(calculator.getY()+boneFrame.getY()*scaleY);
 			calculator.setAngle(boneFrame.getAngle());
 		}

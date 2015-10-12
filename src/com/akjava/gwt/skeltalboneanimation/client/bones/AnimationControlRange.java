@@ -152,7 +152,7 @@ public class AnimationControlRange extends VerticalPanel{
 		});
 		panel.add(next);
 		
-		scaleRange = new LabeledInputRangeWidget("Scale:" , 0.01, 5.0, 0.05);
+		scaleRange = new LabeledInputRangeWidget("Scale:" , 0.00, 5.0, 0.01);
 		scaleRange.setValue(1);
 		scaleRange.addtRangeListener(new ValueChangeHandler<Number>() {
 			

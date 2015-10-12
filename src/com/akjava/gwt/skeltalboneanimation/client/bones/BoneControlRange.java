@@ -169,6 +169,15 @@ public class BoneControlRange extends VerticalPanel{
 		});
 		
 		panel.add(inputRange);
+		Button reset1=new Button("Reset",new ClickHandler() {
+			
+			@Override
+			public void onClick(ClickEvent event) {
+				inputRange.setValue(0,false);
+				onValueChanged();
+			}
+		});
+		panel.add(reset1);
 		
 		panel.add(new Label("X:"));
 		xBox = new IntegerBox();
@@ -203,7 +212,6 @@ public class BoneControlRange extends VerticalPanel{
 			
 			@Override
 			public void onClick(ClickEvent event) {
-				inputRange.setValue(0,false);
 				xBox.setValue(0);
 				yBox.setValue(0);
 				onValueChanged();

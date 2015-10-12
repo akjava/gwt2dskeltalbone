@@ -491,9 +491,13 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 				List<AnimationFrame> oldFrames=FluentIterable.from(animation.getFrames()).transform(new AnimationFrameCopyFunction()).toList();
 				
 				AnimationFrame currentSelectionFrame=animationControler.getSelection();
-				
+				currentSelectionFrame.setScaleX(1);
+				currentSelectionFrame.setScaleY(1);
 				for(BoneFrame frame:currentSelectionFrame.getBoneFrames().values()){
 					frame.setAngle(0);
+					frame.setX(0);
+					frame.setY(0);
+					
 				}
 				
 				//this clear range-map
@@ -752,15 +756,19 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 			if(bone==getRootBone()){
 				//root-bone special scalling
 				double value=animationControler.getScaleRange().getValue();
+				double scaleValue=0.05;
+				if(keydownState.isShiftKeyDown()){
+					scaleValue=0.01;
+				}
 				if(delta>0){
-					value+=0.05;
+					value+=scaleValue;
 					if(value>animationControler.getScaleRange().getRange().getMax()){
 						value=animationControler.getScaleRange().getRange().getMax();
 					}
 				}else{
-					value-=0.05;
-					if(value<animationControler.getScaleRange().getRange().getMin()){
-						value=animationControler.getScaleRange().getRange().getMin();
+					value-=scaleValue;
+					if(value<0.01){//min is zero(because some range problem)
+						value=0.01;
 					}
 				}
 				animationControler.getScaleRange().setValue(value, true);

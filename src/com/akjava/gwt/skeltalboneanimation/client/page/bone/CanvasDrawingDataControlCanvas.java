@@ -97,10 +97,15 @@ public class CanvasDrawingDataControlCanvas extends VerticalPanel{
 			}
 		});
 		
+		//TODO merge canvas controler
 		canvas.addMouseWheelHandler(new MouseWheelHandler() {
 			@Override
 			public void onMouseWheel(MouseWheelEvent event) {
 				event.preventDefault();
+				canvasControler.getKeyDownState().setAltKeyDown(event.isAltKeyDown());
+				canvasControler.getKeyDownState().setShiftKeyDown(event.isShiftKeyDown());
+				canvasControler.getKeyDownState().setControlKeyDown(event.isControlKeyDown());
+				
 				onCanvasWheeled(event.getDeltaY());
 			}
 		});
@@ -149,6 +154,8 @@ public class CanvasDrawingDataControlCanvas extends VerticalPanel{
 	}
 	protected void onCanvasWheeled(int delta) {
 		for(CanvasDrawingDataControler activeControler:getActiveDataControler().asSet()){
+			
+			
 			activeControler.onWhelled(delta, canvasControler.getKeyDownState());
 			canvasUpdater.updateCanvas();
 		}

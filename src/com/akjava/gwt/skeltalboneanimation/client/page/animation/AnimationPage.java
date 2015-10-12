@@ -1613,7 +1613,12 @@ upper.add(new UndoButtons(undoControler));
 			//get annimation
 		}else{
 			//when delete it's happen.
-			LogUtils.log("loadFromDataList-never happen:"+null);
+			
+			if(dataList.isEmpty()){
+				//need at least one
+				dataList.execAdd(new SimpleTextData("default", ""), false);
+			}
+			dataList.next();
 		}
 	}
 	

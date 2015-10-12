@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
 
+import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.lib.client.experimental.CanvasDragMoveControler;
 import com.akjava.gwt.lib.client.experimental.CanvasMoveListener;
 import com.akjava.gwt.skeltalboneanimation.client.CanvasDrawingDataControler;
@@ -13,6 +14,8 @@ import com.google.common.collect.Lists;
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.event.dom.client.MouseWheelEvent;
 import com.google.gwt.event.dom.client.MouseWheelHandler;
+import com.google.gwt.event.dom.client.ScrollEvent;
+import com.google.gwt.event.dom.client.ScrollHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.user.client.ui.HorizontalPanel;
@@ -25,11 +28,24 @@ public class CanvasDrawingDataControlCanvas extends VerticalPanel{
 		return Optional.fromNullable(activeDataControler);
 	}
 
+	public static interface ZoomListener{
+		public void onZoom(double scale);
+	}
 
 	public void setActiveDataControler(CanvasDrawingDataControler activeDataControler) {
 		this.activeDataControler = activeDataControler;
 	}
+	
+	private ZoomListener zoomListener;
 
+
+	public ZoomListener getZoomListener() {
+		return zoomListener;
+	}
+
+	public void setZoomListener(ZoomListener zoomListener) {
+		this.zoomListener = zoomListener;
+	}
 
 	protected CanvasDragMoveControler canvasControler;
 	protected CanvasUpdater canvasUpdater;
@@ -60,6 +76,15 @@ public class CanvasDrawingDataControlCanvas extends VerticalPanel{
 		drawingDataControlers=Lists.newArrayList();
 		scroll = new ScrollPanel();
 		scroll.add(canvas);
+		
+		scroll.addScrollHandler(new ScrollHandler() {
+			
+			@Override
+			public void onScroll(ScrollEvent event) {
+				LogUtils.log("scroll-handler:"+scroll.getHorizontalScrollPosition()+","+scroll.getVerticalScrollPosition());
+			}
+		});
+		
 		int space=18;
 		scroll.setSize((width+space)+"px", (height+space)+"px");
 		this.add(scroll);
@@ -70,6 +95,7 @@ public class CanvasDrawingDataControlCanvas extends VerticalPanel{
 			@Override
 			public void onValueChange(ValueChangeEvent<Integer> event) {
 				canvasControler.setScale(event.getValue());
+				zoomListener.onZoom(event.getValue());
 			}
 		});
 		scalePanel.add(scaleBox);
@@ -111,6 +137,45 @@ public class CanvasDrawingDataControlCanvas extends VerticalPanel{
 		});
 	}
 	
+	
+	public void scrollToPoint(double x,double y){
+		if(canvasControler.getScaleX()==1){
+			return;
+		}
+		double scaleX=canvasControler.getScaleX();
+		double scaleY=canvasControler.getScaleX();
+		//LogUtils.log("scrollToPoint:"+x+","+y);
+		
+		double targetX=x*scaleX;
+		double targetY=y*scaleY;
+		
+		double canvasWidth=canvas.getCoordinateSpaceWidth();
+		double canvasHeight=canvas.getCoordinateSpaceHeight();
+		
+		double totalWidth=canvasWidth*scaleX;
+		double totalHeight=canvasHeight*scaleY;
+		
+		double scrollX=targetX-canvasWidth/2;
+		double scrollY=targetY-canvasHeight/2;
+		
+		if(scrollX<0){
+			scrollX=0;
+		}else if(scrollX>totalWidth){
+			scrollX=totalWidth;
+		}
+		
+		if(scrollY<0){
+			scrollY=0;
+		}else if(scrollY>totalHeight){
+			scrollY=totalHeight;
+		}
+		
+		
+		//LogUtils.log("final scrollToPoint:"+scrollX+","+scrollY);
+		scroll.setHorizontalScrollPosition((int) scrollX);
+		scroll.setVerticalScrollPosition((int) scrollY);
+		
+	}
 	
 	public CanvasDragMoveControler getCanvasControler() {
 		return canvasControler;

@@ -34,6 +34,7 @@ import com.akjava.gwt.skeltalboneanimation.client.page.SimpleBoneEditorPage2.Flu
 import com.akjava.gwt.skeltalboneanimation.client.page.SimpleBoneEditorPage2.FlushTextBox;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.BonePageUndoControler.BonePositionChangeCommand;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.BonePageUndoControler.BonePositionChangeCommandByWheel;
+import com.akjava.gwt.skeltalboneanimation.client.ui.LabeledInputRangeWidget;
 import com.akjava.lib.common.graphics.Point;
 import com.akjava.lib.common.utils.CSVUtils;
 import com.google.common.base.Function;
@@ -1014,12 +1015,7 @@ boneControler.setBone(newRoot);
 		background.draw(canvas);
 		
 		
-		if(transparentEditCheck.getValue()){
-			canvas.getContext2d().setGlobalAlpha(0.1);
-		}else{
-			
-			canvas.getContext2d().setGlobalAlpha(1);
-		}
+		canvas.getContext2d().setGlobalAlpha(opacity/100);
 		
 		//LogUtils.log("paint:"+canvas.getContext2d().getGlobalAlpha()+","+t);
 		boneControler.paintBone();
@@ -1030,22 +1026,27 @@ boneControler.setBone(newRoot);
 	//TwoDimensionBone boneSelection;
 	
 	
-	private CheckBox transparentEditCheck;
+	//private CheckBox transparentEditCheck;
+	
+	private double opacity=100;
 	private Widget createBackgroundButtons1() {
 		HorizontalPanel panel=new HorizontalPanel();
 		panel.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
 	
 		
+		LabeledInputRangeWidget opacityRange=new LabeledInputRangeWidget("Bone Opacity", 1, 100, 1);
+		opacityRange.setValue(100);
+		opacityRange.getRange().setWidth("120px");
 		
-		transparentEditCheck = new CheckBox("Transparent-Bone");
-		panel.add(transparentEditCheck);
-		transparentEditCheck.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
-
+		panel.add(opacityRange);
+		opacityRange.addtRangeListener(new ValueChangeHandler<Number>() {
 			@Override
-			public void onValueChange(ValueChangeEvent<Boolean> event) {
+			public void onValueChange(ValueChangeEvent<Number> event) {
+				opacity=event.getValue().doubleValue();
 				updateCanvas();
 			}
 		});
+		
 		
 		final HorizontalPanel downloadLinks=new HorizontalPanel();
 		
@@ -1141,7 +1142,7 @@ boneControler.setBone(newRoot);
 		
 		
 		
-		
+		//opacity=100;
 		
 		createBoneControls(rootBone,canvas);
 	}

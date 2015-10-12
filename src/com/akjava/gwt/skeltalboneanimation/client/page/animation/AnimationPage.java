@@ -6,8 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import javax.management.RuntimeErrorException;
-
 import com.akjava.gwt.html5.client.download.HTML5Download;
 import com.akjava.gwt.html5.client.file.Blob;
 import com.akjava.gwt.html5.client.file.File;
@@ -24,7 +22,6 @@ import com.akjava.gwt.jszip.client.JSZipUtils;
 import com.akjava.gwt.lib.client.CanvasUtils;
 import com.akjava.gwt.lib.client.ImageElementUtils;
 import com.akjava.gwt.lib.client.LogUtils;
-import com.akjava.gwt.lib.client.StorageControler;
 import com.akjava.gwt.lib.client.StorageDataList;
 import com.akjava.gwt.lib.client.datalist.SimpleTextData;
 import com.akjava.gwt.lib.client.datalist.TextAreaBasedDataList;
@@ -63,8 +60,10 @@ import com.akjava.gwt.skeltalboneanimation.client.page.AbstractPage;
 import com.akjava.gwt.skeltalboneanimation.client.page.HasSelectionName;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.BoneControler;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.CanvasDrawingDataControlCanvas;
+import com.akjava.gwt.skeltalboneanimation.client.page.bone.CanvasDrawingDataControlCanvas.ZoomListener;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.CanvasUpdater;
 import com.akjava.gwt.skeltalboneanimation.client.page.clippage.ClipImageData;
+import com.akjava.gwt.skeltalboneanimation.client.ui.LabeledInputRangeWidget;
 import com.akjava.lib.common.graphics.IntRect;
 import com.akjava.lib.common.graphics.Point;
 import com.akjava.lib.common.utils.CSVUtils;
@@ -89,7 +88,6 @@ import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Panel;
-import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 
@@ -241,6 +239,20 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 		moveRootOnlyCheck = new CheckBox("move only  root-bone");
 		moveRootOnlyCheck.setValue(true);
 		panel.add(moveRootOnlyCheck);
+		
+		//opacity range
+		LabeledInputRangeWidget opacityRange=new LabeledInputRangeWidget("Bone Opacity", 1, 100, 1);
+		opacityRange.setValue(100);
+		opacityRange.getRange().setWidth("120px");
+		
+		panel.add(opacityRange);
+		opacityRange.addtRangeListener(new ValueChangeHandler<Number>() {
+			@Override
+			public void onValueChange(ValueChangeEvent<Number> event) {
+				opacity=event.getValue().doubleValue();
+				updateCanvas();
+			}
+		});
 		return panel;
 	}
 	
@@ -1196,6 +1208,7 @@ private void drawTextureData(Canvas canvas){
 	
 }
 
+double opacity=100;
 private void updateCanvasOnAnimation() {
 		
 		
@@ -1207,7 +1220,9 @@ private void updateCanvasOnAnimation() {
 		if(showBoneCheck.getValue()){
 		//canvas.getContext2d().setGlobalAlpha(0.5);
 		AnimationFrame currentSelectionFrame=animationControler.getSelection();
+		canvas.getContext2d().setGlobalAlpha(opacity/100);
 		boneControler.paintBone(currentSelectionFrame);
+		canvas.getContext2d().setGlobalAlpha(1);
 		//canvas.getContext2d().setGlobalAlpha(1.0);
 		}
 	}
@@ -1312,6 +1327,13 @@ public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvas
 		*/
 		
 		canvasDrawingDataControlCanvas=new CanvasDrawingDataControlCanvas(canvas,800,800,this);
+		canvasDrawingDataControlCanvas.setZoomListener(new ZoomListener() {
+			
+			@Override
+			public void onZoom(double scale) {
+				doZoom(scale);
+			}
+		});
 		AnimationPageDrawingControler controler=new AnimationPageDrawingControler();
 		//undo controled by range & buttons
 		
@@ -1342,6 +1364,17 @@ public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvas
 			}
 		});
 	
+	}
+	protected void doZoom(double scale) {
+		
+		String name=boneControler.getSelectionName();
+		BoneWithXYAngle data=boneControler.getBonePositionControler().getAnimationedDataByName(name);
+		int offsetX=boneControler.getBonePositionControler().getSettings().getOffsetX();
+		int offsetY=boneControler.getBonePositionControler().getSettings().getOffsetY();
+		
+		//LogUtils.log("data:"+data.getX()+","+data.getY());
+		canvasDrawingDataControlCanvas.scrollToPoint(data.getX()+offsetX, data.getY()+offsetY);
+		
 	}
 	protected void writeToDataList() {
 		//LogUtils.log("writeToDataList");

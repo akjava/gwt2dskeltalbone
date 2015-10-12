@@ -81,7 +81,7 @@ public class CanvasDrawingDataControlCanvas extends VerticalPanel{
 			
 			@Override
 			public void onScroll(ScrollEvent event) {
-				LogUtils.log("scroll-handler:"+scroll.getHorizontalScrollPosition()+","+scroll.getVerticalScrollPosition());
+			//	LogUtils.log("scroll-handler:"+scroll.getHorizontalScrollPosition()+","+scroll.getVerticalScrollPosition());
 			}
 		});
 		

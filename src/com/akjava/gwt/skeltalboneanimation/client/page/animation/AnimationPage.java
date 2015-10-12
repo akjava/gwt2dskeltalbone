@@ -822,7 +822,7 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 					
 					}else{
 						
-						
+						//change angle
 						if(rightButton || moveRootOnlyCheck.getValue()){
 						//draw angles
 						int mouseX=canvasDrawingDataControlCanvas.getCanvasControler().getMovedX();
@@ -897,10 +897,21 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 						
 						boneControlerRange.getInputRange().setValue(newAngle);
 						}else{
-							int x = boneControlerRange.getX();
-							int y = boneControlerRange.getY();
-
-							boneControlerRange.setPosition(x + vectorX, y + vectorY);
+							//change position
+							String name=boneControlerRange.getSelection().getName();
+							BoneWithXYAngle boneData=boneControler.getBonePositionControler().getAnimationedDataByName(name);
+							
+							//LogUtils.log(name+","+boneData.getAngle());
+							
+							double x = boneControlerRange.getX();
+							double y = boneControlerRange.getY();
+							
+							double[] pts=BoneUtils.turnedAngle(vectorX, vectorY, -boneData.getAngle());
+							
+							int newX=(int)(x+pts[0]);
+							int newY=(int)(y+pts[1]);
+							
+							boneControlerRange.setPosition(newX, newY);
 						}
 					}
 					

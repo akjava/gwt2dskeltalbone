@@ -240,7 +240,7 @@ Button remove=new Button("remove",new ClickHandler() {
 		buttons2.add(boneControlerRange);
 		boneControlerRange.setListener(new BoneControlListener() {
 			@Override
-			public void changed(TwoDimensionBone bone, int angle, int moveX, int moveY) {
+			public void changed(TwoDimensionBone bone, int angle, double moveX, double moveY) {
 				if(bone==null){
 					return;
 				}

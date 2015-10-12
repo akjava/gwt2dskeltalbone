@@ -418,7 +418,7 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 		setNewBoneAndAnimation(newRoot,animations);
 	}
 	
-	private void onBoneAngleRangeChanged(TwoDimensionBone bone,int angle,int x,int y){
+	private void onBoneAngleRangeChanged(TwoDimensionBone bone,int angle,double x,double y){
 		//LogUtils.log("onBoneAngleRangeChanged");
 		if(bone==null){
 			return;
@@ -476,7 +476,7 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 		panel.add(boneControlerRange);
 		boneControlerRange.setListener(new BoneControlListener() {
 			@Override
-			public void changed(TwoDimensionBone bone, int angle, int x, int y) {
+			public void changed(TwoDimensionBone bone, int angle, double x, double y) {
 				//this called every moveing
 				onBoneAngleRangeChanged(bone,angle,x,y);
 				
@@ -821,8 +821,8 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 						boneControlerRange.getInputRange().setValue(angle);
 					} else {
 						//move
-						int x = boneControlerRange.getX();
-						int y = boneControlerRange.getY();
+						double x = boneControlerRange.getX();
+						double y = boneControlerRange.getY();
 
 						boneControlerRange.setPosition(x + vectorX, y + vectorY);
 					}
@@ -916,8 +916,8 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 							
 							double[] pts=BoneUtils.turnedAngle(vectorX, vectorY, -boneData.getAngle());
 							
-							int newX=(int)(x+pts[0]);
-							int newY=(int)(y+pts[1]);
+							double newX=(x+pts[0]);
+							double newY=(y+pts[1]);
 							
 							boneControlerRange.setPosition(newX, newY);
 						}

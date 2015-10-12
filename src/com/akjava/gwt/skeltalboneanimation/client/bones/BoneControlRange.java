@@ -18,6 +18,7 @@ import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.text.shared.Renderer;
 import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.DoubleBox;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.IntegerBox;
 import com.google.gwt.user.client.ui.Label;
@@ -33,7 +34,7 @@ public class BoneControlRange extends VerticalPanel{
 
 	private LabeledInputRangeWidget inputRange;
 
-	private IntegerBox yBox;
+	private DoubleBox yBox;
 	public LabeledInputRangeWidget getInputRange() {
 		return inputRange;
 	}
@@ -47,19 +48,19 @@ public class BoneControlRange extends VerticalPanel{
 		}
 		return (int)rangeMap.get(boneName).getAngle();
 	}
-	private int getBoneFrameX(String boneName){
+	private double getBoneFrameX(String boneName){
 		if(rangeMap.get(boneName)==null){
 			return 0;
 		}
-		return (int)rangeMap.get(boneName).getX();
+		return rangeMap.get(boneName).getX();
 	}
-	private int getBoneFrameY(String boneName){
+	private double getBoneFrameY(String boneName){
 		if(rangeMap.get(boneName)==null){
 			return 0;
 		}
-		return (int)rangeMap.get(boneName).getY();
+		return rangeMap.get(boneName).getY();
 	}
-	private void setBoneFrameValue(String boneName,int x,int y,int angle){
+	private void setBoneFrameValue(String boneName,double x,double y,int angle){
 		if(rangeMap.get(boneName)==null){
 			rangeMap.put(boneName, new BoneFrame(boneName, x, y, angle));
 			return;
@@ -180,13 +181,13 @@ public class BoneControlRange extends VerticalPanel{
 		panel.add(reset1);
 		
 		panel.add(new Label("X:"));
-		xBox = new IntegerBox();
+		xBox = new DoubleBox();
 		xBox.setWidth("60px");
 		panel.add(xBox);
-		xBox.addValueChangeHandler(new ValueChangeHandler<Integer>() {
+		xBox.addValueChangeHandler(new ValueChangeHandler<Double>() {
 
 			@Override
-			public void onValueChange(ValueChangeEvent<Integer> event) {
+			public void onValueChange(ValueChangeEvent<Double> event) {
 				//called when enter-key
 				LogUtils.log("x-box:value changed:"+event.getValue());
 				onValueChanged();
@@ -194,13 +195,13 @@ public class BoneControlRange extends VerticalPanel{
 		});
 		
 		panel.add(new Label("Y:"));
-		yBox = new IntegerBox();
+		yBox = new DoubleBox();
 		yBox.setWidth("60px");
 		panel.add(yBox);
-		yBox.addValueChangeHandler(new ValueChangeHandler<Integer>() {
+		yBox.addValueChangeHandler(new ValueChangeHandler<Double>() {
 
 			@Override
-			public void onValueChange(ValueChangeEvent<Integer> event) {
+			public void onValueChange(ValueChangeEvent<Double> event) {
 				//called when enter-key
 				LogUtils.log("y-box:value changed:"+event.getValue());
 				onValueChanged();
@@ -212,8 +213,8 @@ public class BoneControlRange extends VerticalPanel{
 			
 			@Override
 			public void onClick(ClickEvent event) {
-				xBox.setValue(0);
-				yBox.setValue(0);
+				xBox.setValue(0.0);
+				yBox.setValue(0.0);
 				onValueChanged();
 			}
 		});
@@ -232,8 +233,8 @@ public class BoneControlRange extends VerticalPanel{
 		if(selection==null){
 			return;
 		}
-		int x=xBox.getValue();
-		int y=yBox.getValue();
+		double x=xBox.getValue();
+		double y=yBox.getValue();
 		int angle=(int)inputRange.getValue();
 		
 		setBoneFrameValue(selection.getName(),x,y,angle);
@@ -244,7 +245,7 @@ public class BoneControlRange extends VerticalPanel{
 	}
 	private BoneControlListener listener;
 
-	private IntegerBox xBox;
+	private DoubleBox xBox;
 		
 		public BoneControlListener getListener() {
 		return listener;
@@ -273,7 +274,7 @@ public class BoneControlRange extends VerticalPanel{
 		}
 	}
 	public static interface BoneControlListener{
-		public void changed(TwoDimensionBone bone,int angle,int moveX,int moveY);
+		public void changed(TwoDimensionBone bone,int angle,double moveX,double moveY);
 	}
 	public TwoDimensionBone getBoneByName(String name){
 		return boneMap.get(name);
@@ -299,11 +300,11 @@ public class BoneControlRange extends VerticalPanel{
 
 
 
-	public int getX() {
+	public double getX() {
 		return xBox.getValue();
 	}
 
-	public void setPosition(int x,int y) {
+	public void setPosition(double x,double y) {
 		xBox.setValue(x);
 		yBox.setValue(y);
 		onValueChanged();
@@ -312,7 +313,7 @@ public class BoneControlRange extends VerticalPanel{
 
 
 
-	public int getY() {
+	public double getY() {
 		// TODO Auto-generated method stub
 		return yBox.getValue();
 	}

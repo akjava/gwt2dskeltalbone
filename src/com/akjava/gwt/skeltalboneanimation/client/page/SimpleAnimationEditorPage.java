@@ -244,7 +244,7 @@ private BoneControlRange boneControlerRange;
 		panel.add(boneControlerRange);
 		boneControlerRange.setListener(new BoneControlListener() {
 			@Override
-			public void changed(TwoDimensionBone bone, int angle, int moveX, int moveY) {
+			public void changed(TwoDimensionBone bone, int angle, double moveX, double moveY) {
 				onBoneAngleRangeChanged(bone,angle);
 			}
 		});

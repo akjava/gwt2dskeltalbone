@@ -148,12 +148,23 @@ public class FileManagerBar extends VerticalPanel{
 		
 	
 		
+		//relink textures
+		
+		
+		//clear link first
+		for(ClipData clip:data.getClips()){
+			clip.setLinkedImageDrawingData(null);
+		}
+		
 		//link texture and clip using texture-id & clip-id
 		TextureData textures=uploadedFileManager.getTextureData();
+		if(textures!=null){
 		for(ImageDrawingData drawing:textures.getImageDrawingDatas()){
 			for(ClipData clip:data.findDataById(drawing.getId()).asSet()){
+				LogUtils.log("linked:"+clip.getId());
 				clip.setLinkedImageDrawingData(drawing);
 			}
+		}
 		}
 		
 		

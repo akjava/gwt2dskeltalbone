@@ -62,6 +62,7 @@ import com.akjava.gwt.skeltalboneanimation.client.page.bone.BoneControler;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.CanvasDrawingDataControlCanvas;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.CanvasDrawingDataControlCanvas.ZoomListener;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.CanvasUpdater;
+import com.akjava.gwt.skeltalboneanimation.client.page.clippage.ClipData;
 import com.akjava.gwt.skeltalboneanimation.client.page.clippage.ClipImageData;
 import com.akjava.gwt.skeltalboneanimation.client.ui.LabeledInputRangeWidget;
 import com.akjava.lib.common.graphics.IntRect;
@@ -1844,11 +1845,33 @@ upper.add(new UndoButtons(undoControler));
 	
 	private String defaultAllDataSaveName="2dbone-all-data";
 	
+	
+	private void syncClipDataAndTextureDataFileName(ClipImageData clipImageData,TextureData textureData){
+		if(clipImageData==null || textureData==null){
+			return;
+		}
+		for(ClipData data:clipImageData.getClips()){
+			for(ImageDrawingData texture:data.getLinkedImageDrawingData().asSet()){
+				for(ImageDrawingData linkedTexture:textureData.findDataById(texture.getId()).asSet()){
+					String expected=data.getId();
+					String textureId=linkedTexture.getId();
+					if(!textureId.equals(expected)){
+						//LogUtils.log("texture  id renamed from "+textureId+" to "+expected);
+						
+						linkedTexture.setId(expected);
+						linkedTexture.setImageName(expected+".png");
+					}
+				}
+			}
+		}
+	}
 	protected void doSaveAll() {
 		LogUtils.log(defaultAllDataSaveName);
 		//set new-bone
 		TextureData textureData=manager.getTextureDataWithNewestBone();
 		ClipImageData clipData=manager.getClipImageDataWithNewestBone();
+		
+		syncClipDataAndTextureDataFileName(clipData,textureData);
 		
 		if(textureData==null ){
 			Window.alert("texture data is not exist.cant save all\njust do  save animation!");

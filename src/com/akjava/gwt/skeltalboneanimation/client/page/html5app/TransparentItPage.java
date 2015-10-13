@@ -789,7 +789,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 			
 			@Override
 			public void executeOnClick() {
-				doSyncAsTexture();
+				doTransferSyncAsTexture();
 			}
 		};
 		buttons2.add(syncBt);
@@ -1232,7 +1232,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 			updateCanvas();
 		}
 	}
-	protected void doSyncAsTexture() {
+	protected void doTransferSyncAsTexture() {
 		final TextureData textureData=toTextureData();
 		manager.getFileManagerBar().setTexture("transparentIt", textureData);
 	}
@@ -1245,15 +1245,36 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 					ImageDrawingData data=optional.get();
 					data.setImageElement(ImageElementUtils.create(element.getDataUrl()));
 					datas.add(data);
+					
+					
 				}else{
 					LogUtils.log(element.getId()+" has no ImageDrawingData.skipped");
 				}
-				
-				
 			}
 			
+			LogUtils.log("ImageElementData2:");
+			for(ImageElementData2 data:easyCellTableObjects.getDatas()){
+				LogUtils.log(data.getId());
+			}
+			
+			LogUtils.log("ImageDrawingData:");
+			for(ImageDrawingData data:datas){
+				LogUtils.log(data.getId());
+			}
+			
+			
 			TextureData oldTextureData=manager.getTextureDataWithNewestBone();
+			
+			
+			
 			if(oldTextureData!=null){
+				
+				LogUtils.log("TextureData:");
+				for(ImageDrawingData data:oldTextureData.getDatas()){
+					LogUtils.log(data.getId());
+				}
+				
+				
 				List<String> relatedTextureIds=FluentIterable.from(datas).transform(new ImageDrawingDataIdFunction()).filter(Predicates.notNull()).toList();
 				
 				List<ImageDrawingData> remains=FluentIterable.from(oldTextureData.getDatas()).filter(new NotExistInIds(relatedTextureIds)).toList();
@@ -1264,6 +1285,8 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 			}else{
 				LogUtils.log("texture-data is null.skip merge");
 			}
+			
+			
 			
 			//TODO merge already exist textures.
 			

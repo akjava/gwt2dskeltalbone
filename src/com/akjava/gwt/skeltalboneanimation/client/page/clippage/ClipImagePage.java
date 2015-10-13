@@ -15,6 +15,7 @@ import com.akjava.gwt.jszip.client.JSZipUtils.ZipListener;
 import com.akjava.gwt.lib.client.CanvasUtils;
 import com.akjava.gwt.lib.client.ImageElementUtils;
 import com.akjava.gwt.lib.client.LogUtils;
+import com.akjava.gwt.lib.client.datalist.command.RenameCommand;
 import com.akjava.gwt.lib.client.experimental.CanvasDragMoveControler.KeyDownState;
 import com.akjava.gwt.lib.client.experimental.ExecuteButton;
 import com.akjava.gwt.lib.client.experimental.RectCanvasUtils;
@@ -569,6 +570,8 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 			JSZip jszip=converter.reverse().convert(textureData);
 			
 			ClipImageData clipData=generateSaveData();
+			//no need sync texture data,because alerady generate new texture and would replace it later
+			
 			//addition clip-data
 			new ClipImageDataConverter().convertToJsZip(jszip, clipData);
 			
@@ -840,8 +843,13 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		PointD pt=rect.getCenterPoint();
 		ImageElement element=ImageElementUtils.create(generateClippedImage(clip));
 		
+		String id=clip.getId();
 		
-		ImageDrawingData data=new ImageDrawingData(clip.getId(), element);
+		for(ImageDrawingData linked:clip.getLinkedImageDrawingData().asSet()){
+			id=linked.getId();//this is used for removing linked texture.clip-id is possible change
+		}
+		
+		ImageDrawingData data=new ImageDrawingData(id, element);
 		data.setBoneName(clip.getBone());
 		data.setX((int)pt.getX());
 		data.setY((int)pt.getY());
@@ -1622,6 +1630,11 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 	}
 	protected void doSaveData() {
 		ClipImageData data=generateSaveData();
+		
+		for(TextureData textureData:getRenamedTextureDataIfNeed().asSet()){
+			manager.setTextureData("clip-image", textureData);
+		}
+		
 		JSZip zip=new ClipImageDataConverter().reverse().convert(data);
 		downloadLinks.clear();
 		downloadLinks.add(JSZipUtils.createDownloadAnchor(zip, "2dbone-clips.zip", "download", true));
@@ -1643,12 +1656,51 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		for(ClipData clip:cellObjects.getDatas()){
 			data.getClips().add(clip);
 		}
+		
+		
+		
+		
 		return data;
+	}
+	
+	private Optional<TextureData> getRenamedTextureDataIfNeed(){
+		boolean needSave=false;
+		TextureData textureData=manager.getTextureDataWithNewestBone();
+		if(textureData==null){
+			return Optional.absent();
+		}
+		for(ClipData clip:cellObjects.getDatas()){
+			String clipId=clip.getId();
+			for(ImageDrawingData linked:clip.getLinkedImageDrawingData().asSet()){
+				String linkedId=linked.getId();
+				if(!linkedId.equals(clipId)){
+					needSave=true;
+					
+					linked.setId(clipId);//call before saved
+					//need modify id
+					Optional<ImageDrawingData> optional=textureData.findDataById(linkedId);
+					if(optional.isPresent()){
+						ImageDrawingData renameData=optional.get();
+						renameData.setId(clipId);
+						renameData.setImageName(clipId+".png");
+					}
+					
+					
+				}
+			}
+			
+		}
+		
+		if(needSave){
+			return Optional.of(textureData);
+		}else{
+			return Optional.absent();
+		}
 	}
 
 
 	protected void onClipImageDataChanged(ClipImageData data){
-		//LogUtils.log("onClipImageDataChanged:");
+		LogUtils.log("onClipImageDataChanged:");
 		//background and bone called if exist.
 		
 		
@@ -1661,6 +1713,8 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		for(ClipData clip:cellObjects.getFirst().asSet()){
 			cellObjects.setSelected(clip, true);
 		}
+		
+		cellObjects.update();
 		
 		updateCanvas();
 		
@@ -1897,7 +1951,19 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 
 	@Override
 	protected void onTextureDataChanged(TextureData textureData) {
-		// TODO Auto-generated method stub
+		LogUtils.log("onTextureDataChanged");
+		
+		Optional<TextureData> newData=getRenamedTextureDataIfNeed();
+		if(newData.isPresent()){
+			manager.setTextureData("clip-image", newData.get());
+			//recall onTextureDataChanged
+			
+		}else{
+			//this link texture & clip data
+			ClipImageData data=generateSaveData();
+			manager.getFileManagerBar().setClipImageData(getOwnerName(), data);
+		}
+		
 		
 	}
 

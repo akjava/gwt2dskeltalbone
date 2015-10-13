@@ -2,6 +2,8 @@ package com.akjava.gwt.skeltalboneanimation.client.page.clippage;
 
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingData;
 import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
 import com.akjava.gwt.skeltalboneanimation.client.predicates.ClipDataPredicates;

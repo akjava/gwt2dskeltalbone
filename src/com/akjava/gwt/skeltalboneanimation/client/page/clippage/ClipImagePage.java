@@ -521,7 +521,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 			downloadLinks.add(a);
 			
 			//test position
-			ImageDrawingData data=convertToImageDrawingData(getSelection());
+			ImageDrawingData data=convertToImageDrawingDataNoId(getSelection());
 			data.draw(canvas);
 			
 			
@@ -662,7 +662,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		@Override
 		public TransparentData apply(ClipData clip) {
 			TransparentData transParentData=new TransparentData();
-			ImageDrawingData imageDrawingData=convertToImageDrawingData(clip);
+			ImageDrawingData imageDrawingData=convertToImageDrawingDataNoId(clip);
 			
 			//use id as image,that why id must be uniq
 			String clippedImageSrc=imageDrawingData.getImageElement().getSrc();//clipped image
@@ -804,10 +804,11 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 	private TextureData toTextureData(){
 		List<ImageDrawingData> datas=Lists.newArrayList();
 		for(ClipData clip:cellObjects.getDatas()){
-			ImageDrawingData data=convertToImageDrawingData(clip);
+			ImageDrawingData data=convertToImageDrawingDataNoId(clip);
 			datas.add(data);
 			
-			//TODO change uniq id & name.id not empty
+			//set fresh id here
+			data.setId(clip.getId());
 			data.setImageName(data.getId()+".png");
 		}
 		
@@ -837,16 +838,19 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 	
 
 
-	public ImageDrawingData convertToImageDrawingData(ClipData clip){
+	/*
+	 * this convert has no id.because usually id is old and no plan to use id-supply
+	 */
+	public ImageDrawingData convertToImageDrawingDataNoId(ClipData clip){
 		Rect rect=clip.getPointBound();
 		rect.expandSelf(clip.getExpand(), clip.getExpand());
 		PointD pt=rect.getCenterPoint();
 		ImageElement element=ImageElementUtils.create(generateClippedImage(clip));
 		
-		String id=clip.getId();
+		String id=null;
 		
 		for(ImageDrawingData linked:clip.getLinkedImageDrawingData().asSet()){
-			id=linked.getId();//this is used for removing linked texture.clip-id is possible change
+		//	id=linked.getId();//this is used for removing linked texture.clip-id is possible change
 		}
 		
 		ImageDrawingData data=new ImageDrawingData(id, element);
@@ -854,7 +858,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		data.setX((int)pt.getX());
 		data.setY((int)pt.getY());
 		
-		data.setImageName(data.getId()+".png");
+		//data.setImageName(data.getId()+".png");
 		
 	//	data.incrementX(canvas.getCoordinateSpaceWidth()/2);
 	//	data.incrementY(canvas.getCoordinateSpaceHeight()/2);

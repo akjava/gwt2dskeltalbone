@@ -3,6 +3,8 @@ package com.akjava.gwt.skeltalboneanimation.client;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import com.akjava.gwt.lib.client.CanvasUtils;
 import com.akjava.gwt.lib.client.ImageElementUtils;
 import com.akjava.gwt.lib.client.LogUtils;
@@ -64,7 +66,7 @@ public void setFlipHorizontal(boolean flipHorizontal) {
  * @param id must be uniq,create from time or control image-file-name
  * @param imageElement
  */
-public ImageDrawingData(String id,ImageElement imageElement) {
+public ImageDrawingData(@Nullable String id,ImageElement imageElement) {
 	super();
 	this.imageElement = imageElement;
 	this.id=id;

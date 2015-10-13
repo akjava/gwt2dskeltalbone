@@ -1246,6 +1246,9 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 					data.setImageElement(ImageElementUtils.create(element.getDataUrl()));
 					datas.add(data);
 					
+					//before to texture data.clip data saved and texture data renamed.
+					data.setId(element.getId());//newest id
+					data.setImageName(data.getId()+".png");
 					
 				}else{
 					LogUtils.log(element.getId()+" has no ImageDrawingData.skipped");

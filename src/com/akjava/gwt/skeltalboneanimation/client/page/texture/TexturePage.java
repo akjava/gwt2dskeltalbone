@@ -1069,7 +1069,7 @@ public void onDataModified(ImageDrawingData oldValue, ImageDrawingData value) {
 		
 		easyCellTableObjectsUndoControler.execAddData(dataIndex, data);
 		
-		animationModeToggle.setValue(false, true);//for convert image
+		//animationModeToggle.setValue(false, true);//for convert image
 		
 		drawingDataObjects.setSelected(data, true);//select upload
 		
@@ -1622,7 +1622,7 @@ public void onDataModified(ImageDrawingData oldValue, ImageDrawingData value) {
 	//private AnimationControlRange animationControler;
 	private EasyCellTableObjects<ImageDrawingData> drawingDataObjects;
 	private CheckBox showBoneCheck;
-	private ToggleButton animationModeToggle;
+	//private ToggleButton animationModeToggle;
 
 
 	

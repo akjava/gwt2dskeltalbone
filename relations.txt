@@ -5,3 +5,5 @@ if texture is linked to clipdata,rename id to same as clipdata when Save-All
 texture and clipdata linked if same id when file load. when clip data loaded by FileManagerBar.
 
 when texture data loaded .automatically clipdata saved and re-link.
+
+clip rename texture's id whenever saved.

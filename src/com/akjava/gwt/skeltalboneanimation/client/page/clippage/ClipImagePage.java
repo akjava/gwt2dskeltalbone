@@ -46,7 +46,7 @@ import com.akjava.gwt.skeltalboneanimation.client.page.bone.CanvasDrawingDataCon
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.CanvasUpdater;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.ImageDrawingDatasUpdater;
 import com.akjava.gwt.skeltalboneanimation.client.page.html5app.TransparentItPage;
-import com.akjava.gwt.skeltalboneanimation.client.predicates.NotExistInIds;
+import com.akjava.gwt.skeltalboneanimation.client.predicates.ImageDrawingDataPredicates.NotExistInIds;
 import com.akjava.lib.common.graphics.Point;
 import com.akjava.lib.common.graphics.Rect;
 import com.google.common.base.Function;

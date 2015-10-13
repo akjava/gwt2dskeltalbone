@@ -39,7 +39,7 @@ import com.akjava.gwt.skeltalboneanimation.client.page.clippage.PointShape;
 import com.akjava.gwt.skeltalboneanimation.client.page.colorpick.ColorPickPage;
 import com.akjava.gwt.skeltalboneanimation.client.page.colorpick.ColorPickPage.ImageSender;
 import com.akjava.gwt.skeltalboneanimation.client.page.html5app.InpaintEngine.InpaintListener;
-import com.akjava.gwt.skeltalboneanimation.client.predicates.NotExistInIds;
+import com.akjava.gwt.skeltalboneanimation.client.predicates.ImageDrawingDataPredicates.NotExistInIds;
 import com.akjava.gwt.skeltalboneanimation.client.ui.LabeledInputRangeWidget;
 import com.akjava.lib.common.utils.ColorUtils;
 import com.google.common.base.Optional;

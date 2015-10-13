@@ -495,6 +495,20 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 			}
 		});
 		
+		//when bone selection changed
+		boneControlerRange.getBoneListBox().addValueChangeHandler(new ValueChangeHandler<TwoDimensionBone>() {
+			@Override
+			public void onValueChange(ValueChangeEvent<TwoDimensionBone> event) {
+				if(canvasDrawingDataControlCanvas.getCanvasControler().isTouchDowning()){
+					return;
+				}
+				
+				//only call from list-box
+				doZoom();//move selection bone center
+			}
+			
+		});
+		
 		Button resetAll=new Button("Reset All",new ClickHandler() {
 			@Override
 			public void onClick(ClickEvent event) {
@@ -1271,6 +1285,7 @@ public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvas
 
 	private TextAreaBasedDataList dataList;
 
+	
 
 	@Override
 	protected void onCanvasTouchEnd(int sx, int sy) {
@@ -1331,7 +1346,7 @@ public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvas
 			
 			@Override
 			public void onZoom(double scale) {
-				doZoom(scale);
+				doZoom();
 			}
 		});
 		AnimationPageDrawingControler controler=new AnimationPageDrawingControler();
@@ -1365,8 +1380,10 @@ public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvas
 		});
 	
 	}
-	protected void doZoom(double scale) {
-		
+	protected void doZoom() {
+		if(canvasDrawingDataControlCanvas.getScale()==1){
+			return;
+		}
 		String name=boneControler.getSelectionName();
 		BoneWithXYAngle data=boneControler.getBonePositionControler().getAnimationedDataByName(name);
 		int offsetX=boneControler.getBonePositionControler().getSettings().getOffsetX();

@@ -227,6 +227,13 @@ public class BoneControlRange extends VerticalPanel{
 		
 		}
 	
+	public ValueListBox<TwoDimensionBone> getBoneListBox() {
+		return boneListBox;
+	}
+
+
+
+
 	private void onValueChanged(){
 		
 		TwoDimensionBone selection=getSelection();

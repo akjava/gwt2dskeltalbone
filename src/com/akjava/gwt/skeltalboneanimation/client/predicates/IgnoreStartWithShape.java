@@ -1,4 +1,4 @@
-package com.akjava.gwt.skeltalboneanimation.client;
+package com.akjava.gwt.skeltalboneanimation.client.predicates;
 
 import com.google.common.base.Predicate;
 

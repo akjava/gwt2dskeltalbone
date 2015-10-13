@@ -7,8 +7,8 @@ import java.util.Map;
 
 import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.skeltalboneanimation.client.BoneUtils;
-import com.akjava.gwt.skeltalboneanimation.client.IgnoreStartWithShape;
 import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
+import com.akjava.gwt.skeltalboneanimation.client.predicates.IgnoreStartWithShape;
 import com.akjava.lib.common.utils.ValuesUtils;
 import com.google.common.base.Converter;
 import com.google.common.base.Functions;

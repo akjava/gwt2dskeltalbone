@@ -4,10 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.akjava.gwt.lib.client.LogUtils;
-import com.akjava.gwt.skeltalboneanimation.client.IgnoreStartWithShape;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationFrame;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneFrame;
 import com.akjava.gwt.skeltalboneanimation.client.bones.SkeletalAnimation;
+import com.akjava.gwt.skeltalboneanimation.client.predicates.IgnoreStartWithShape;
 import com.akjava.lib.common.utils.ValuesUtils;
 import com.google.common.base.Converter;
 import com.google.common.collect.FluentIterable;

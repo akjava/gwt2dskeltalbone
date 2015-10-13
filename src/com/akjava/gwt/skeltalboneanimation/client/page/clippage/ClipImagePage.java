@@ -614,7 +614,8 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		public void executeOnClick() {
 			if(isClipDataSelected()){
 				//LogUtils.log(getSelection().getBounds());
-				doTransparent(getSelection());
+				TextureData textureData=manager.getTextureDataWithNewestBone();
+				doTransparent(textureData,getSelection());
 				
 				//added data's order is invalid,fix it
 				doSyncTextureOrder();
@@ -708,11 +709,11 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 	
 
 	
-	protected void doTransparent(final ClipData original) {
+	protected void doTransparent(TextureData textureData,final ClipData original) {
 		
 		ClipData clipData=original.copy(true);
 		
-		TextureData textureData=manager.getTextureDataWithNewestBone();
+		
 		
 		transparentItPage.removeItemById(clipData.getId());
 		
@@ -735,7 +736,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		TextureData textureData=manager.getUploadedFileManager().getTextureData();
 		List<ImageDrawingData> datas=Lists.newArrayList();
 		
-		transparentItPage.clearAll();
+		//transparentItPage.clearAll();
 		
 		//check duplicate bone-name
 		boolean duplicateBoneName=false;
@@ -754,9 +755,10 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		//idea should do id with bone-name + bounds?
 		
 		for(final ClipData original:cellObjects.getDatas()){
-			ClipData clip=original.copy(true);//use copy not plan to integrate or modify
+			//ClipData clip=original.copy(true);//use copy not plan to integrate or modify
 			//now only one image per bone support.
-			ImageDrawingData data=convertToImageDrawingData(clip);
+			
+		/*	ImageDrawingData data=convertToImageDrawingData(clip);
 			datas.add(data);
 			//TODO change uniq id & name.id not empty
 			data.setImageName(data.getId()+".png");
@@ -788,10 +790,10 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 					// TODO Auto-generated method stub
 					return  original.getId();//id must be share with original
 				}
-			},data, src,pointShape);
-			manager.selectTab(MainManager.TransparentPageIndex);
+			},data, src,pointShape);*/
+			doTransparent(textureData, original);
 		}
-		
+		manager.selectTab(MainManager.TransparentPageIndex);
 	}
 	
 

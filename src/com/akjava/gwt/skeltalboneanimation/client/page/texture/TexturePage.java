@@ -50,6 +50,7 @@ import com.akjava.gwt.skeltalboneanimation.client.page.bone.BoneControler;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.CanvasDrawingDataControlCanvas;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.CanvasUpdater;
 import com.akjava.gwt.skeltalboneanimation.client.page.clippage.ClipData;
+import com.akjava.gwt.skeltalboneanimation.client.page.clippage.ClipImageData;
 import com.akjava.gwt.skeltalboneanimation.client.ui.LabeledInputRangeWidget;
 import com.akjava.lib.common.utils.CSVUtils;
 import com.akjava.lib.common.utils.FileNames;
@@ -1265,12 +1266,18 @@ public void onDataModified(ImageDrawingData oldValue, ImageDrawingData value) {
 		driver.edit(null);
 		updateCanvas();
 	}
-	protected void doSaveData() {
-		
-		TextureDataConverter converter=new TextureDataConverter();
+	
+	private TextureData generateSaveData(){
 		TextureData data=new TextureData();
 		data.setImageDrawingDatas(drawingDataObjects.getDatas());
 		data.setBone(getRootBone());
+		return data;
+	}
+	
+	protected void doSaveData() {
+		
+		TextureDataConverter converter=new TextureDataConverter();
+		TextureData data=generateSaveData();
 		
 		JSZip jszip=converter.reverse().convert(data);
 		downloadLinks.clear();
@@ -1805,10 +1812,73 @@ public void onDataModified(ImageDrawingData oldValue, ImageDrawingData value) {
 		});
 		copyButtons.add(copyVBt);
 		
+		panel.add(new Label("Convert"));
+		HorizontalPanel convert=new HorizontalPanel();
+		panel.add(convert);
+		
+		Button convertBt=new Button("To ClipImage",new ClickHandler() {
+			
+			@Override
+			public void onClick(ClickEvent event) {
+				doConvertClipImage();
+			}
+		});
+		convert.add(convertBt);
+		
 		
 		return panel;
 	}
 	
+	protected void doConvertClipImage() {
+		ImageDrawingData selection=drawingDataObjects.getSelection();
+		if(selection==null){
+			return;
+		}
+		
+		if(selection.getBoneName()==null){
+			Window.alert("selection bone is null.not suuport this");
+			return;
+		}
+		
+		
+		
+		
+		Canvas canvas=selection.convertToCanvas();
+		CanvasUtils.expandCanvas(canvas,16,16);
+		selection.setImageElement(CanvasUtils.toImageElement(canvas));
+		selection.setScaleX(1);
+		selection.setScaleY(1);
+		selection.setFlipHorizontal(false);
+		selection.setFlipVertical(false);
+		selection.setVisible(true);
+		selection.setAngle(0);
+		selection.setAlpha(1.0);
+		
+		//generate texture
+		
+		ClipData clipData=new ClipData();
+		clipData.setBone(selection.getBoneName());
+		clipData.setPoints(selection.getBounds().toPoints());
+		clipData.setExpand(16);
+		
+		String newId=(selection.getBoneName()+","+selection.getBounds().expandSelf(16, 16).toKanmaString()).replace(',', '_');
+		selection.setId(newId);
+		
+		TextureData data=generateSaveData();
+		manager.setTextureData(getEditorName(), data.copy());
+		
+		
+		ClipImageData clipImageData=manager.getClipImageDataWithNewestBone();
+		if(clipImageData==null){
+			Window.alert("clipimage data not exist.please make first");
+			return;
+		}
+		clipImageData.getClips().add(clipData);
+		manager.getFileManagerBar().setClipImageData("texture editor", clipImageData);
+		//clipData.s
+		
+	}
+
 	private boolean isDrawItem(ImageDrawingData data){
 		return !notDrawingItem.contains(data);
 	}

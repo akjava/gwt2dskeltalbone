@@ -247,7 +247,7 @@ public class BoneControlRange extends VerticalPanel{
 		setBoneFrameValue(selection.getName(),x,y,angle);
 		
 		if(listener!=null){
-			listener.changed(getSelection(), angle, x, y);//TODO support move
+			listener.changed(getSelection(), angle, x, y);
 		}
 	}
 	private BoneControlListener listener;

@@ -1177,7 +1177,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 					}
 				}
 			},getSelection().getId(),  dataUrl);
-			LogUtils.log("sended:"+getSelection().getId());
+			//LogUtils.log("sended:"+getSelection().getId());
 			manager.selectTab(5);
 		
 	}
@@ -1255,7 +1255,8 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 				}
 			}
 			
-			LogUtils.log("ImageElementData2:");
+			
+			/*LogUtils.log("ImageElementData2:");
 			for(ImageElementData2 data:easyCellTableObjects.getDatas()){
 				LogUtils.log(data.getId());
 			}
@@ -1263,7 +1264,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 			LogUtils.log("ImageDrawingData:");
 			for(ImageDrawingData data:datas){
 				LogUtils.log(data.getId());
-			}
+			}*/
 			
 			
 			TextureData oldTextureData=manager.getTextureDataWithNewestBone();
@@ -1272,10 +1273,10 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 			
 			if(oldTextureData!=null){
 				
-				LogUtils.log("TextureData:");
+				/*LogUtils.log("TextureData:");
 				for(ImageDrawingData data:oldTextureData.getDatas()){
 					LogUtils.log(data.getId());
-				}
+				}*/
 				
 				
 				List<String> relatedTextureIds=FluentIterable.from(datas).transform(new ImageDrawingDataIdFunction()).filter(Predicates.notNull()).toList();

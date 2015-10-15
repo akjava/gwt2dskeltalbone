@@ -466,10 +466,11 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 			
 			Point newPoint=new Point(x,y);
 			
-			undoControler.executeBonePositionChanged(index, boneName, oldPoint, newPoint);
-			
 			boneFrame.setX(x);
 			boneFrame.setY(y);
+			undoControler.executeBonePositionChanged(index, boneName, oldPoint, newPoint);
+			
+			
 		}
 		
 		
@@ -496,7 +497,7 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 			}
 		});
 		
-		//when bone selection changed
+		//when bone selection changed by manual
 		boneControlerRange.getBoneListBox().addValueChangeHandler(new ValueChangeHandler<TwoDimensionBone>() {
 			@Override
 			public void onValueChange(ValueChangeEvent<TwoDimensionBone> event) {
@@ -1395,7 +1396,7 @@ public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvas
 		
 	}
 	protected void writeToDataList() {
-		//LogUtils.log("writeToDataList");
+		LogUtils.log("writeToDataList");
 		String text=Joiner.on("\r\n").join(new AnimationConverter().convert(animationControler.getAnimation()));
 		dataList.getTextArea().setText(text);
 		dataList.save();

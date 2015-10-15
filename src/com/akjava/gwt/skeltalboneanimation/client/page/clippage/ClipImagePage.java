@@ -544,6 +544,10 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		 
 		@Override
 		public void executeOnClick() {
+			boolean confirm=Window.confirm("this crop images replace existing texture.are you sure?");
+			if(!confirm){
+				return;
+			}
 			final TextureData textureData=toTextureData();
 			manager.getFileManagerBar().setTexture("clip-editor", textureData);
 			
@@ -559,6 +563,10 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		
 		 @Override
 			public void beforeExecute() {
+			 boolean confirm=Window.confirm("this crop images replace existing texture.are you sure?");
+				if(!confirm){
+					return;
+				}
 			 downloadLinks.clear();
 		 }
 		 

@@ -2,6 +2,7 @@ package com.akjava.gwt.skeltalboneanimation.client.page.animation;
 
 import java.util.List;
 
+import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.lib.client.experimental.undo.Command;
 import com.akjava.gwt.lib.client.experimental.undo.SimpleUndoControler;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationFrame;
@@ -71,6 +72,7 @@ private BoneFrameRangeControler controler;
 	}
 	
 	public void executeBonePositionChanged(int index, String boneName, Point oldPoint,Point newPoint) {
+		//LogUtils.log("executeBonePositionChanged:"+oldPoint+","+newPoint);
 		Optional<BoneFramePositionCommand> command=this.getLastCommandIfBoneFramePositionCommand(index,boneName);
 		if(command.isPresent()){
 			command.get().setNewPosition(newPoint);

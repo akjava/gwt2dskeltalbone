@@ -626,7 +626,12 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 			if(isClipDataSelected()){
 				//LogUtils.log(getSelection().getBounds());
 				TextureData textureData=manager.getTextureDataWithNewestBone();
-				doTransparent(textureData,getSelection());
+				boolean warn=doTransparent(textureData,getSelection());
+				
+				if(warn){
+					Window.alert("some clip is empty and ignored");
+					return;
+				}
 				
 				//added data's order is invalid,fix it
 				doSyncTextureOrder();
@@ -720,18 +725,22 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 	
 
 	
-	protected void doTransparent(TextureData textureData,final ClipData original) {
+	protected boolean doTransparent(TextureData textureData,final ClipData original) {
+		
+		
+		if(original.isEmpty()){
+			return false;
+		}
 		
 		ClipData clipData=original.copy(true);
 		
 		
 		
-		transparentItPage.removeItemById(clipData.getId());
+		
 		
 		TransparentData data=new ClipDataToTransparentDataFunction(textureData).apply(clipData);
 		
-		
-		
+		transparentItPage.removeItemById(clipData.getId());
 		transparentItPage.addItem(new Supplier<String>() {
 			@Override
 			public String get() {
@@ -739,7 +748,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 			}
 		},data.imageDrawingData, data.imageSrc,data.pointShape);
 		
-		
+		return true;
 	}
 	
 	protected void doTransparent() {
@@ -765,6 +774,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		
 		//idea should do id with bone-name + bounds?
 		
+		boolean warn=false;
 		for(final ClipData original:cellObjects.getDatas()){
 			//ClipData clip=original.copy(true);//use copy not plan to integrate or modify
 			//now only one image per bone support.
@@ -802,8 +812,16 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 					return  original.getId();//id must be share with original
 				}
 			},data, src,pointShape);*/
-			doTransparent(textureData, original);
+			boolean success=doTransparent(textureData, original);
+			if(!success){
+				warn=true;
+			}
 		}
+		
+		if(warn){
+			Window.alert("some clip is empty and ignored");
+		}
+		
 		manager.selectTab(MainManager.TransparentPageIndex);
 	}
 	

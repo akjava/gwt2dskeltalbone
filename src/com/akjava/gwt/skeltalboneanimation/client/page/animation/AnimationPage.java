@@ -449,9 +449,13 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 		if(boneFrame.getAngle()!=angle){
 			int index=animationControler.getSelectedIndex();
 			String boneName=bone.getName();
-			undoControler.executeBoneAngleRangeChanged(index,boneName,boneFrame.getAngle(),angle);
-		
+			double oldAngle=boneFrame.getAngle();
+			
 			boneFrame.setAngle(angle);
+			
+			undoControler.executeBoneAngleRangeChanged(index,boneName,oldAngle,angle);
+		
+			
 			//updated
 			//LogUtils.log("modified-range:"+bone.getName()+angle);
 		}

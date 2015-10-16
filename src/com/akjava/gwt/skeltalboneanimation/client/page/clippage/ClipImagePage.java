@@ -15,7 +15,6 @@ import com.akjava.gwt.jszip.client.JSZipUtils.ZipListener;
 import com.akjava.gwt.lib.client.CanvasUtils;
 import com.akjava.gwt.lib.client.ImageElementUtils;
 import com.akjava.gwt.lib.client.LogUtils;
-import com.akjava.gwt.lib.client.datalist.command.RenameCommand;
 import com.akjava.gwt.lib.client.experimental.CanvasDragMoveControler.KeyDownState;
 import com.akjava.gwt.lib.client.experimental.ExecuteButton;
 import com.akjava.gwt.lib.client.experimental.RectCanvasUtils;
@@ -47,6 +46,8 @@ import com.akjava.gwt.skeltalboneanimation.client.page.bone.CanvasDrawingDataCon
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.CanvasUpdater;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.ImageDrawingDatasUpdater;
 import com.akjava.gwt.skeltalboneanimation.client.page.html5app.TransparentItPage;
+import com.akjava.gwt.skeltalboneanimation.client.predicates.BonePredicates.NotExistInNames;
+import com.akjava.gwt.skeltalboneanimation.client.predicates.BonePredicates.NotLocked;
 import com.akjava.gwt.skeltalboneanimation.client.predicates.ImageDrawingDataPredicates.NotExistInIds;
 import com.akjava.lib.common.graphics.Point;
 import com.akjava.lib.common.graphics.Rect;
@@ -228,9 +229,15 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		for(TwoDimensionBone rootBone:getRootBone().asSet()){
 			
 			List<ClipData> oldDatas=ImmutableList.copyOf(cellObjects.getDatas());
+			List<String> existNames=FluentIterable.from(cellObjects.getDatas()).transform(new BoneNameTransfer()).toList();
+			
 			
 			List<TwoDimensionBone> bones=BoneUtils.getAllBone(rootBone);
-			for(TwoDimensionBone bone:bones){
+			
+			//not exist and not locked
+			List<TwoDimensionBone> filtered=FluentIterable.from(bones).filter(new NotLocked()).filter(new NotExistInNames(existNames)).toList();
+			
+			for(TwoDimensionBone bone:filtered){
 				if(bone.getParent()!=null && !bone.isLocked()){
 					Point selfPoint=boneControler.getBoneInitialPosition(bone).get().toPoint();
 					Point parentPoint=boneControler.getBoneInitialPosition(bone.getParent()).get().toPoint();
@@ -257,6 +264,8 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 					clip.setBone(bone.getName());
 					cellObjects.addItem(clip);
 					
+				}else{
+					//ignore locked;
 				}
 			}
 			//these add data is new-created.and not exist old data.
@@ -310,13 +319,69 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 			updateCanvas();
 		}
 	}
+	
+
+	
+	public static class BoneNameTransfer implements Function<ClipData,String>{
+
+		@Override
+		public String apply(ClipData input) {
+			return input.getBone();
+		}
+		
+	}
+	
+	public static class BoneTransfer implements Function<TwoDimensionBone,String>{
+
+		@Override
+		public String apply(TwoDimensionBone input) {
+			return input.getName();
+		}
+		
+	}
+	
+	public List<String> filterNotUsedBoneName(){
+		for(TwoDimensionBone bone:getRootBone().asSet()){
+			
+			List<String> existNames=FluentIterable.from(cellObjects.getDatas()).transform(new BoneNameTransfer()).toList();
+			
+			List<TwoDimensionBone> bones=BoneUtils.getAllBone(bone);	
+			return FluentIterable.from(bones).filter(new NotExistInNames(existNames)).transform(new BoneTransfer()).toList();
+		}
+		
+		return Lists.newArrayList();
+	}
+	
+	public List<String> getNotLockedAndNotUsedBoneName(){
+		for(TwoDimensionBone bone:getRootBone().asSet()){
+			
+			List<String> existNames=FluentIterable.from(cellObjects.getDatas()).transform(new BoneNameTransfer()).toList();
+			
+			List<TwoDimensionBone> bones=BoneUtils.getAllBone(bone);	
+			return FluentIterable.from(bones).filter(new NotLocked()).filter(new NotExistInNames(existNames)).transform(new BoneTransfer()).toList();
+		}
+		
+		return Lists.newArrayList();
+	}
+	
+	
+	
 	protected void doAdd() {
 		
 		ClipData data=new ClipData();
 		
-		for(TwoDimensionBone bone:getRootBone().asSet()){
-			data.setBone(bone.getName());
+		
+		List<String> names=getNotLockedAndNotUsedBoneName();
+		
+		if(!names.isEmpty()){
+			data.setBone(names.get(0));
+		}else{
+			for(TwoDimensionBone bone:getRootBone().asSet()){
+				data.setBone(bone.getName());
+			}
 		}
+		
+		
 		
 		
 		
@@ -624,6 +689,12 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		@Override
 		public void executeOnClick() {
 			if(isClipDataSelected()){
+				
+				if(!background.hasBackgroundData()){
+					Window.alert("no background image.quit");
+					return;
+				}
+				
 				//LogUtils.log(getSelection().getBounds());
 				TextureData textureData=manager.getTextureDataWithNewestBone();
 				boolean warn=doTransparent(textureData,getSelection());
@@ -753,6 +824,11 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 	
 	protected void doTransparent() {
 
+		if(!background.hasBackgroundData()){
+			Window.alert("no background image.quit");
+			return;
+		}
+		
 		TextureData textureData=manager.getUploadedFileManager().getTextureData();
 		List<ImageDrawingData> datas=Lists.newArrayList();
 		

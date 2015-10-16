@@ -11,6 +11,11 @@ public class Background implements ImageDrawingDataOwner{
 	public void setBackgroundData(ImageDrawingData backgroundData) {
 		this.backgroundData = backgroundData;
 	}
+	/**
+	 * @deprecated not used?
+	 * @param name
+	 * @param imageElement
+	 */
 	public void setBackground(String name,ImageElement imageElement){
 		backgroundData=new ImageDrawingData(name, imageElement);
 	}

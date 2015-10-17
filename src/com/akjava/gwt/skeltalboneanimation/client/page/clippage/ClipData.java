@@ -23,7 +23,7 @@ public void setBone(String bone) {
 	this.bone = bone;
 }
 
-public boolean isEmpty(){
+public boolean isPointsEmpty(){
 	return points.size()==0;
 }
 public List<Point> getPoints() {

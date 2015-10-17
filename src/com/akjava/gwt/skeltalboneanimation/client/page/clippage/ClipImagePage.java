@@ -600,7 +600,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 	 
 	 HorizontalPanel h4=new HorizontalPanel();
 	 panel.add(h4);
-	 Button syncAsTexture=new ExecuteButton("sync datas"){
+	 Button syncAsTexture=new ExecuteButton("clip to texture & save"){
 			
 		 @Override
 			public void beforeExecute() {
@@ -609,10 +609,13 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		 
 		@Override
 		public void executeOnClick() {
-			boolean confirm=Window.confirm("this crop images replace existing texture.are you sure?");
-			if(!confirm){
-				return;
+			if(manager.getTextureDataWithNewestBone()!=null){
+				boolean confirm=Window.confirm("this crop images replace existing texture.are you sure?");
+				if(!confirm){
+					return;
+				}
 			}
+			
 			final TextureData textureData=toTextureData();
 			manager.getFileManagerBar().setTexture("clip-editor", textureData);
 			
@@ -623,20 +626,24 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 	 };
 	 h4.add(syncAsTexture);
 	 
-	 
-	 Button exportAsTexture=new ExecuteButton("sync & save"){
+	 /*
+	 Button exportAsTexture=new ExecuteButton("clip to texture & save"){
 		
 		 @Override
 			public void beforeExecute() {
-			 boolean confirm=Window.confirm("this crop images replace existing texture.are you sure?");
-				if(!confirm){
-					return;
-				}
+			
 			 downloadLinks.clear();
 		 }
 		 
 		@Override
 		public void executeOnClick() {
+			if(manager.getTextureDataWithNewestBone()!=null){
+				boolean confirm=Window.confirm("this crop images replace existing texture.are you sure?");
+				if(!confirm){
+					return;
+				}
+			}
+			
 			Stopwatch watch=Stopwatch.createStarted();
 			final TextureData textureData=toTextureData();
 			TextureDataConverter converter=new TextureDataConverter();
@@ -659,6 +666,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		 
 	 };
 	 h4.add(exportAsTexture);
+	 */
 	 
 	 HorizontalPanel h5=new HorizontalPanel();
 	 panel.add(h5);
@@ -697,9 +705,9 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 				
 				//LogUtils.log(getSelection().getBounds());
 				TextureData textureData=manager.getTextureDataWithNewestBone();
-				boolean warn=doTransparent(textureData,getSelection());
+				boolean success=doTransparent(textureData,getSelection());
 				
-				if(warn){
+				if(!success){
 					Window.alert("some clip is empty and ignored");
 					return;
 				}
@@ -797,9 +805,10 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 
 	
 	protected boolean doTransparent(TextureData textureData,final ClipData original) {
+		LogUtils.log("doTransparent:0");
 		
-		
-		if(original.isEmpty()){
+		if(original.isPointsEmpty()){
+			LogUtils.log("doTransparent:empty clip");
 			return false;
 		}
 		
@@ -807,18 +816,19 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		
 		
 		
-		
+		LogUtils.log("doTransparent:1");
 		
 		TransparentData data=new ClipDataToTransparentDataFunction(textureData).apply(clipData);
 		
 		transparentItPage.removeItemById(clipData.getId());
+		LogUtils.log("doTransparent:2");
 		transparentItPage.addItem(new Supplier<String>() {
 			@Override
 			public String get() {
 				return original.getId();
 			}
 		},data.imageDrawingData, data.imageSrc,data.pointShape);
-		
+		LogUtils.log("doTransparent:3");
 		return true;
 	}
 	

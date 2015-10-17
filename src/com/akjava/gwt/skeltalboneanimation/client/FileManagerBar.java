@@ -161,7 +161,7 @@ public class FileManagerBar extends VerticalPanel{
 		if(textures!=null){
 		for(ImageDrawingData drawing:textures.getImageDrawingDatas()){
 			for(ClipData clip:data.findDataById(drawing.getId()).asSet()){
-				LogUtils.log("linked:"+clip.getId());
+			//	LogUtils.log("linked:"+clip.getId());
 				clip.setLinkedImageDrawingData(drawing);
 			}
 		}

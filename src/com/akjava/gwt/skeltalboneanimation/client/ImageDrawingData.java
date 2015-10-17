@@ -15,6 +15,7 @@ import com.akjava.lib.common.graphics.Rect;
 import com.akjava.lib.common.utils.ValuesUtils;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
+import com.google.common.base.Optional;
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.dom.client.ImageElement;
 
@@ -350,12 +351,19 @@ if(flipHorizontal || flipVertical){
  * re-calcuate scale or turn-angle is hard to do
  */
 private Canvas convertedCanvas;
+
+//for debug
+public Optional<Canvas> getConvertedCanvas() {
+	return Optional.fromNullable(convertedCanvas);
+}
+
 public Canvas convertToCanvas(){
 	
 	if(convertedCanvas==null){
 		convertedCanvas=Canvas.createIfSupported();
 	}
 	
+	updateBounds();
 	Rect bounds=getBounds();
 	
 	CanvasUtils.setSize(convertedCanvas, (int)bounds.getWidth(), (int)bounds.getHeight());
@@ -365,9 +373,19 @@ public Canvas convertToCanvas(){
 		Canvas flipped=ImageElementUtils.flip(imageElement, flipHorizontal, flipVertical, getWorkingCanvas());
 		CanvasUtils.drawCenter(convertedCanvas, flipped.getCanvasElement(),0,0,scaleX,scaleY,angle,alpha);
 		}else{
-		CanvasUtils.drawCenter(convertedCanvas, imageElement,0,0,scaleX,scaleY,angle,alpha);}
+			if(imageElement.getWidth()==0 || imageElement.getHeight()==0){
+				LogUtils.log("convertToCanvas:invalid image :"+getBoneName());
+			}
+			
+		CanvasUtils.drawCenter(convertedCanvas, imageElement,0,0,scaleX,scaleY,angle,alpha);
+		}
+	
+	if(bounds.getWidth()==0 || bounds.getHeight()==0){
+		
+	}
 	
 
+	LogUtils.log(getId()+","+bounds.getWidth()+"x"+bounds.getHeight()+","+convertedCanvas.getCoordinateSpaceWidth()+"x"+convertedCanvas.getCoordinateSpaceHeight());
 	
 	return convertedCanvas;
 }

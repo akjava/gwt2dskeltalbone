@@ -782,7 +782,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 			for(ImageDrawingData linked:clip.getLinkedImageDrawingData().asSet()){
 				Rect clipBound=clip.getBounds();
 				if(clip.getBounds().equals(linked.getBounds())){
-					LogUtils.log("same no need convert");
+					//LogUtils.log("same no need convert");
 					//same size,no need care
 					clippedImageSrc=linked.getImageElement().getSrc();
 				}else{
@@ -835,6 +835,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		
 		TransparentData data=new ClipDataToTransparentDataFunction(textureData).apply(clipData);
 		
+		
 		transparentItPage.removeItemById(clipData.getId());
 
 		transparentItPage.addItem(new Supplier<String>() {
@@ -844,8 +845,31 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 			}
 		},data.imageDrawingData, data.imageSrc,data.pointShape);
 		
+	
+		//debugImage(data.imageSrc);
+		
+		
 		return true;
 	}
+	
+	
+	private void debugImage(final String dataUrl){
+	new ImageElementLoader().load(dataUrl, new ImageElementListener() {
+			
+			@Override
+			public void onLoad(ImageElement element) {
+				LogUtils.log(element.getWidth()+"x"+element.getHeight());
+				LogUtils.log(dataUrl);
+			}
+			
+			@Override
+			public void onError(String url, ErrorEvent event) {
+				LogUtils.log("invalid:"+url);
+			}
+		});
+	}
+	
+	
 	
 	protected void doTransparent() {
 

@@ -198,6 +198,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 		easyCellTableObjects.addItem(data);
 		easyCellTableObjects.setSelected(data, true);
 		
+		
 		/*
 		//stack on mobile,maybe because of called async method
 		Scheduler.get().scheduleDeferred(new ScheduledCommand() {
@@ -1188,48 +1189,63 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 		if(selection!=null){
 			//currentCommand=null;//store current data-url
 			startCreateCommand();
-			InpaintEngine engine=new InpaintEngine();
-			ImageElement image=ImageElementUtils.create(selection.getDataUrl());
-			List<MaskData> masks=Lists.newArrayList(new MaskData().fade(fade).expand(expand));
-			engine.doInpaint(image, inpaintRadius, masks, new InpaintListener() {
+			
+			ImageElementUtils.createWithLoader(selection.getDataUrl(),new ImageElementListener() {
 				
 				@Override
-				public void createMixedImage(String dataUrl) {
-					pixelCanvas.getContext2d().save();
-					if(clip){
-						for(PointShape pointShape:selection.getPointShape().asSet()){
-							pointShape.clip(pixelCanvas);
+				public void onLoad(ImageElement image) {
+					InpaintEngine engine=new InpaintEngine();
+					LogUtils.log("doinpaint");
+					Window.open(image.getSrc(), "test2", null);
+					
+					List<MaskData> masks=Lists.newArrayList(new MaskData().fade(fade).expand(expand));
+					engine.doInpaint(image, inpaintRadius, masks, new InpaintListener() {
+						
+						@Override
+						public void createMixedImage(String dataUrl) {
+							pixelCanvas.getContext2d().save();
+							if(clip){
+								for(PointShape pointShape:selection.getPointShape().asSet()){
+									pointShape.clip(pixelCanvas);
+								}
+								
+							}
+							CanvasUtils.drawCenter(pixelCanvas, ImageElementUtils.create(dataUrl));
+							
+							updateCurrentSelectionDataUrl(pixelCanvas.toDataUrl());
+							
+							pixelCanvas.getContext2d().restore();
 						}
 						
-					}
-					CanvasUtils.drawCenter(pixelCanvas, ImageElementUtils.create(dataUrl));
+						@Override
+						public void createInpainteMaks(String dataUrl) {
+							// TODO Auto-generated method stub
+							
+						}
+						
+						@Override
+						public void createInpaintImage(String dataUrl) {
+							// TODO Auto-generated method stub
+							
+						}
+						
+						@Override
+						public void createGreyScaleMaks(String dataUrl) {
+							// TODO Auto-generated method stub
+							
+						}
+					});
+					endCreateCommand(pixelCanvas.toDataUrl());
 					
-					updateCurrentSelectionDataUrl(pixelCanvas.toDataUrl());
-					
-					pixelCanvas.getContext2d().restore();
+					updateCanvas();
 				}
 				
 				@Override
-				public void createInpainteMaks(String dataUrl) {
-					// TODO Auto-generated method stub
-					
-				}
-				
-				@Override
-				public void createInpaintImage(String dataUrl) {
-					// TODO Auto-generated method stub
-					
-				}
-				
-				@Override
-				public void createGreyScaleMaks(String dataUrl) {
-					// TODO Auto-generated method stub
-					
+				public void onError(String url, ErrorEvent event) {
+					LogUtils.log("some how load faild:"+url);
 				}
 			});
-			endCreateCommand(pixelCanvas.toDataUrl());
 			
-			updateCanvas();
 		}
 	}
 	protected void doTransferSyncAsTexture() {
@@ -2014,8 +2030,21 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 			//ImageElementUtils.copytoCanvas(element, canvas);
 			undoBt.setEnabled(false);
 			redoBt.setEnabled(false);
-			updateDrawingCanvas(false);
-			startCreateCommand();
+			new ImageElementLoader().load(selection.getDataUrl(), new ImageElementListener() {
+				
+				@Override
+				public void onLoad(ImageElement element) {
+					updateDrawingCanvas(false);
+					
+					startCreateCommand();
+				}
+				
+				@Override
+				public void onError(String url, ErrorEvent event) {
+					LogUtils.log("invalid url"+url);
+				}
+			});
+			
 		}
 		//LogUtils.log("selection-change-time-ms:"+watch.elapsed(TimeUnit.MILLISECONDS));
 	}
@@ -2078,7 +2107,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 		
 		
 		CanvasUtils.drawImage(pixelCanvas, selectionImage);
-		
+	
 		
 		ImageElementUtils.copytoCanvas(selectionImage, overlayCanvas,false);
 		

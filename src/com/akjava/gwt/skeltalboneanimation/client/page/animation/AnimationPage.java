@@ -22,6 +22,8 @@ import com.akjava.gwt.jszip.client.JSZipUtils;
 import com.akjava.gwt.lib.client.CanvasUtils;
 import com.akjava.gwt.lib.client.ImageElementUtils;
 import com.akjava.gwt.lib.client.LogUtils;
+import com.akjava.gwt.lib.client.MultiImageElementLoader;
+import com.akjava.gwt.lib.client.MultiImageElementLoader.MultiImageElementListener;
 import com.akjava.gwt.lib.client.StorageDataList;
 import com.akjava.gwt.lib.client.datalist.SimpleTextData;
 import com.akjava.gwt.lib.client.datalist.TextAreaBasedDataList;
@@ -1136,17 +1138,28 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 	}
 	
 	
-private List<Canvas> convertedDatas;
+private List<Canvas> convertedDatas;//initialized when new texture loaded.
 private void initializeConvetedCanvas(){
 	if(textureData==null){
 		return;
 	}
 	if(convertedDatas==null){
+	//	LogUtils.log("convertedDatas");
 		convertedDatas=new ArrayList<Canvas>();
 		for(ImageDrawingData data:textureData.getImageDrawingDatas()){
 			convertedDatas.add(data.convertToCanvas());
 		}
+	
+		LogUtils.log("debug");
+		for(ImageDrawingData data:textureData.getDatas()){
+			//test validate image?
+			//LogUtils.log(data.getConvertedCanvas().get().toDataUrl());
+			
+			//LogUtils.log(data.convertToCanvas().toDataUrl());
+		}
 	}
+	
+	
 	
 }
 
@@ -1173,6 +1186,7 @@ private void drawTextureData(Canvas canvas){
 	int offsetX=boneControler.getBonePositionControler().getSettings().getOffsetX();
 	int offsetY=boneControler.getBonePositionControler().getSettings().getOffsetY();
 	
+	initializeConvetedCanvas();
 	List<ImageDrawingData> imageDrawingDatas=textureData.getImageDrawingDatas();
 	for(int i=0;i<imageDrawingDatas.size();i++){
 		ImageDrawingData data=imageDrawingDatas.get(i);
@@ -1212,7 +1226,7 @@ private void drawTextureData(Canvas canvas){
 		if(!data.isVisible()){
 			continue;
 		}
-		initializeConvetedCanvas();
+		
 		
 		Canvas converted=convertedDatas.get(i);
 		
@@ -1243,7 +1257,7 @@ private void drawTextureData(Canvas canvas){
 
 double opacity=100;
 private void updateCanvasOnAnimation() {
-		
+		LogUtils.log("updateCanvasOnAnimation");
 		
 		//switch mode
 		if(textureData!=null){
@@ -1942,12 +1956,41 @@ upper.add(new UndoButtons(undoControler));
 		
 	}
 	@Override
-	protected void onTextureDataChanged(TextureData textureData) {
+	protected void onTextureDataChanged(final TextureData textureData) {
 		//TODO create TextureControler
 		this.textureData = textureData;
 		convertedDatas=null;
 		
-		updateCanvas();
+		List<String> urls=Lists.newArrayList();
+		if(textureData!=null){
+			for(ImageDrawingData data:textureData.getDatas()){
+				if(data.getImageElement()!=null){
+					urls.add(data.getImageElement().getSrc());
+				}
+			}
+		}
+		
+		new MultiImageElementLoader().loadImages(urls, new MultiImageElementListener() {
+			
+			@Override
+			public void onLoad(List<String> successPaths, List<ImageElement> imageElements) {
+				LogUtils.log("image loaded");
+				convertedDatas=null;//super class call updateCanvas first,need remake after loading. //TODO class
+				
+				
+				updateCanvas();
+				
+			}
+			
+			@Override
+			public void onError(List<String> errorPaths) {
+				LogUtils.log("load faild:"+Joiner.on(",").join(errorPaths));
+			}
+		});
+		
+		
+		
+		
 	}
 	@Override
 	public String getOwnerName() {

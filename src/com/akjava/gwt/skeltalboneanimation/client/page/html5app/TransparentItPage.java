@@ -521,7 +521,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 			@Override
 			public void onKeyDown(KeyDownEvent event) {
 				int code=event.getNativeKeyCode();
-				LogUtils.log(""+code);
+				LogUtils.log("transparent input key code for shortcut:"+code);
 				if(code=='1'){
 					sizeListBox.setValue(1);
 				}
@@ -1340,7 +1340,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 				bgElement.removeFromParent();
 			}
 			String css=".colorbg{margin-left: 8px;padding: 0px;background:"+getBgColor()+";}";
-			LogUtils.log(css);
+			//LogUtils.log(css);
 			bgElement = StyleInjector.injectStylesheet(css);
 			
 			canvas.setStylePrimaryName("colorbg");

@@ -3,7 +3,6 @@ package com.akjava.gwt.skeltalboneanimation.client.page.clippage;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
 
@@ -13,10 +12,13 @@ import com.akjava.gwt.jszip.client.JSZip;
 import com.akjava.gwt.jszip.client.JSZipUtils;
 import com.akjava.gwt.jszip.client.JSZipUtils.ZipListener;
 import com.akjava.gwt.lib.client.CanvasUtils;
+import com.akjava.gwt.lib.client.ImageElementListener;
+import com.akjava.gwt.lib.client.ImageElementLoader;
 import com.akjava.gwt.lib.client.ImageElementUtils;
 import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.lib.client.experimental.CanvasDragMoveControler.KeyDownState;
 import com.akjava.gwt.lib.client.experimental.ExecuteButton;
+import com.akjava.gwt.lib.client.experimental.ExecuteWaitAsyncButton;
 import com.akjava.gwt.lib.client.experimental.RectCanvasUtils;
 import com.akjava.gwt.lib.client.experimental.undo.UndoButtons;
 import com.akjava.gwt.lib.client.game.PointD;
@@ -36,7 +38,6 @@ import com.akjava.gwt.skeltalboneanimation.client.bones.BoneAndAnimationData;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneListBox;
 import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
 import com.akjava.gwt.skeltalboneanimation.client.converters.ClipImageDataConverter;
-import com.akjava.gwt.skeltalboneanimation.client.converters.TextureDataConverter;
 import com.akjava.gwt.skeltalboneanimation.client.functions.ClipDataToRelatedTextureIdFunction;
 import com.akjava.gwt.skeltalboneanimation.client.page.AbstractPage;
 import com.akjava.gwt.skeltalboneanimation.client.page.ListenerSystem.DataChangeListener;
@@ -45,6 +46,7 @@ import com.akjava.gwt.skeltalboneanimation.client.page.bone.BoneControler;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.CanvasDrawingDataControlCanvas;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.CanvasUpdater;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.ImageDrawingDatasUpdater;
+import com.akjava.gwt.skeltalboneanimation.client.page.clippage.commands.DataUrlLoadExecuteButton;
 import com.akjava.gwt.skeltalboneanimation.client.page.html5app.TransparentItPage;
 import com.akjava.gwt.skeltalboneanimation.client.predicates.BonePredicates.NotExistInNames;
 import com.akjava.gwt.skeltalboneanimation.client.predicates.BonePredicates.NotLocked;
@@ -54,9 +56,9 @@ import com.akjava.lib.common.graphics.Rect;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicates;
-import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
 import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -73,6 +75,7 @@ import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.DoubleClickEvent;
 import com.google.gwt.event.dom.client.DoubleClickHandler;
+import com.google.gwt.event.dom.client.ErrorEvent;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.user.cellview.client.CellTable;
@@ -581,6 +584,9 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 			if(!isClipDataSelected()){
 				return;
 			}
+			initializeBackgroundDataUrl();
+			
+			
 			String dataUrl=generateClippedImage(getSelection());
 			Anchor a=HTML5Download.get().generateBase64DownloadLink(dataUrl, "image/png", "bone-clip.png", "clip", true);
 			downloadLinks.add(a);
@@ -600,11 +606,26 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 	 
 	 HorizontalPanel h4=new HorizontalPanel();
 	 panel.add(h4);
-	 Button syncAsTexture=new ExecuteButton("clip to texture & save"){
+	 clipToTextureButton = new ExecuteWaitAsyncButton("clip to texture & save"){
 			
 		 @Override
 			public void beforeExecute() {
 			 downloadLinks.clear();
+				ImageElementLoader loader=new ImageElementLoader();
+				loader.load(initializeBackgroundDataUrl(), new ImageElementListener() {
+					
+					@Override
+					public void onLoad(ImageElement element) {
+						clipToTextureButton.setReadyExecute(true);
+					
+						
+					}
+					
+					@Override
+					public void onError(String url, ErrorEvent event) {
+						LogUtils.log("load-faild:"+url);
+					}
+				});
 		 }
 		 
 		@Override
@@ -621,10 +642,15 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 			
 			ClipImageData clipData=generateSaveData();
 			manager.getFileManagerBar().setClipImageData("clip-editor", clipData);
+			
+		
+			
+			
+			
 		}
 		 
 	 };
-	 h4.add(syncAsTexture);
+	 h4.add(clipToTextureButton);
 	 
 	 /*
 	 Button exportAsTexture=new ExecuteButton("clip to texture & save"){
@@ -680,6 +706,9 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		@Override
 		public void executeOnClick() {
 			
+			
+			
+			initializeBackgroundDataUrl();
 			doTransparent();
 			doSaveData();
 		}
@@ -687,12 +716,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 	 };
 	 h5.add(transparent);
 	 
-	 Button transparentSelection=new ExecuteButton("transparent selection"){
-			
-		 @Override
-			public void beforeExecute() {
-			 //downloadLinks.clear();
-		 }
+	 Button transparentSelection=new DataUrlLoadExecuteButton("transparent selection",backgroundDataUrlSupplier) {
 		 
 		@Override
 		public void executeOnClick() {
@@ -702,6 +726,8 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 					Window.alert("no background image.quit");
 					return;
 				}
+				
+				initializeBackgroundDataUrl();
 				
 				//LogUtils.log(getSelection().getBounds());
 				TextureData textureData=manager.getTextureDataWithNewestBone();
@@ -734,6 +760,17 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 	 panel.add(downloadLinks);
 	 
 		return panel;
+	}
+	
+	private Supplier<String> backgroundDataUrlSupplier;
+	
+	/**
+	 * for speed up & some case generateBackgroundImage broken
+	 */
+	private String initializeBackgroundDataUrl(){
+		LogUtils.log("initializeBackgroundDataUrl");
+		backgroundDataUrl=generateBackgroundImage();
+		return backgroundDataUrl;
 	}
 	
 
@@ -805,7 +842,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 
 	
 	protected boolean doTransparent(TextureData textureData,final ClipData original) {
-		LogUtils.log("doTransparent:0");
+		
 		
 		if(original.isPointsEmpty()){
 			LogUtils.log("doTransparent:empty clip");
@@ -815,20 +852,19 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		ClipData clipData=original.copy(true);
 		
 		
-		
-		LogUtils.log("doTransparent:1");
+	
 		
 		TransparentData data=new ClipDataToTransparentDataFunction(textureData).apply(clipData);
 		
 		transparentItPage.removeItemById(clipData.getId());
-		LogUtils.log("doTransparent:2");
+
 		transparentItPage.addItem(new Supplier<String>() {
 			@Override
 			public String get() {
 				return original.getId();
 			}
 		},data.imageDrawingData, data.imageSrc,data.pointShape);
-		LogUtils.log("doTransparent:3");
+		
 		return true;
 	}
 	
@@ -959,6 +995,9 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		PointD pt=rect.getCenterPoint();
 		ImageElement element=ImageElementUtils.create(generateClippedImage(clip));
 		
+		
+		
+		
 		String id=null;
 		
 		for(ImageDrawingData linked:clip.getLinkedImageDrawingData().asSet()){
@@ -1013,7 +1052,9 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		context.clip();
 		}
 		
-		ImageElement bg=ImageElementUtils.create(generateBackgroundImage());
+		
+		
+		ImageElement bg=ImageElementUtils.create(backgroundDataUrl);
 		context.drawImage(bg, -rect.getX(), -rect.getY());
 		return clipCanvas.toDataUrl();
 	}
@@ -2011,14 +2052,20 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 	private boolean showClipedAreaOnly;
 	private ClipDrawingDataControler clipDrawingDataControler;
 	
-	public String generateBackgroundImage(){
+	private String generateBackgroundImage(){
 		Canvas extractCanvas=CanvasUtils.copyToSizeOnly(canvas,null);
 		background.getBackgroundData().draw(extractCanvas);
 		String dataUrl=extractCanvas.toDataUrl();
 		return dataUrl;
 	}
+	
+	private String backgroundDataUrl;
+	
+	
+	
 
 	ClipPageUndoControler undoControler;
+	private ExecuteWaitAsyncButton clipToTextureButton;
 
 	@Override
 	protected void initialize() {
@@ -2030,6 +2077,14 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		});
 		
 		undoControler=new ClipPageUndoControler(this);
+		
+		backgroundDataUrlSupplier=Suppliers.memoize(new Supplier<String>() {
+			@Override
+			public String get() {
+				// TODO Auto-generated method stub
+				return initializeBackgroundDataUrl();
+			}
+		});
 	}
 	public Optional<ClipData> findDataById(String id){
 		for(ClipData clip:cellObjects.getDatas()){

@@ -41,6 +41,7 @@ import com.akjava.gwt.skeltalboneanimation.client.MainManager;
 import com.akjava.gwt.skeltalboneanimation.client.SkeltalFileFormat;
 import com.akjava.gwt.skeltalboneanimation.client.TextureData;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationControlRange;
+import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationControlRange.AnimationListener;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationFrame;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationFrameCopyFunction;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneAndAnimationData;
@@ -92,7 +93,7 @@ import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 
-public  class AnimationPage extends AbstractPage implements HasSelectionName,BoneFrameRangeControler,CanvasUpdater{
+public  class AnimationPage extends AbstractPage implements HasSelectionName,BoneFrameRangeControler,CanvasUpdater,BoneVisibleControler{
 	public AnimationPage(MainManager manager) {
 		super(manager);
 	}
@@ -136,6 +137,18 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 			@Override
 			public void onValueChange(ValueChangeEvent<Number> event) {
 				onAnimationRangeChanged(event.getValue().intValue()-1);
+			}
+		});
+		
+		animationControler.setAnimationListener(new AnimationListener() {
+			@Override
+			public void onAnimationStopped() {
+				setBoneVisible(true);
+			}
+			
+			@Override
+			public void onAnimationStarted() {
+				setBoneVisible(false);
 			}
 		});
 		
@@ -2027,6 +2040,10 @@ upper.add(new UndoButtons(undoControler));
 			
 			return;
 		}
+	}
+	@Override
+	public void setBoneVisible(boolean visible) {
+		showBoneCheck.setValue(visible,true);
 	}
 
 

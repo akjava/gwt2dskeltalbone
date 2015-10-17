@@ -10,6 +10,7 @@ import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
+import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
@@ -23,6 +24,20 @@ public class AnimationControlRange extends VerticalPanel{
 
 	private SkeletalAnimation animation;
 	private LabeledInputRangeWidget scaleRange;
+	
+	private AnimationListener animationListener;
+	public AnimationListener getAnimationListener() {
+		return animationListener;
+	}
+	public void setAnimationListener(AnimationListener animationListener) {
+		this.animationListener = animationListener;
+	}
+
+
+	public static interface AnimationListener{
+		public void onAnimationStopped();
+		public void onAnimationStarted();
+	}
 	
 	/**
 	 * be careful this animation replace when new data loaded.
@@ -126,7 +141,7 @@ public class AnimationControlRange extends VerticalPanel{
 		});
 		panel.add(reset);
 		
-		Button prev=new Button("Prev",new ClickHandler() {
+		final Button prev=new Button("Prev",new ClickHandler() {
 			@Override
 			public void onClick(ClickEvent event) {
 				int v=(int) inputRange.getValue();
@@ -137,20 +152,60 @@ public class AnimationControlRange extends VerticalPanel{
 				inputRange.setValue(v);
 			}
 		});
-		panel.add(prev);
+		 panel.add(prev);
 		
-		Button next=new Button("Next",new ClickHandler() {
+		final Button next=new Button("Next",new ClickHandler() {
 			@Override
 			public void onClick(ClickEvent event) {
-				int v=(int) inputRange.getValue();
-				v+=1;
-				if(v> inputRange.getRange().getMax()){
-					v=1;
-				}
-				inputRange.setValue(v);
+				doNext();
 			}
 		});
 		panel.add(next);
+		
+
+		Button play=new Button("Play",new ClickHandler() {
+			@Override
+			public void onClick(ClickEvent event) {
+				prev.setEnabled(false);
+				next.setEnabled(false);
+				
+				
+				if(loopTimer!=null){
+					loopTimer.cancel();
+				}
+				loopTimer=new Timer(){
+
+					@Override
+					public void run() {
+						doNext();
+					}
+					
+				};
+				loopTimer.scheduleRepeating(100);
+				if(animationListener!=null){
+					animationListener.onAnimationStarted();
+				}
+				
+			}
+		});
+		panel.add(play);
+		Button stop=new Button("Stop",new ClickHandler() {
+			@Override
+			public void onClick(ClickEvent event) {
+				prev.setEnabled(true);
+				next.setEnabled(true);
+				
+				if(loopTimer!=null){
+					loopTimer.cancel();
+				}
+				if(animationListener!=null){
+					animationListener.onAnimationStopped();
+				}
+				
+			}
+		});
+		panel.add(stop);
+		
 		
 		scaleRange = new LabeledInputRangeWidget("Scale:" , 0.00, 5.0, 0.01);
 		scaleRange.setValue(1);
@@ -190,6 +245,18 @@ public class AnimationControlRange extends VerticalPanel{
 		panel.add(resetScale);
 		
 		}
+	
+	protected void doNext() {
+		int v=(int) inputRange.getValue();
+		v+=1;
+		if(v> inputRange.getRange().getMax()){
+			v=1;
+		}
+		inputRange.setValue(v);
+	}
+
+	private Timer loopTimer;
+	
 	
 	private boolean scaleRangeEventCalledFromResetButton;
 	

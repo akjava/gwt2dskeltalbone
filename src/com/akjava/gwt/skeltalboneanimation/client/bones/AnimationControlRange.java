@@ -181,7 +181,7 @@ public class AnimationControlRange extends VerticalPanel{
 					}
 					
 				};
-				loopTimer.scheduleRepeating(100);
+				loopTimer.scheduleRepeating(250);
 				if(animationListener!=null){
 					animationListener.onAnimationStarted();
 				}

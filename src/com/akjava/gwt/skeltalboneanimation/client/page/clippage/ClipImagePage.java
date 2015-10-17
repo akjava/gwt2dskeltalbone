@@ -577,10 +577,10 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 	 panel.add(h3);
 	 final HorizontalPanel downloadLinks=new HorizontalPanel();
 	 
-	 Button exportSelection=new Button("selection only",new ClickHandler() {
-		
+	 Button exportSelection=new DataUrlLoadExecuteButton("selection only",backgroundDataUrlSupplier){
+
 		@Override
-		public void onClick(ClickEvent event) {
+		public void executeOnClick() {
 			if(!isClipDataSelected()){
 				return;
 			}
@@ -594,11 +594,11 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 			//test position
 			ImageDrawingData data=convertToImageDrawingDataNoId(getSelection());
 			data.draw(canvas);
-			
-			
-			
 		}
-	});
+		 
+	 };
+	 
+
 	 h3.add(exportSelection);
 	 
 	 
@@ -606,26 +606,12 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 	 
 	 HorizontalPanel h4=new HorizontalPanel();
 	 panel.add(h4);
-	 clipToTextureButton = new ExecuteWaitAsyncButton("clip to texture & save"){
+	 clipToTextureButton = new DataUrlLoadExecuteButton("clip to texture & save",backgroundDataUrlSupplier){
 			
 		 @Override
 			public void beforeExecute() {
+			 super.beforeExecute();
 			 downloadLinks.clear();
-				ImageElementLoader loader=new ImageElementLoader();
-				loader.load(initializeBackgroundDataUrl(), new ImageElementListener() {
-					
-					@Override
-					public void onLoad(ImageElement element) {
-						clipToTextureButton.setReadyExecute(true);
-					
-						
-					}
-					
-					@Override
-					public void onError(String url, ErrorEvent event) {
-						LogUtils.log("load-faild:"+url);
-					}
-				});
 		 }
 		 
 		@Override
@@ -696,19 +682,11 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 	 
 	 HorizontalPanel h5=new HorizontalPanel();
 	 panel.add(h5);
-	 Button transparent=new ExecuteButton("transparent"){
+	 Button transparent=new DataUrlLoadExecuteButton("transparent",backgroundDataUrlSupplier){
 			
-		 @Override
-			public void beforeExecute() {
-			 //downloadLinks.clear();
-		 }
-		 
+		
 		@Override
 		public void executeOnClick() {
-			
-			
-			
-			initializeBackgroundDataUrl();
 			doTransparent();
 			doSaveData();
 		}
@@ -726,8 +704,6 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 					Window.alert("no background image.quit");
 					return;
 				}
-				
-				initializeBackgroundDataUrl();
 				
 				//LogUtils.log(getSelection().getBounds());
 				TextureData textureData=manager.getTextureDataWithNewestBone();
@@ -762,6 +738,9 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		return panel;
 	}
 	
+	/**
+	 * initialize on initialize() because of super class,this call initializeBackgroundDataUrl();
+	 */
 	private Supplier<String> backgroundDataUrlSupplier;
 	
 	/**

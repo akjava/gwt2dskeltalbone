@@ -4,7 +4,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
 
-import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.lib.client.experimental.CanvasDragMoveControler;
 import com.akjava.gwt.lib.client.experimental.CanvasMoveListener;
 import com.akjava.gwt.skeltalboneanimation.client.CanvasDrawingDataControler;
@@ -89,14 +88,18 @@ public class CanvasDrawingDataControlCanvas extends VerticalPanel{
 		scroll.setSize((width+space)+"px", (height+space)+"px");
 		this.add(scroll);
 		
-		HorizontalPanel scalePanel=new HorizontalPanel();
-		IntegerValueListBox scaleBox=new IntegerValueListBox(ImmutableList.of(1,2,4),1,new ValueChangeHandler<Integer>() {
+		HorizontalPanel scalePanel=new HorizontalPanel(); //0.5 not so good
+		DoubleValueListBox scaleBox=new DoubleValueListBox(ImmutableList.of(1.0,2.0,4.0,8.0),1.0,new ValueChangeHandler<Double>() {
 			
+			
+
 			@Override
-			public void onValueChange(ValueChangeEvent<Integer> event) {
+			public void onValueChange(ValueChangeEvent<Double> event) {
 				canvasControler.setScale(event.getValue());
 				zoomListener.onZoom(event.getValue());
 			}
+
+			
 		});
 		scalePanel.add(scaleBox);
 		this.add(scalePanel);

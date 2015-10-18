@@ -1,5 +1,7 @@
 package com.akjava.gwt.skeltalboneanimation.client.page.html5app;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import java.util.List;
 
 import com.akjava.gwt.html5.client.file.Uint8Array;
@@ -31,6 +33,7 @@ public class InpaintEngine {
 	}
 	
 	public void doInpaint(ImageElement element,int radius,List<MaskData> maskDatas,InpaintListener listener){
+				checkArgument(element.getWidth()!=0 && element.getHeight()==0,"doInpaint:0 image element maybe need load");
 		
 				Benchmark.start("total");
 				

@@ -18,6 +18,7 @@ import com.google.gwt.event.dom.client.ScrollHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.user.client.ui.HorizontalPanel;
+import com.google.gwt.user.client.ui.IntegerBox;
 import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 
@@ -88,7 +89,8 @@ public class CanvasDrawingDataControlCanvas extends VerticalPanel{
 		scroll.setSize((width+space)+"px", (height+space)+"px");
 		this.add(scroll);
 		
-		HorizontalPanel scalePanel=new HorizontalPanel(); //0.5 not so good
+		HorizontalPanel bottomPanel=new HorizontalPanel(); //0.5 not so good
+		bottomPanel.setVerticalAlignment(ALIGN_MIDDLE);
 		DoubleValueListBox scaleBox=new DoubleValueListBox(ImmutableList.of(1.0,2.0,4.0,8.0),1.0,new ValueChangeHandler<Double>() {
 			
 			
@@ -101,8 +103,20 @@ public class CanvasDrawingDataControlCanvas extends VerticalPanel{
 
 			
 		});
-		scalePanel.add(scaleBox);
-		this.add(scalePanel);
+		bottomPanel.add(scaleBox);
+		this.add(bottomPanel);
+		
+		//FUTURE
+		
+		/*IntegerBox xBox=new IntegerBox();
+		bottomPanel.add(xBox);
+		xBox.addValueChangeHandler(new ValueChangeHandler<Integer>() {
+			@Override
+			public void onValueChange(ValueChangeEvent<Integer> event) {
+				canvasControler.setScrollX(event.getValue());
+			}
+		});*/
+		
 		
 		canvasControler = new CanvasDragMoveControler(canvas,new CanvasMoveListener() {
 			

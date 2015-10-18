@@ -84,7 +84,6 @@ public class InpaintEngine {
 				
 				
 				
-				LogUtils.log("imageData:"+expandedImageData.getWidth()+"x"+expandedImageData.getHeight());
 				Benchmark.start("inpaint");
 				InPaint.inpaint(expandedImageData, array, radius);
 				

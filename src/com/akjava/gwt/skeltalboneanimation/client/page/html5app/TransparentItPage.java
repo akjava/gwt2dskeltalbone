@@ -1195,8 +1195,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 				@Override
 				public void onLoad(ImageElement image) {
 					InpaintEngine engine=new InpaintEngine();
-					LogUtils.log("doinpaint");
-					Window.open(image.getSrc(), "test2", null);
+					
 					
 					List<MaskData> masks=Lists.newArrayList(new MaskData().fade(fade).expand(expand));
 					engine.doInpaint(image, inpaintRadius, masks, new InpaintListener() {

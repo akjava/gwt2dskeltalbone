@@ -17,6 +17,9 @@ import com.akjava.gwt.html5.client.file.FileUtils.DataURLListener;
 import com.akjava.gwt.html5.client.file.Uint8Array;
 import com.akjava.gwt.html5.client.file.ui.DropDockDataUrlRootPanel;
 import com.akjava.gwt.html5.client.input.ColorBox;
+import com.akjava.gwt.inpaint.client.InpaintEngine;
+import com.akjava.gwt.inpaint.client.MaskData;
+import com.akjava.gwt.inpaint.client.InpaintEngine.InpaintListener;
 import com.akjava.gwt.lib.client.CanvasUtils;
 import com.akjava.gwt.lib.client.GWTHTMLUtils;
 import com.akjava.gwt.lib.client.GWTUtils;
@@ -38,7 +41,6 @@ import com.akjava.gwt.skeltalboneanimation.client.page.ListenerSystem.DataOwner;
 import com.akjava.gwt.skeltalboneanimation.client.page.clippage.PointShape;
 import com.akjava.gwt.skeltalboneanimation.client.page.colorpick.ColorPickPage;
 import com.akjava.gwt.skeltalboneanimation.client.page.colorpick.ColorPickPage.ImageSender;
-import com.akjava.gwt.skeltalboneanimation.client.page.html5app.InpaintEngine.InpaintListener;
 import com.akjava.gwt.skeltalboneanimation.client.predicates.ImageDrawingDataPredicates.NotExistInIds;
 import com.akjava.gwt.skeltalboneanimation.client.ui.LabeledInputRangeWidget;
 import com.akjava.lib.common.utils.ColorUtils;
@@ -1201,7 +1203,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 					engine.doInpaint(image, inpaintRadius, masks, new InpaintListener() {
 						
 						@Override
-						public void createMixedImage(String dataUrl) {
+						public void createMixedImage(ImageData dataUrl) {
 							pixelCanvas.getContext2d().save();
 							if(clip){
 								for(PointShape pointShape:selection.getPointShape().asSet()){
@@ -1209,7 +1211,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 								}
 								
 							}
-							CanvasUtils.drawCenter(pixelCanvas, ImageElementUtils.create(dataUrl));
+							CanvasUtils.drawCenter(pixelCanvas, CanvasUtils.createCanvas(null, dataUrl).getCanvasElement());
 							
 							updateCurrentSelectionDataUrl(pixelCanvas.toDataUrl());
 							
@@ -1217,19 +1219,19 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 						}
 						
 						@Override
-						public void createInpainteMaks(String dataUrl) {
+						public void createInpainteMaks(ImageData dataUrl) {
 							// TODO Auto-generated method stub
 							
 						}
 						
 						@Override
-						public void createInpaintImage(String dataUrl) {
+						public void createInpaintImage(ImageData dataUrl) {
 							// TODO Auto-generated method stub
 							
 						}
 						
 						@Override
-						public void createGreyScaleMaks(String dataUrl) {
+						public void createGreyScaleMaks(ImageData dataUrl) {
 							// TODO Auto-generated method stub
 							
 						}

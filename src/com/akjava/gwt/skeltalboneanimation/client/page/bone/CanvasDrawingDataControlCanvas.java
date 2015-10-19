@@ -18,7 +18,7 @@ import com.google.gwt.event.dom.client.ScrollHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.user.client.ui.HorizontalPanel;
-import com.google.gwt.user.client.ui.IntegerBox;
+import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 
@@ -90,6 +90,7 @@ public class CanvasDrawingDataControlCanvas extends VerticalPanel{
 		this.add(scroll);
 		
 		HorizontalPanel bottomPanel=new HorizontalPanel(); //0.5 not so good
+		bottomPanel.add(new Label("Scale:"));
 		bottomPanel.setVerticalAlignment(ALIGN_MIDDLE);
 		DoubleValueListBox scaleBox=new DoubleValueListBox(ImmutableList.of(1.0,2.0,4.0,8.0),1.0,new ValueChangeHandler<Double>() {
 			

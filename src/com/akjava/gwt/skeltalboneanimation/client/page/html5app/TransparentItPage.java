@@ -28,6 +28,7 @@ import com.akjava.gwt.lib.client.ImageElementLoader;
 import com.akjava.gwt.lib.client.ImageElementUtils;
 import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.lib.client.experimental.ExecuteButton;
+import com.akjava.gwt.lib.client.experimental.ImageDataUtils;
 import com.akjava.gwt.lib.client.widget.cell.ButtonColumn;
 import com.akjava.gwt.lib.client.widget.cell.EasyCellTableObjects;
 import com.akjava.gwt.lib.client.widget.cell.SimpleCellTable;
@@ -1144,7 +1145,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 			colorPickPage.sendImage(new ImageSender() {
 				
 				@Override
-				public void sendBack(String fileName, final String dataUrl) {
+				public void sendBack(String fileName, final ImageData imageData) {
 					//final Stopwatch watch=Stopwatch.createStarted();
 					//LogUtils.log("send backed");
 					Optional<ImageElementData2> optional=findDataByName(fileName);
@@ -1166,9 +1167,11 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 								
 								// i wonder send back is slow?but it's ok
 								//LogUtils.log("paint:"+"start-paint:"+watch.elapsed(TimeUnit.MILLISECONDS));
-								CanvasUtils.clear(pixelCanvas);
-								CanvasUtils.drawDataUrl(pixelCanvas, dataUrl);
-								updateCurrentSelectionDataUrl(pixelCanvas.toDataUrl());
+								//CanvasUtils.clear(pixelCanvas);
+								ImageDataUtils.putImageData(imageData, pixelCanvas);
+								//CanvasUtils.drawDataUrl(pixelCanvas, dataUrl);
+								String dataUrl=pixelCanvas.toDataUrl();
+								updateCurrentSelectionDataUrl(dataUrl);
 								endCreateCommand(dataUrl);
 								updateCanvas();
 								}else{

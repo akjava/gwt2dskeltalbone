@@ -1726,7 +1726,8 @@ upper.add(new UndoButtons(undoControler));
 	 * insert after
 	 */
 	protected void doPaste() {
-		for(AnimationFrame copy:getCopiedData().asSet()){
+		for(AnimationFrame clipboard:getCopiedData().asSet()){
+			AnimationFrame copy=clipboard.copy();
 			SkeletalAnimation animation=animationControler.getAnimation();
 			int oldIndex=animationControler.getSelectedIndex();
 			List<AnimationFrame> oldFrames=FluentIterable.from(animation.getFrames()).transform(new AnimationFrameCopyFunction()).toList();

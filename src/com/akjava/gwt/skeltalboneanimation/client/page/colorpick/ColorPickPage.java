@@ -152,7 +152,7 @@ public class ColorPickPage extends AbstractPage{
 	@Override
 	public void onSelectedFromTab() {
 		super.onSelectedFromTab();
-		positiveCheck.setValue(true);//always select when page open
+		positiveCheck.setValue(true,true);//always select when page open
 	}
 	@Override
 	protected void initialize() {
@@ -197,7 +197,7 @@ public class ColorPickPage extends AbstractPage{
 	}
 	private void doSendBack(){
 		if(imageSender!=null){
-			imageSender.sendBack(senderDataId, resultCanvas.toDataUrl());
+			imageSender.sendBack(senderDataId, ImageDataUtils.copyFrom(resultCanvas));
 			manager.selectTab(3);
 		}else{
 			LogUtils.log("no imageSender");
@@ -206,7 +206,7 @@ public class ColorPickPage extends AbstractPage{
 	
 	
 	public static interface ImageSender{
-		public void sendBack(String dataId,String dataUrl);
+		public void sendBack(String dataId,ImageData imageData);
 	}
 
 	private boolean isPositive;
@@ -251,7 +251,9 @@ public class ColorPickPage extends AbstractPage{
 		strategyPanel.add(strategyBox);
 		
 		RadioButton testCheck = new RadioButton("type","test point");
-		strategyPanel.add(testCheck);
+		//strategyPanel.add(testCheck);
+		//for debug luv-point,
+		
 		testCheck.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
 
 			@Override
@@ -266,7 +268,7 @@ public class ColorPickPage extends AbstractPage{
 		debugPanel = new HorizontalPanel();
 		strategyPanel.add(debugPanel);
 		
-		clipCheck = new CheckBox();
+		clipCheck = new CheckBox("use clip safe-area");
 		debugPanel.add(clipCheck);
 		
 		HorizontalPanel panel=new HorizontalPanel();

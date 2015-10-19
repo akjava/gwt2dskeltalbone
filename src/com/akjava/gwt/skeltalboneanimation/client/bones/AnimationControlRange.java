@@ -92,6 +92,35 @@ public class AnimationControlRange extends VerticalPanel{
 		}
 		return animation.getFrames().get(index);
 	}
+	
+	public Optional<AnimationFrame> getPrev(){
+		int index=(int)(inputRange.getValue()-1);
+		if(index<=0 || index>=animation.getFrames().size()){
+			return Optional.absent();
+		}
+		return Optional.of(animation.getFrames().get(index-1));
+	}
+	public Optional<AnimationFrame> getLast(){
+		if(animation.getFrames().size()==0){
+			return Optional.absent();
+		}
+		return Optional.of(animation.getFrames().get(animation.getFrames().size()-1));
+	}
+	
+	public Optional<AnimationFrame> getNext(){
+		int index=(int)(inputRange.getValue()-1);
+		if(index<0 || index>=animation.getFrames().size()-1){
+			return Optional.absent();
+		}
+		return Optional.of(animation.getFrames().get(index+1));
+	}
+	public Optional<AnimationFrame> getFirst(){
+		if(animation.getFrames().size()==0){
+			return Optional.absent();
+		}
+		return Optional.of(animation.getFrames().get(0));
+	}
+	
 	public AnimationControlRange(final SkeletalAnimation animation){
 		checkNotNull("AnimationControlRange:need animation");
 		this.animation=animation;

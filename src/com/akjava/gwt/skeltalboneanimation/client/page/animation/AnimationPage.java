@@ -60,6 +60,7 @@ import com.akjava.gwt.skeltalboneanimation.client.converters.ClipImageDataConver
 import com.akjava.gwt.skeltalboneanimation.client.converters.SimpleTextDataConverter;
 import com.akjava.gwt.skeltalboneanimation.client.converters.TextureDataConverter;
 import com.akjava.gwt.skeltalboneanimation.client.page.AbstractPage;
+import com.akjava.gwt.skeltalboneanimation.client.page.CircleLineBonePainter;
 import com.akjava.gwt.skeltalboneanimation.client.page.HasSelectionName;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.BoneControler;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.CanvasDrawingDataControlCanvas;
@@ -339,28 +340,31 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 		
 	}
 	
-	private Widget createTextureColumnButtons() {
+	private Widget createBonesColumnButtons2() {
 		HorizontalPanel panel=new HorizontalPanel();
 		panel.setVerticalAlignment(HorizontalPanel.ALIGN_MIDDLE);
-		panel.add(new Label("[Texture Data] "));
-		/*
-		panel.add(new Label("Load:"));
-		 FileUploadForm load=JSZipUtils.createZipFileUploadForm(new ZipListener() {
-				
-				@Override
-				public void onLoad(String name, JSZip zip) {
-					doLoadTexture(name,zip);
-				}
-				
-				@Override
-				public void onFaild(int states, String statesText) {
-					LogUtils.log("faild:"+states+","+statesText);
-				}
-			});
-		panel.add(load);
-		*/
 		
+		showPrevBone = new CheckBox("show prev bone");
+		showPrevBone.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
+
+			@Override
+			public void onValueChange(ValueChangeEvent<Boolean> event) {
+				updateCanvas();
+			}
+			
+		});
+		panel.add(showPrevBone);
 		
+		showNextBone = new CheckBox("show next bone");
+		showNextBone.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
+
+			@Override
+			public void onValueChange(ValueChangeEvent<Boolean> event) {
+				updateCanvas();
+			}
+			
+		});
+		panel.add(showNextBone);
 		
 		
 		return panel;
@@ -1056,7 +1060,12 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 		//painter.paintBone(currentSelectionFrame);
 		//TODO paint textures
 		
-		updateCanvasOnAnimation();
+		drawTextureData(canvas);
+		
+		drawBones();
+		
+		
+		
 		if(!showBoneCheck.getValue()){
 			return;
 		}
@@ -1164,6 +1173,9 @@ private void initializeConvetedCanvas(){
 }
 
 private void drawTextureData(Canvas canvas){
+	if(textureData==null){
+		return;
+	}
 	AnimationFrame currentSelectionFrame=animationControler.getSelection();
 	
 	double scaleX=currentSelectionFrame.getScaleX();
@@ -1256,22 +1268,71 @@ private void drawTextureData(Canvas canvas){
 }
 
 double opacity=100;
-private void updateCanvasOnAnimation() {
-		LogUtils.log("updateCanvasOnAnimation");
-		
+private void drawBones() {
+	if(!showBoneCheck.getValue()){
+		return;
+	}
 		//switch mode
-		if(textureData!=null){
-			drawTextureData(canvas);
+		
+		
+		
+		canvas.getContext2d().setGlobalAlpha(opacity/100);
+		AnimationFrame currentSelectionFrame=animationControler.getSelection();
+		
+		AnimationFrame prevFrame=null;
+		for(AnimationFrame frame:animationControler.getPrev().asSet()){
+			prevFrame=frame;
+		}
+		if(prevFrame==null){
+			for(AnimationFrame frame:animationControler.getLast().asSet()){
+				prevFrame=frame;
+			}
 		}
 		
-		if(showBoneCheck.getValue()){
+		AnimationFrame nextFrame=null;
+		for(AnimationFrame frame:animationControler.getNext().asSet()){
+			nextFrame=frame;
+		}
+		if(nextFrame==null){
+			for(AnimationFrame frame:animationControler.getFirst().asSet()){
+				nextFrame=frame;
+			}
+		}
+		if(prevFrame==nextFrame && showPrevBone.getValue()){
+			nextFrame=null;
+		}
+		
+		if(currentSelectionFrame!=prevFrame && nextFrame!=null && showNextBone.getValue()){
+			boneControler.getPainter().setDrawSetting(CircleLineBonePainter.nextDrawSetting);
+			boneControler.paintBone(nextFrame);
+		}
+		
+		
+		if(currentSelectionFrame!=prevFrame && prevFrame!=null && showPrevBone.getValue()){
+			boneControler.getPainter().setDrawSetting(CircleLineBonePainter.prevDrawSetting);
+			boneControler.paintBone(prevFrame);
+		}
+		
+		
+			
 		//canvas.getContext2d().setGlobalAlpha(0.5);
-		AnimationFrame currentSelectionFrame=animationControler.getSelection();
-		canvas.getContext2d().setGlobalAlpha(opacity/100);
+		
+		
+		
+		
+		
+		
+		boneControler.getPainter().setDrawSetting(CircleLineBonePainter.defaultDrawSetting);
 		boneControler.paintBone(currentSelectionFrame);
+		
+		
+		
+		
+		
+		
 		canvas.getContext2d().setGlobalAlpha(1);
 		//canvas.getContext2d().setGlobalAlpha(1.0);
-		}
+		
 	}
 public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvasY,int imageX,int imageY,double angle,double scaleX,double scaleY){
 	canvas.getContext2d().save();
@@ -1608,7 +1669,7 @@ upper.add(new UndoButtons(undoControler));
 		
 		panel.add(createBonesColumnButtons());
 		
-		panel.add(createTextureColumnButtons());
+		panel.add(createBonesColumnButtons2());
 		panel.add(createBackground2ColumnButtons());
 		
 	    
@@ -1877,6 +1938,9 @@ upper.add(new UndoButtons(undoControler));
 	}
 	
 	private String defaultAllDataSaveName="2dbone-all-data";
+
+	private CheckBox showPrevBone;
+	private CheckBox showNextBone;
 	
 	
 	private void syncClipDataAndTextureDataFileName(ClipImageData clipImageData,TextureData textureData){

@@ -35,6 +35,9 @@ public BonePositionControler getBonePositionControler() {
 	return bonePositionControler;
 }
 private CircleLineBonePainter painter;
+public CircleLineBonePainter getPainter() {
+	return painter;
+}
 private CanvasBoneSettings settings;
 
 

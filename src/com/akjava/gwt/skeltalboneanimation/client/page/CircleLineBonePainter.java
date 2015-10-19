@@ -29,6 +29,32 @@ private HasSelectionName hasSelectionName;
 		
 	}
 
+	public static final DrawSetting defaultDrawSetting=new DrawSetting();
+	public static final DrawSetting prevDrawSetting=new DrawSetting("#666","#333","#030","#000",1);
+	public static final DrawSetting nextDrawSetting=new DrawSetting("#ccc","#aaa","#afa","#ccc",1);
+	public static class DrawSetting{
+		
+		public DrawSetting(){};
+		public DrawSetting(String boneColor, String boneRootColor, String selectionColor, String lineColor, int lineShadowWidth) {
+			super();
+			this.boneColor = boneColor;
+			this.boneRootColor = boneRootColor;
+			this.selectionColor = selectionColor;
+			this.lineColor = lineColor;
+			this.lineShadowWidth = lineShadowWidth;
+		}
+		String boneColor="#f00";
+		String boneRootColor="#00f";
+		String selectionColor="#0a0";
+		String lineColor="#fff";
+		int lineShadowWidth=5;
+	}
+	
+	private DrawSetting drawSetting=defaultDrawSetting;
+	public void setDrawSetting(DrawSetting drawSetting) {
+		this.drawSetting = drawSetting;
+	}
+
 	@Override
 	public void paintBone(String name, String parent, int startX, int startY, int endX, int endY, double angle,boolean locked) {
 		
@@ -37,9 +63,9 @@ private HasSelectionName hasSelectionName;
 		
 		String color;
 		if(parent!=null){
-			color="#f00";
+			color=drawSetting.boneColor;
 		}else{
-			color="#00f";//root bone;
+			color=drawSetting.boneRootColor;//root bone;
 		}
 		//LogUtils.log("paint:"+name+","+rect.toKanmaString());
 		
@@ -52,7 +78,7 @@ private HasSelectionName hasSelectionName;
 		}
 		
 		//draw selection
-		String selectionColor="#040";
+		String selectionColor=drawSetting.selectionColor;
 		
 		
 		
@@ -64,15 +90,15 @@ private HasSelectionName hasSelectionName;
 		}
 		//
 		
-		String lineColor="#fff";
+		String lineColor=drawSetting.lineColor;
 		
 		//for bold selection line
 		if(name.equals(hasSelectionName.getSelectionName())){
-			lineColor="#0f0";
+			lineColor=selectionColor;
 		}
 		
 		if(parent!=null){
-			canvas.getContext2d().setLineWidth(5);
+			canvas.getContext2d().setLineWidth(drawSetting.lineShadowWidth);
 			canvas.getContext2d().setStrokeStyle("#000");
 			CanvasUtils.drawLine(canvas, startX, startY,endX,endY);
 			

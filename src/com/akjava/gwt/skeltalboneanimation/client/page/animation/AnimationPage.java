@@ -31,6 +31,7 @@ import com.akjava.gwt.lib.client.datalist.TextAreaBasedDataList.TextAreaBasedDat
 import com.akjava.gwt.lib.client.experimental.CanvasDragMoveControler.KeyDownState;
 import com.akjava.gwt.lib.client.experimental.ExecuteButton;
 import com.akjava.gwt.lib.client.experimental.RectCanvasUtils;
+import com.akjava.gwt.lib.client.experimental.ReplaceEachOther;
 import com.akjava.gwt.lib.client.experimental.undo.Command;
 import com.akjava.gwt.lib.client.experimental.undo.SimpleUndoControler;
 import com.akjava.gwt.lib.client.experimental.undo.UndoButtons;
@@ -367,9 +368,84 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 		panel.add(showNextBone);
 		
 		
+		Button swapHorizontalChildrens=new Button("swap with children",new ClickHandler() {
+			
+			@Override
+			public void onClick(ClickEvent event) {
+				doSwapHorizontalBone(true);
+			}
+		});
+		panel.add(swapHorizontalChildrens);
+		
 		return panel;
 	}
 	
+	protected void doSwapHorizontalBone(boolean withChildren) {
+		AnimationFrame selectionFrame=animationControler.getSelection();
+		if(selectionFrame==null){
+			LogUtils.log("doSwapBone:no frame selection,quit.");
+			return;
+		}
+		
+		TwoDimensionBone selectedBone=boneControlerRange.getSelection();
+		if(selectedBone==null){
+			LogUtils.log("doSwapBone:no bone selection,quit.");
+			return;
+		}
+		List<TwoDimensionBone> bones=withChildren?BoneUtils.getAllBone(selectedBone):Lists.newArrayList(selectedBone);
+		
+		List<String> allboneName=BoneUtils.getAllBoneName(getRootBone());
+		
+		SkeletalAnimation animation=animationControler.getAnimation();
+		int oldIndex=animationControler.getSelectedIndex();
+		List<AnimationFrame> oldFrames=FluentIterable.from(animation.getFrames()).transform(new AnimationFrameCopyFunction()).toList();
+		
+		boolean needUndo=false;
+		for(TwoDimensionBone bone:bones){
+			String boneName=bone.getName();
+			String newBoneName=new ReplaceEachOther("left", "right").replaceEachCommonCase(boneName);
+			if(!boneName.equals(newBoneName) && allboneName.contains(newBoneName)){
+				needUndo=true;
+				LogUtils.log("swapped:"+boneName);
+				BoneFrame boneFrameA=selectionFrame.getBoneFrame(boneName)!=null?selectionFrame.getBoneFrame(boneName):new BoneFrame(boneName);
+				BoneFrame boneFrameB=selectionFrame.getBoneFrame(newBoneName)!=null?selectionFrame.getBoneFrame(newBoneName):new BoneFrame(newBoneName);
+				
+				//swapping
+				boneFrameA.swapValues(boneFrameB);
+				
+				//inverse
+				boneFrameA.setX(boneFrameA.getX()*-1);
+				boneFrameA.setAngle(boneFrameA.getAngle()*-1);
+				
+				boneFrameB.setX(boneFrameB.getX()*-1);
+				boneFrameB.setAngle(boneFrameB.getAngle()*-1);
+				
+				//no need
+				allboneName.remove(boneName);
+				allboneName.remove(newBoneName);
+			}else{
+				//LogUtils.log("not exist swapp name:"+newBoneName);
+			}
+		}
+		//animationControler.setSelection(frame, true);//don't care
+		
+		boneControlerRange.setFrame(selectionFrame); //animationControler store each boneFrame
+		
+		//TODO make undo
+		if(needUndo){
+		animation=animationControler.getAnimation();
+		int newIndex=animationControler.getSelectedIndex();
+		List<AnimationFrame> newFrames=FluentIterable.from(animation.getFrames()).transform(new AnimationFrameCopyFunction()).toList();
+		undoControler.executeBoneAnimationChanged(oldFrames, newFrames, oldIndex, newIndex);
+		
+		
+		boneControler.getBonePositionControler().updateAnimationData(selectionFrame);//position changed;
+		updateCanvas();
+		}
+		
+		//updateCanvas();
+		
+	}
 	private String bg2Name;
 	private ImageElement bg2;
 	private boolean drawBG2=true;
@@ -1159,7 +1235,7 @@ private void initializeConvetedCanvas(){
 			convertedDatas.add(data.convertToCanvas());
 		}
 	
-		LogUtils.log("debug");
+		//LogUtils.log("debug");
 		for(ImageDrawingData data:textureData.getDatas()){
 			//test validate image?
 			//LogUtils.log(data.getConvertedCanvas().get().toDataUrl());
@@ -2039,7 +2115,7 @@ upper.add(new UndoButtons(undoControler));
 			
 			@Override
 			public void onLoad(List<String> successPaths, List<ImageElement> imageElements) {
-				LogUtils.log("image loaded");
+				//LogUtils.log("image loaded");
 				convertedDatas=null;//super class call updateCanvas first,need remake after loading. //TODO class
 				
 				

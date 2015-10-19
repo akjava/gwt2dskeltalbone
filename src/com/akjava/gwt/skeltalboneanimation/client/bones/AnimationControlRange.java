@@ -357,11 +357,12 @@ public class AnimationControlRange extends VerticalPanel{
 	}
 	public void setSelection(AnimationFrame frame,boolean fireEvent) {
 		checkNotNull(frame,"setSelection:need frame");
-		int index=animation.getFrames().indexOf(frame);
 		
+		//scale
 		scaleRange.setValue(frame.getScaleX(), false);
 		
 		//LogUtils.log("setSelection:"+index+","+inputRange.get);
+		int index=animation.getFrames().indexOf(frame);
 		if(index!=-1){
 			inputRange.setValue(index+1,fireEvent);
 		}

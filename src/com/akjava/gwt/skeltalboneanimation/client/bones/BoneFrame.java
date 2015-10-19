@@ -56,6 +56,24 @@ public void setAngle(double angle) {
 public BoneFrame copy(){
 	return new BoneFrame(boneName,x,y,angle);
 }
+public void copyTo(BoneFrame frame){
+	frame.boneName=boneName;
+	frame.x=x;
+	frame.y=y;
+	frame.angle=angle;
+}
+
+public void swapValues(BoneFrame frame){
+	String aName=boneName;
+	String bName=frame.getBoneName();
+	BoneFrame tmp=frame.copy();
+	
+	this.copyTo(frame);
+	tmp.copyTo(this);
+	
+	this.boneName=aName;
+	frame.boneName=bName;
+}
 
 public boolean isAllZeroFrame(){
 	return x==0 && y==0 && angle==0;

@@ -385,7 +385,7 @@ public Canvas convertToCanvas(){
 	}
 	
 
-	LogUtils.log(getId()+","+bounds.getWidth()+"x"+bounds.getHeight()+","+convertedCanvas.getCoordinateSpaceWidth()+"x"+convertedCanvas.getCoordinateSpaceHeight());
+	//LogUtils.log(getId()+","+bounds.getWidth()+"x"+bounds.getHeight()+","+convertedCanvas.getCoordinateSpaceWidth()+"x"+convertedCanvas.getCoordinateSpaceHeight());
 	
 	return convertedCanvas;
 }

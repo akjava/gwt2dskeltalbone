@@ -1248,6 +1248,23 @@ private void initializeConvetedCanvas(){
 	
 }
 
+public class TexturePainter{
+	private TextureData texture;
+	private AnimationFrame frame;
+	private BoneControler boneControler;
+	
+	public void draw(Canvas canvas){
+		if(texture==null){
+			LogUtils.log("TexturePainter:no texture");
+			return;
+		}
+		if(frame==null){
+			LogUtils.log("TexturePainter:no frame");
+			return;
+		}
+	}
+}
+
 private void drawTextureData(Canvas canvas){
 	if(textureData==null){
 		return;
@@ -1263,7 +1280,7 @@ private void drawTextureData(Canvas canvas){
 	boneControler.getBonePositionControler().updateBoth(currentSelectionFrame);//TODO update on value changed only
 	//TODO add show bone check
 	//TODO make class,it's hard to understand
-	 List<BoneWithXYAngle> emptyBonePosition=boneControler.getBonePositionControler().getRawInitialData();
+	 List<BoneWithXYAngle> initialBonePosition=boneControler.getBonePositionControler().getRawInitialData();
 	 List<BoneWithXYAngle> movedBonePosition=boneControler.getBonePositionControler().getRawAnimationedData();
 	 
 	
@@ -1293,14 +1310,50 @@ private void drawTextureData(Canvas canvas){
 			continue;
 		}
 		
-		int boneX=(int)emptyBonePosition.get(boneIndex).getX();
-		int boneY=(int)emptyBonePosition.get(boneIndex).getY();
+		int boneX=(int)initialBonePosition.get(boneIndex).getX();//scale effected
+		int boneY=(int)initialBonePosition.get(boneIndex).getY();
 		
 		/**
 		 * bonePosition start(0,0) however on canvas cordinate center is 0,0 
 		 * so need add offset*(this is always half canvas so far)
 		 */
 		
+		
+		
+		
+		
+		if(!data.isVisible()){
+			continue;
+		}
+		
+		
+		//texture
+		Canvas converted=convertedDatas.get(i);
+		
+		double halfConvertedImageWidth=converted.getCoordinateSpaceWidth()/2*scaleX;
+		double halfConvertedImageHeighth=converted.getCoordinateSpaceHeight()/2*scaleY;
+		
+		//this image drawing data cordinate absolute.so like bone cordinate need sub offset*
+		
+		/**
+		 * 
+		 * ((data.getIntX()-offsetX)*scaleX = texture(data) x position is left-top corner is 0:0 ,but boneX 's 0:0 center of canvas(800x800)
+		 * and this position not scale effect yet.
+		 * 
+		 * data.getIntX() is center of texture,to get left-top coner position need sub half-converted-image-width.
+		 * 
+		 * diffX is relative from bone
+		 */
+		
+		
+		int diffX=(int)((boneX)-((data.getIntX()-offsetX)*scaleX-halfConvertedImageWidth));
+		int diffY=(int)((boneY)-((data.getIntY()-offsetY)*scaleY-halfConvertedImageHeighth));
+		
+		
+		
+		/*int imageX=(int)(data.getIntX()-converted.getCoordinateSpaceWidth()/2)-(boneX+offsetX); //
+		int imageY=(int)(data.getIntY()-converted.getCoordinateSpaceHeight()/2)-(boneY+offsetY);//
+*/		//LogUtils.log(imageX+","+imageY);
 		
 		int movedX=(int)movedBonePosition.get(boneIndex).getX();
 		int movedY=(int)movedBonePosition.get(boneIndex).getY();
@@ -1309,31 +1362,6 @@ private void drawTextureData(Canvas canvas){
 		
 		//LogUtils.log(boneX+","+boneY+","+movedX+","+movedY);
 		double angle=movedBonePosition.get(boneIndex).getAngle();
-		
-		
-		if(!data.isVisible()){
-			continue;
-		}
-		
-		
-		Canvas converted=convertedDatas.get(i);
-		
-		double halfConvertedImageWidth=converted.getCoordinateSpaceWidth()/2*scaleX;
-		double halfConvertedImageHeighth=converted.getCoordinateSpaceHeight()/2*scaleY;
-		
-		//this image drawing data cordinate absolute.so like bone cordinate need sub offset*
-		
-		int diffX=(int)((boneX)-((data.getIntX()-offsetX)*scaleX-halfConvertedImageWidth));
-		int diffY=(int)((boneY)-((data.getIntY()-offsetY)*scaleY-halfConvertedImageHeighth));
-		
-		//diffX*=scaleX;
-		//diffY*=scaleY;
-		
-		
-		
-		/*int imageX=(int)(data.getIntX()-converted.getCoordinateSpaceWidth()/2)-(boneX+offsetX); //
-		int imageY=(int)(data.getIntY()-converted.getCoordinateSpaceHeight()/2)-(boneY+offsetY);//
-*/		//LogUtils.log(imageX+","+imageY);
 		
 		//CanvasUtils.drawCenter(canvas, converted.getCanvasElement(), offsetX, offsetY, scaleX, scaleY, angle, 1.0)
 		drawImageAt(canvas,converted.getCanvasElement(),movedX+offsetX-diffX,movedY+offsetY-diffY,diffX,diffY,angle,scaleX,scaleY);
@@ -1410,13 +1438,13 @@ private void drawBones() {
 		//canvas.getContext2d().setGlobalAlpha(1.0);
 		
 	}
-public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvasY,int imageX,int imageY,double angle,double scaleX,double scaleY){
+public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvasY,int imageCenterX,int imageCenterY,double angle,double scaleX,double scaleY){
 	canvas.getContext2d().save();
 	double radiant=Math.toRadians(angle);
-	canvas.getContext2d().translate(canvasX+imageX,canvasY+imageY);//rotate center
+	canvas.getContext2d().translate(canvasX+imageCenterX,canvasY+imageCenterY);//rotate center
 	
 	canvas.getContext2d().rotate(radiant);
-	canvas.getContext2d().translate(-(canvasX+imageX),-(canvasY+imageY));//and back
+	canvas.getContext2d().translate(-(canvasX+imageCenterX),-(canvasY+imageCenterY));//and back
 	
 	canvas.getContext2d().translate(canvasX,canvasY);	
 	

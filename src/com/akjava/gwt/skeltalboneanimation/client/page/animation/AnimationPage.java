@@ -1288,8 +1288,11 @@ private void drawTextureData(Canvas canvas){
 	//int offsetX=painter.getOffsetX();
 	//int offsetY=painter.getOffsetY();
 	
-	int offsetX=boneControler.getBonePositionControler().getSettings().getOffsetX();
-	int offsetY=boneControler.getBonePositionControler().getSettings().getOffsetY();
+	int offsetX=boneControler.getBone().getBoneOffSetX();
+	int offsetY=boneControler.getBone().getBoneOffSetY();
+	
+	int canvasCenterX=boneControler.getBonePositionControler().getSettings().getOffsetX();
+	int canvasCenterY=boneControler.getBonePositionControler().getSettings().getOffsetY();
 	
 	initializeConvetedCanvas();
 	List<ImageDrawingData> imageDrawingDatas=textureData.getImageDrawingDatas();
@@ -1346,8 +1349,8 @@ private void drawTextureData(Canvas canvas){
 		 */
 		
 		
-		int diffX=(int)((boneX)-((data.getIntX()-offsetX)*scaleX-halfConvertedImageWidth));
-		int diffY=(int)((boneY)-((data.getIntY()-offsetY)*scaleY-halfConvertedImageHeighth));
+		double imagePointX=((boneX)-((data.getX()-offsetX)*scaleX-halfConvertedImageWidth));
+		double imagePointY=((boneY)-((data.getY()-offsetY)*scaleY-halfConvertedImageHeighth));
 		
 		
 		
@@ -1355,8 +1358,8 @@ private void drawTextureData(Canvas canvas){
 		int imageY=(int)(data.getIntY()-converted.getCoordinateSpaceHeight()/2)-(boneY+offsetY);//
 */		//LogUtils.log(imageX+","+imageY);
 		
-		int movedX=(int)movedBonePosition.get(boneIndex).getX();
-		int movedY=(int)movedBonePosition.get(boneIndex).getY();
+		double movedX=movedBonePosition.get(boneIndex).getX();
+		double movedY=movedBonePosition.get(boneIndex).getY();
 		
 		
 		
@@ -1364,7 +1367,7 @@ private void drawTextureData(Canvas canvas){
 		double angle=movedBonePosition.get(boneIndex).getAngle();
 		
 		//CanvasUtils.drawCenter(canvas, converted.getCanvasElement(), offsetX, offsetY, scaleX, scaleY, angle, 1.0)
-		drawImageAt(canvas,converted.getCanvasElement(),movedX+offsetX-diffX,movedY+offsetY-diffY,diffX,diffY,angle,scaleX,scaleY);
+		drawImageAt(canvas,converted.getCanvasElement(),movedX+canvasCenterX,movedY+canvasCenterY,imagePointX,imagePointY,angle,scaleX,scaleY);
 		//canvas.getContext2d().drawImage(converted.getCanvasElement(), (int)(data.getX()-converted.getCoordinateSpaceWidth()/2), (int)(data.getY()-converted.getCoordinateSpaceHeight()/2));
 		//
 	}
@@ -1438,15 +1441,15 @@ private void drawBones() {
 		//canvas.getContext2d().setGlobalAlpha(1.0);
 		
 	}
-public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvasY,int imageCenterX,int imageCenterY,double angle,double scaleX,double scaleY){
+public void drawImageAt(Canvas canvas,CanvasElement image,double canvasX,double canvasY,double imagePointX,double imagePointY,double angle,double scaleX,double scaleY){
 	canvas.getContext2d().save();
 	double radiant=Math.toRadians(angle);
-	canvas.getContext2d().translate(canvasX+imageCenterX,canvasY+imageCenterY);//rotate center
+	canvas.getContext2d().translate(canvasX,canvasY);//rotate center
 	
 	canvas.getContext2d().rotate(radiant);
-	canvas.getContext2d().translate(-(canvasX+imageCenterX),-(canvasY+imageCenterY));//and back
+	canvas.getContext2d().translate(-(canvasX),-(canvasY));//and back
 	
-	canvas.getContext2d().translate(canvasX,canvasY);	
+	canvas.getContext2d().translate(canvasX-imagePointX,canvasY-imagePointY);	
 	
 	
 	canvas.getContext2d().scale(scaleX,scaleY);

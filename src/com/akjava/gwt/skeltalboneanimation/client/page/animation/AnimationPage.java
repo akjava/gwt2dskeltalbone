@@ -108,6 +108,8 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 	private BoneControlRange boneControlerRange;
 
 	private CheckBox moveRootOnlyCheck;
+
+	private CheckBox allowLockedBone;
 	
 
 	private void onAnimationRangeChanged(int index){
@@ -257,6 +259,10 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 		moveRootOnlyCheck = new CheckBox("move only  root-bone");
 		moveRootOnlyCheck.setValue(true);
 		panel.add(moveRootOnlyCheck);
+		
+		allowLockedBone = new CheckBox("allow locked bone");
+		
+		panel.add(allowLockedBone);
 		
 		//opacity range
 		LabeledInputRangeWidget opacityRange=new LabeledInputRangeWidget("Bone Opacity", 1, 100, 1);
@@ -874,10 +880,17 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 			if(!isEnableEdit()){
 				return;
 			}
+			
+			
+			
 			//bone angle change by wheel
 			TwoDimensionBone bone=boneControlerRange.getSelection();
 			if(bone==null){
 				return;
+			}
+			
+			if(boneSelectionOnCanvas.isLocked() && !allowLockedBone.getValue()){
+				return;//not allow
 			}
 			
 			if(bone==getRootBone()){
@@ -925,7 +938,8 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 			if(!isEnableEdit()){
 				return;
 			}
-			if(boneSelectionOnCanvas!=null && !boneSelectionOnCanvas.isLocked()){
+			if(boneSelectionOnCanvas!=null && (!boneSelectionOnCanvas.isLocked() || allowLockedBone.getValue())){
+					//TODO allow lock option
 				
 				
 					//root bone moving
@@ -1288,8 +1302,8 @@ private void drawTextureData(Canvas canvas){
 	//int offsetX=painter.getOffsetX();
 	//int offsetY=painter.getOffsetY();
 	
-	int offsetX=boneControler.getBone().getBoneOffSetX();
-	int offsetY=boneControler.getBone().getBoneOffSetY();
+	int offsetX=textureData.getOffsetX();
+	int offsetY=textureData.getOffsetY();
 	
 	int canvasCenterX=boneControler.getBonePositionControler().getSettings().getOffsetX();
 	int canvasCenterY=boneControler.getBonePositionControler().getSettings().getOffsetY();

@@ -9,6 +9,21 @@ import com.google.common.collect.Lists;
 public class TextureData extends HasUniqData<ImageDrawingData>{
 private List<ImageDrawingData> imageDrawingDatas=Lists.newArrayList();
 private TwoDimensionBone bone;
+
+private int offsetX=400;
+private int offsetY=400;
+public int getOffsetX() {
+	return offsetX;
+}
+public void setOffsetX(int offsetX) {
+	this.offsetX = offsetX;
+}
+public int getOffsetY() {
+	return offsetY;
+}
+public void setOffsetY(int offsetY) {
+	this.offsetY = offsetY;
+}
 public List<ImageDrawingData> getImageDrawingDatas() {
 	return imageDrawingDatas;
 }

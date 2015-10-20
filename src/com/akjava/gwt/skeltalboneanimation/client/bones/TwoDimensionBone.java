@@ -14,20 +14,7 @@ public class TwoDimensionBone {
 private double x;
 private double y;
 
-private int boneOffSetX=400;
-public int getBoneOffSetX() {
-	return boneOffSetX;
-}
-public void setBoneOffSetX(int boneOffSetX) {
-	this.boneOffSetX = boneOffSetX;
-}
-public int getBoneOffSetY() {
-	return boneOffSetY;
-}
-public void setBoneOffSetY(int boneOffSetY) {
-	this.boneOffSetY = boneOffSetY;
-}
-private int boneOffSetY=400;
+
 
 public TwoDimensionBone(String name,double x, double y,TwoDimensionBone parent) {
 	super();
@@ -155,8 +142,7 @@ public TwoDimensionBone copy(boolean copyChildren){
 	TwoDimensionBone copyBone=new TwoDimensionBone(name, x, y,parent);
 	copyBone.setLocked(locked);
 	
-	copyBone.boneOffSetX=boneOffSetX;
-	copyBone.boneOffSetY=boneOffSetY;
+
 	
 	if(copyChildren){
 		for(TwoDimensionBone child:children){

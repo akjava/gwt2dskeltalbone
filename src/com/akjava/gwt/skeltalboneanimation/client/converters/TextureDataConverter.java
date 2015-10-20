@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import com.akjava.gwt.jszip.client.JSFile;
 import com.akjava.gwt.jszip.client.JSZip;
@@ -16,13 +17,17 @@ import com.akjava.gwt.skeltalboneanimation.client.TextureData;
 import com.akjava.gwt.skeltalboneanimation.client.bones.TwoDimensionBone;
 import com.akjava.lib.common.io.FileType;
 import com.akjava.lib.common.utils.CSVUtils;
+import com.akjava.lib.common.utils.ValuesUtils;
 import com.google.common.base.Converter;
 import com.google.common.base.Joiner;
+import com.google.common.base.Objects;
 import com.google.common.base.Optional;
+import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 
 public class TextureDataConverter extends Converter<JSZip,TextureData>{
 
+	public static String TEXTURE_HEADER="#texturedata";
 	@Override
 	protected TextureData doForward(JSZip zip) {
 		checkNotNull(zip);
@@ -33,6 +38,27 @@ public class TextureDataConverter extends Converter<JSZip,TextureData>{
 		}
 		String text=indexFile.asText();
 		List<String> lines=CSVUtils.splitLinesWithGuava(text);
+		
+		TextureData textureData=new TextureData();
+		if(lines.get(0).startsWith(TEXTURE_HEADER)){
+			String parameters=lines.get(0).substring(TEXTURE_HEADER.length());
+			Map<String,String> textureDataParameter=Splitter.on(",").omitEmptyStrings().trimResults().withKeyValueSeparator("=").split(parameters);
+			int format=ValuesUtils.toInt(textureDataParameter.get("format"), 1);
+			
+			int offsetX=ValuesUtils.toInt(textureDataParameter.get("offsetX"), -1);
+			int offsetY=ValuesUtils.toInt(textureDataParameter.get("offsetY"), -1);
+			
+			if(offsetX!=-1){
+				textureData.setOffsetX(offsetX);
+			}
+			if(offsetY!=-1){
+				textureData.setOffsetY(offsetY);
+			}
+			lines.remove(0);
+			
+			LogUtils.log("texturedata format="+format+",offsetX="+offsetX+",offsetY="+offsetY);
+		}
+		
 		
 		List<ImageDrawingData> datas=Lists.newArrayList(new ImageDrawingDataConverter().reverse().convertAll(lines));
 		
@@ -61,12 +87,12 @@ public class TextureDataConverter extends Converter<JSZip,TextureData>{
 			data.setImageElement(ImageElementUtils.create(dataUrl));
 		}
 		
-		TextureData data=new TextureData();
-		data.setImageDrawingDatas(datas);
 		
-		data.setBone(getBone(zip));
+		textureData.setImageDrawingDatas(datas);
 		
-		return data;
+		textureData.setBone(getBone(zip));
+		
+		return textureData;
 	}
 	
 	public static TwoDimensionBone getBone(JSZip zip){
@@ -78,6 +104,16 @@ public class TextureDataConverter extends Converter<JSZip,TextureData>{
 		return null;
 	}
 	
+	public String toTextureDataHeader(TextureData data){
+		List<String> values=Lists.newArrayList();
+		
+		values.add(TEXTURE_HEADER);
+		values.add("format=1");
+		values.add("offsetX="+data.getOffsetX());
+		values.add("offsetY="+data.getOffsetY());
+		
+		return Joiner.on(",").join(values)+"\r\n";
+	}
 
 	@Override
 	protected JSZip doBackward(TextureData textureData) {
@@ -86,7 +122,7 @@ public class TextureDataConverter extends Converter<JSZip,TextureData>{
 		Iterable<String> lines=new ImageDrawingDataConverter().convertAll(textureData.getImageDrawingDatas());
 		
 		String indexText=Joiner.on("\r\n").join(lines);
-		zip.file("index.txt", indexText);
+		zip.file("index.txt", toTextureDataHeader(textureData)+indexText);
 		
 		//LogUtils.log("index-created");
 		

@@ -136,10 +136,12 @@ protected int westPanelWidth=300;
 				GWTHTMLUtils.disableSelectionEnd(canvas.getElement());//not work
 	}
 	
+	/*
 	protected abstract void  onCanvasTouchEnd(int sx,int sy);
 	protected abstract void  onCanvasTouchStart(int sx,int sy);
 	protected abstract void onCanvasDragged(int vectorX, int vectorY);
 	protected abstract void onCanvasWheeled(int delta);
+	*/
 
 	protected abstract void onBoneAndAnimationChanged(BoneAndAnimationData data);
 	

@@ -1457,15 +1457,7 @@ public void drawImageAt(Canvas canvas,CanvasElement image,int canvasX,int canvas
 
 	
 
-	@Override
-	protected void onCanvasTouchEnd(int sx, int sy) {
-		// TODO Auto-generated method stub
-		
-	}
-	@Override
-	protected void onCanvasWheeled(int delta) {
-	
-	}
+
 	@Override
 	protected void onBoneAndAnimationChanged(BoneAndAnimationData data) {
 		

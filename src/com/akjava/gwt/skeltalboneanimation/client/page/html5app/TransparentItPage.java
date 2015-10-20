@@ -2213,29 +2213,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 		return "http://android.akjava.com/html5apps/index.html#transparentit";
 	}
 
-	@Override
-	protected void onCanvasTouchEnd(int sx, int sy) {
-		// TODO Auto-generated method stub
-		
-	}
 
-	@Override
-	protected void onCanvasTouchStart(int sx, int sy) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	protected void onCanvasDragged(int vectorX, int vectorY) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	protected void onCanvasWheeled(int delta) {
-		// TODO Auto-generated method stub
-		
-	}
 
 	@Override
 	protected void onBoneAndAnimationChanged(BoneAndAnimationData data) {

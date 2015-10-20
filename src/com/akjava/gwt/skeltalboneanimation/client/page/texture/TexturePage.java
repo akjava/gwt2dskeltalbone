@@ -440,11 +440,7 @@ public void onDataModified(ImageDrawingData oldValue, ImageDrawingData value) {
 		// TODO Auto-generated constructor stub
 	}
 
-	@Override
-	protected void onCanvasTouchEnd(int sx, int sy) {
-		// TODO Auto-generated method stub
-		
-	}
+
 
 
 

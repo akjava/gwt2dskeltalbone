@@ -1279,10 +1279,7 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 
 
 
-	@Override
-	protected void onCanvasTouchEnd(int sx, int sy) {
-		
-	}
+	
 
 
 
@@ -1293,38 +1290,13 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 	//List<CanvasDrawingDataControler> drawingDataControlers;
 	//private CanvasDrawingDataControler activeDataControler;
 	private Background background;
-	@Override
-	protected void onCanvasTouchStart(int sx, int sy) {
-		
-		
-		//LogUtils.log(activeDataControler!=null?activeDataControler.getName():"null-active");
-		//updateCanvas();
-		
-		
-		
-	}
-
-
-
-
-
-	@Override
-	protected void onCanvasDragged(int vectorX, int vectorY) {
 	
-		
-		//TODO 
-		/*
-		if(!isClipDataSelected()){
-			return;
-		}
-		
-		if(selectionPt!=null){
-			selectionPt.incrementX(vectorX);
-			selectionPt.incrementY(vectorY);
-			updateCanvas();
-		}
-		*/
-	}
+
+
+
+
+
+	
 
 
 	public class ClipDrawingDataControler implements CanvasDrawingDataControler{
@@ -1452,10 +1424,6 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		pointSelectionIndex=-1;
 	}
 
-	@Override
-	protected void onCanvasWheeled(int delta) {
-		
-	}
 
 
 	

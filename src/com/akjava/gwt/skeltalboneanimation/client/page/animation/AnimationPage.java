@@ -1262,22 +1262,6 @@ private void initializeConvetedCanvas(){
 	
 }
 
-public class TexturePainter{
-	private TextureData texture;
-	private AnimationFrame frame;
-	private BoneControler boneControler;
-	
-	public void draw(Canvas canvas){
-		if(texture==null){
-			LogUtils.log("TexturePainter:no texture");
-			return;
-		}
-		if(frame==null){
-			LogUtils.log("TexturePainter:no frame");
-			return;
-		}
-	}
-}
 
 private void drawTextureData(Canvas canvas){
 	if(textureData==null){
@@ -1290,6 +1274,8 @@ private void drawTextureData(Canvas canvas){
 	//LogUtils.log("drawTextureData:"+scaleX+","+scaleY);
 /*	double scaleX=1;
 	double scaleY=1;*/
+	
+	
 	
 	boneControler.getBonePositionControler().updateBoth(currentSelectionFrame);//TODO update on value changed only
 	//TODO add show bone check

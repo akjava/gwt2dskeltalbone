@@ -198,7 +198,7 @@ public class TextureFrameEditor extends VerticalPanel implements Editor<TextureF
 		
 		TextureFrame textureFrame=null;
 		if(order!=null){
-			textureFrame=new TextureFrame(null, order);
+			textureFrame=new TextureFrame(order, null);
 		}else if(orderReset){
 			textureFrame=new TextureFrame(false, true);
 		}

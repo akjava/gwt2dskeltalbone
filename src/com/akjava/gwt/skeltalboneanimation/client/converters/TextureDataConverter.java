@@ -56,7 +56,7 @@ public class TextureDataConverter extends Converter<JSZip,TextureData>{
 			}
 			lines.remove(0);
 			
-			LogUtils.log("texturedata format="+format+",offsetX="+offsetX+",offsetY="+offsetY);
+			//LogUtils.log("texturedata format="+format+",offsetX="+offsetX+",offsetY="+offsetY);
 		}
 		
 		

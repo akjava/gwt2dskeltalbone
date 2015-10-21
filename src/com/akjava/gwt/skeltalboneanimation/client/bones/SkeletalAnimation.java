@@ -2,11 +2,13 @@ package com.akjava.gwt.skeltalboneanimation.client.bones;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import com.akjava.gwt.skeltalboneanimation.client.bones.TextureFrame.TextureState;
 import com.google.common.base.Optional;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 public class SkeletalAnimation {
 	private String name;
@@ -61,7 +63,7 @@ public class SkeletalAnimation {
 		}
 		
 		List<String> order=null;
-		List<TextureState> states=null;
+		Map<String,TextureState> states=null;
 		
 		//contain self
 		for(int i=0;i<=index;i++){
@@ -79,17 +81,22 @@ public class SkeletalAnimation {
 					order=order2;
 				}
 				
+				if(states==null){
+					states=Maps.newHashMap();
+				}
 				for(List<TextureState> states2:textureFrame.getTextureUpdates().asSet()){
-					if(states==null){
-						states=Lists.newArrayList();
+					
+					//replace old one
+					for(TextureState state:states2){
+						states.put(state.getId()	, state);
 					}
-					Iterables.concat(states,states2);
+					
 				}
 			}
 		}
 		
 		if(order!=null || states!=null){
-			return Optional.of(new TextureFrame(states, order));
+			return Optional.of(new TextureFrame(order, ImmutableList.copyOf(states.values())));
 		}else{
 			return Optional.absent();
 		}

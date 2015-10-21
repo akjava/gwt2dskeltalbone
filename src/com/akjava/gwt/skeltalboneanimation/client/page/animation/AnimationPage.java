@@ -1894,6 +1894,7 @@ upper.add(new UndoButtons(undoControler));
 			@Override
 			public void update() {
 				updateCanvas();
+				writeToDataList();
 				
 			}
 		},textureDataSupplier,animationFrameSupplier,animationSupplier);
@@ -2142,7 +2143,7 @@ upper.add(new UndoButtons(undoControler));
 		}
 	}
 	protected void doSaveAll() {
-		LogUtils.log(defaultAllDataSaveName);
+		//LogUtils.log(defaultAllDataSaveName);
 		//set new-bone
 		TextureData textureData=manager.getTextureDataWithNewestBone();
 		ClipImageData clipData=manager.getClipImageDataWithNewestBone();

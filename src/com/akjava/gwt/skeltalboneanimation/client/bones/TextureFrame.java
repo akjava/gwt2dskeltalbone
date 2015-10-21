@@ -14,7 +14,7 @@ public class TextureFrame {
 		this.needResetOrder = needResetOrder;
 	}
 
-	public TextureFrame(List<TextureState> textureUpdates, List<String> textureOrder) {
+	public TextureFrame(List<String> textureOrder, List<TextureState> textureUpdates) {
 		super();
 		this.textureUpdates = textureUpdates;
 		this.textureOrder = textureOrder;
@@ -64,5 +64,22 @@ public class TextureFrame {
 	
 	public static class TextureState{
 		private String id;
+
+		public String getId() {
+			return id;
+		}
+
+		public void setId(String id) {
+			this.id = id;
+		}
+		
+		//TODO copy
+	}
+
+	public TextureFrame copy() {
+		TextureFrame frame=new TextureFrame(textureOrder,textureUpdates);
+		frame.setNeedResetOrder(isNeedResetOrder());
+		frame.setNeedResetState(isNeedResetState());
+		return frame;
 	}
 }

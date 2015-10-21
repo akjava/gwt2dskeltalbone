@@ -7,14 +7,21 @@ import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationFrame;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneFrame;
 import com.akjava.gwt.skeltalboneanimation.client.bones.SkeletalAnimation;
+import com.akjava.gwt.skeltalboneanimation.client.bones.TextureFrame;
 import com.akjava.gwt.skeltalboneanimation.client.predicates.IgnoreStartWithShape;
 import com.akjava.lib.common.utils.ValuesUtils;
 import com.google.common.base.Converter;
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 
 public class AnimationConverter extends Converter<SkeletalAnimation,List<String>> {
 
 	public static final String FORMAT_KEY="skeletalanimation";
+	public static final String TEXTURE_FRAME_FORMAT_KEY="_textureframe_";//TODO disallow bone key
 	@Override
 	protected List<String> doForward(SkeletalAnimation animation) {
 		List<String> lines=new ArrayList<String>();
@@ -37,9 +44,30 @@ public class AnimationConverter extends Converter<SkeletalAnimation,List<String>
 			}
 		}
 		
+		List<String> textureLines=Lists.newArrayList();
+		TextureFrameConverter textureFrameConverter=new TextureFrameConverter();
+		Joiner joiner=Joiner.on(",");
+		
+		for(int i=0;i<animation.getFrames().size();i++){
+			if(animation.getFrames().get(i).getTextureFrame()!=null){
+				String[] csv=textureFrameConverter.convert(animation.getFrames().get(i).getTextureFrame());
+				csv[0]=String.valueOf(i);
+				textureLines.add(joiner.join(csv));
+			}
+		}
+		
+		if(!textureLines.isEmpty()){
+			lines.add(TEXTURE_FRAME_FORMAT_KEY);
+			
+			lines=ImmutableList.copyOf(Iterables.concat(lines,textureLines));
+		}
+		
 		
 		return lines;
 	}
+	
+	
+	
 
 	@Override
 	protected SkeletalAnimation doBackward(List<String> lines) {
@@ -49,12 +77,20 @@ public class AnimationConverter extends Converter<SkeletalAnimation,List<String>
 		SkeletalAnimation animation=new SkeletalAnimation();
 		AnimationFrame frame=null;
 		boolean firstLineParsed=false;
+		boolean textureFrameLineStarted=false;
+		List<String[]> textureFrameCsv=Lists.newArrayList();
 		for(String line:filterd){
 			try{
 			String[] data=line.trim().split(",");
 			if(data[0].isEmpty()){ //if bone name is empty skipped
 				continue;
 			}
+			
+			if(textureFrameLineStarted){
+				textureFrameCsv.add(data);
+				continue;
+			}
+			
 			//first line control 
 			/**
 			 * 
@@ -71,6 +107,8 @@ public class AnimationConverter extends Converter<SkeletalAnimation,List<String>
 				}
 				
 			}else if(ValuesUtils.isDigitString(data[0])){
+				
+				
 				int index=0;
 				try{
 				index=Integer.parseInt(data[0]);//not support yet
@@ -90,7 +128,18 @@ public class AnimationConverter extends Converter<SkeletalAnimation,List<String>
 				//frame.setIndex(index);	//re-think index
 				animation.add(frame);
 			}else{
+				
+				
 				String boneName=data[0];
+				
+				if(boneName.equals(TEXTURE_FRAME_FORMAT_KEY)){
+					textureFrameCsv.add(data);
+					textureFrameLineStarted=true;
+					continue;
+				}
+				
+				
+				
 				double x=0;
 				double y=0;
 				double angle=0;
@@ -119,6 +168,46 @@ public class AnimationConverter extends Converter<SkeletalAnimation,List<String>
 				throw new RuntimeException("AnimationConverter:parse faild:"+line);
 			}
 		}
+		
+		//parsing texture frame
+		for(String[] data:textureFrameCsv){
+			int index=-1;
+			try{
+			index=Integer.parseInt(data[0]);
+			}catch (Exception e) {
+				LogUtils.log("parse-frame index faild input=:"+data[0]);
+				continue;
+			}
+			
+			//check out of index
+			if(index<0 || index>=animation.getFrames().size()){
+				LogUtils.log("invalid index:"+Joiner.on(",").join(data));
+				continue;
+			}
+			
+			TextureFrame textureFrame=new TextureFrameConverter().reverse().convert(data);
+			
+			//validation
+			if(!textureFrame.isNeedResetOrder() && !textureFrame.isNeedResetState() &&
+					!textureFrame.getTextureOrder().isPresent() && !textureFrame.getTextureUpdates().isPresent()){
+				textureFrame=null;
+				LogUtils.log("invalid data loaded:"+Joiner.on(",").join(data));
+			}
+			
+			if(textureFrame!=null){
+				
+				//must not exist.
+				if(animation.getFrames().get(index).getTextureFrame()!=null){
+					LogUtils.log("already exist overwrite:"+Joiner.on(",").join(data));
+				}
+				
+				animation.getFrames().get(index).setTextureFrame(textureFrame);
+				
+			}
+			
+			
+		}
+		
 		
 		return animation;
 	}

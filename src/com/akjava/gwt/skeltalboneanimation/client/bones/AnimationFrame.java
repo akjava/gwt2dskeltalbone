@@ -131,6 +131,11 @@ public AnimationFrame copy(){
 	for(BoneFrame bones:boneFrames.values()){
 		frame.add(bones.copy());
 	}
+	
+	if(getTextureFrame()!=null){
+		frame.setTextureFrame(textureFrame.copy());
+	}
+	
 	return frame;
 }
 }

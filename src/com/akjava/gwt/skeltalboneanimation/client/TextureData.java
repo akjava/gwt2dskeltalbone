@@ -61,6 +61,15 @@ public TextureData copy(){
 	
 	return data;
 }
+public int indexOf(String id) {
+	for(int i=0;i<imageDrawingDatas.size();i++){
+		ImageDrawingData data=imageDrawingDatas.get(i);
+		if(data.getId().equals(id)){
+			return i;
+		}
+	}
+	return -1;
+}
 
 
 }

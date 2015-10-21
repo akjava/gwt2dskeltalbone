@@ -136,7 +136,7 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 			
 			boneControler.getBonePositionControler().updateBoth(frame);
 			
-			texturePainter.setAnimationFrame(frame);
+			
 			
 			TextureFrame textureFrame=frame.getTextureFrame();
 			if(textureFrame==null){
@@ -1597,7 +1597,7 @@ public void drawImageAt(Canvas canvas,CanvasElement image,double canvasX,double 
 			}
 		});
 		
-		texturePainter=new TexturePainter(boneControler);
+		
 	
 	}
 	protected void doZoom() {
@@ -1889,6 +1889,9 @@ upper.add(new UndoButtons(undoControler));
 				
 			}
 		},textureDataSupplier,animationFrameSupplier,animationSupplier);
+		
+		
+		texturePainter=new TexturePainter(boneControler,textureDataSupplier,animationFrameSupplier,animationSupplier);
 		
 		tab.add(textureFrameEditor, "texture-frame");
 		
@@ -2192,7 +2195,7 @@ upper.add(new UndoButtons(undoControler));
 	protected void onTextureDataChanged(final TextureData textureData) {
 		//TODO create TextureControler
 		this.textureData = textureData;
-		texturePainter.setTextureData(textureData);
+		
 		convertedDatas=null;
 		
 		List<String> urls=Lists.newArrayList();

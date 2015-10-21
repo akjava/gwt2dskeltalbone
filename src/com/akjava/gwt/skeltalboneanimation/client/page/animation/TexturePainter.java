@@ -1,41 +1,53 @@
 package com.akjava.gwt.skeltalboneanimation.client.page.animation;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingData;
 import com.akjava.gwt.skeltalboneanimation.client.TextureData;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationFrame;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneWithXYAngle;
+import com.akjava.gwt.skeltalboneanimation.client.bones.SkeletalAnimation;
+import com.akjava.gwt.skeltalboneanimation.client.bones.TextureFrame;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.BoneControler;
+import com.google.common.base.Supplier;
+import com.google.common.collect.Lists;
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.dom.client.CanvasElement;
 
 public class TexturePainter{
-	private TextureData textureData;
-	public TextureData getTextureData() {
-		return textureData;
-	}
-	public void setTextureData(TextureData textureData) {
-		this.textureData = textureData;
-	}
 
-	private AnimationFrame animationFrame;
-	public AnimationFrame getAnimationFrame() {
-		return animationFrame;
-	}
-	public void setAnimationFrame(AnimationFrame animationFrame) {
-		this.animationFrame = animationFrame;
-	}
+	
+	private Supplier<TextureData> currentTextureData;
+	private Supplier<AnimationFrame> currentFrame;
+	private Supplier<SkeletalAnimation> currentAnimation;
+	
+
 
 	private BoneControler boneControler;
 	
-	public TexturePainter(BoneControler boneControler) {
+	public TexturePainter(BoneControler boneControler,Supplier<TextureData> currentTextureData, Supplier<AnimationFrame> currnetFrame, Supplier<SkeletalAnimation> currentAnimation) {
 		super();
+		this.currentTextureData = currentTextureData;
+		this.currentFrame = currnetFrame;
+		this.currentAnimation = currentAnimation;
+		
 		this.boneControler = boneControler;
 	}
 	public void draw(Canvas canvas){
+		
+		TextureData textureData=currentTextureData.get();
+		SkeletalAnimation animation=currentAnimation.get();
+		AnimationFrame animationFrame=currentFrame.get();
+		
+		if(animation==null){
+			LogUtils.log("TexturePainter:no animation");
+			return;
+		}
+		
 		if(textureData==null){
 			LogUtils.log("TexturePainter:no texture");
 			return;
@@ -78,8 +90,33 @@ public class TexturePainter{
 		
 		initializeConvetedCanvas();
 		List<ImageDrawingData> imageDrawingDatas=textureData.getImageDrawingDatas();
-		for(int i=0;i<imageDrawingDatas.size();i++){
-			ImageDrawingData data=imageDrawingDatas.get(i);
+		
+		
+		List<ImageDrawingData> sorted=imageDrawingDatas;
+		
+		//sort order
+		for(TextureFrame textureFrame:animation.getMergedTextureFrameAt(animationFrame).asSet()){
+			for(List<String> order:textureFrame.getTextureOrder().asSet()){
+				sorted=sort(imageDrawingDatas, order);
+			}
+		}
+		
+		
+		
+		List<ImageDrawingData> finalDatas=Lists.newArrayList();
+		
+		for(ImageDrawingData data:sorted){
+		//	LogUtils.log("texture-painter:"+data.getId());
+			//update & use copy
+			
+			finalDatas.add(data);
+		}
+		
+		
+		
+		
+		for(int i=0;i<finalDatas.size();i++){
+			ImageDrawingData data=finalDatas.get(i);
 			if(!data.isVisible()){
 				continue;
 			}
@@ -105,6 +142,11 @@ public class TexturePainter{
 			
 			
 			
+			int textureIndex=textureData.indexOf(data.getId());
+			
+			if(textureIndex==-1){
+				LogUtils.log("invalid texture index:"+data.getId());
+			}
 			
 			
 			if(!data.isVisible()){
@@ -113,7 +155,7 @@ public class TexturePainter{
 			
 			
 			//texture
-			Canvas converted=convertedDatas.get(i);
+			Canvas converted=convertedDatas.get(textureIndex);
 			
 			double halfConvertedImageWidth=converted.getCoordinateSpaceWidth()/2*scaleX;
 			double halfConvertedImageHeighth=converted.getCoordinateSpaceHeight()/2*scaleY;
@@ -156,11 +198,40 @@ public class TexturePainter{
 		
 	}
 	
+	private List<ImageDrawingData> sort(List<ImageDrawingData> datas,List<String> order){
+		if(order==null){
+			return datas;
+		}
+		
+		Map<String,ImageDrawingData> map=new HashMap<String,ImageDrawingData>();
+		
+		for(ImageDrawingData data:datas){
+			map.put(data.getId(), data);
+		}
+		
+		
+		List<ImageDrawingData> sorted=Lists.newArrayList();
+		
+		for(String id:order){
+			ImageDrawingData data=map.get(id);
+			if(data==null){
+				LogUtils.log("invalid order:"+id);
+				continue;
+			}
+			sorted.add(data);
+		}
+		
+		
+		return sorted;
+	}
+	
 	private List<Canvas> convertedDatas;//initialized when new texture loaded.
 	public void clearConvertedDatas(){
 		convertedDatas=null;
 	}
 	public void initializeConvetedCanvas(){
+		TextureData textureData=currentTextureData.get();
+		
 		if(textureData==null){
 			return;
 		}

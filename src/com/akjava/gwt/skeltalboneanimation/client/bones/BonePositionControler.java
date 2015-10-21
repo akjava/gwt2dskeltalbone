@@ -229,6 +229,19 @@ public class BonePositionControler {
 		return false;
 	}
 	
+	private boolean allowLockedBoneSelection;
+	
+	public boolean isAllowLockedBoneSelection() {
+		return allowLockedBoneSelection;
+	}
+
+
+	public void setAllowLockedBoneSelection(boolean allowLockedBoneSelection) {
+		this.allowLockedBoneSelection = allowLockedBoneSelection;
+	}
+
+
+	//TODO support primaly selection
 	public TwoDimensionBone collisionAnimationedData(int screenX,int screenY){
 		Preconditions.checkNotNull(settings);
 		
@@ -245,6 +258,9 @@ public class BonePositionControler {
 		}
 		
 		for(BoneWithXYAngle data:datas){
+			if(allowLockedBoneSelection==false && data.getBone().isLocked()){
+				continue;
+			}
 			IntRect rect=IntRect.fromCenterPoint(data.getX(), data.getY(), boneSize/2, boneSize/2);
 		//	LogUtils.log(rect+","+screenX+2+"x"+screenY);
 			if(rect.contains(screenX, screenY)){

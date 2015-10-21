@@ -279,6 +279,14 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 		panel.add(moveRootOnlyCheck);
 		
 		allowLockedBone = new CheckBox("allow locked bone");
+		allowLockedBone.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
+
+			@Override
+			public void onValueChange(ValueChangeEvent<Boolean> event) {
+				boneControler.getBonePositionControler().setAllowLockedBoneSelection(event.getValue());
+			}
+			
+		});
 		
 		panel.add(allowLockedBone);
 		

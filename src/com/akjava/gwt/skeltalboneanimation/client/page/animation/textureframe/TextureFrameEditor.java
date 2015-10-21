@@ -11,8 +11,8 @@ import com.akjava.gwt.skeltalboneanimation.client.TextureData;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationFrame;
 import com.akjava.gwt.skeltalboneanimation.client.bones.SkeletalAnimation;
 import com.akjava.gwt.skeltalboneanimation.client.bones.TextureFrame;
+import com.akjava.gwt.skeltalboneanimation.client.bones.TextureFrame.TextureState;
 import com.akjava.gwt.skeltalboneanimation.client.functions.TextureDataFunctions;
-import com.akjava.gwt.skeltalboneanimation.client.page.bone.CanvasUpdater;
 import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
@@ -24,14 +24,14 @@ import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.TextColumn;
-import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.RadioButton;
 import com.google.gwt.user.client.ui.VerticalPanel;
 
 public class TextureFrameEditor extends VerticalPanel implements Editor<TextureFrame>,ValueAwareEditor<TextureFrame>{
-
+	private TextureFrame value;
 	private Supplier<TextureData> currentTextureData;
 		
 	
@@ -43,6 +43,8 @@ public class TextureFrameEditor extends VerticalPanel implements Editor<TextureF
 
 	private EasyCellTableObjects<String> orderEditor;
 	private Updater updater;
+	
+	private TextureStateEditor textureStateEditor;
 	public TextureFrameEditor(final Updater updater,Supplier<TextureData> currentTextureData, Supplier<AnimationFrame> currnetFrame, Supplier<SkeletalAnimation> currentAnimation) {
 		
 		super();
@@ -74,7 +76,17 @@ public class TextureFrameEditor extends VerticalPanel implements Editor<TextureF
 			
 			@Override
 			public void onSelect(String selection) {
-				//do nothing?
+				
+				
+				TextureState textureState=value.getTextureState(selection);
+				
+				if(textureState==null){
+					LogUtils.log("onSelect:null selection.create");
+					textureState=new TextureState(selection);
+				}
+				
+				textureStateEditor.setValue(textureState);
+				
 			}
 		};
 		
@@ -134,6 +146,42 @@ public class TextureFrameEditor extends VerticalPanel implements Editor<TextureF
 		
 		
 		this.add(orderTable);
+		
+		this.add(new Label("Texture state"));
+		
+		resetState = new CheckBox("Reset all");
+		this.add(resetState);
+		resetState.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
+
+			@Override
+			public void onValueChange(ValueChangeEvent<Boolean> event) {
+				textureStateEditor.setVisible(!event.getValue());
+			}
+			
+		});
+		
+		
+		textureStateEditor=new TextureStateEditor();
+		textureStateEditor.setUpdater(new Updater() {
+			@Override
+			public void update() {
+				
+				
+				
+				
+				TextureState state=textureStateEditor.getValue();
+				if(!state.isModified()){
+					value.removeTextureState(state.getId());
+				}else{
+					LogUtils.log("textureStateEditor-update");
+					value.updateTextureState(state);
+				}
+				flush();
+				
+				
+			}
+		});
+		this.add(textureStateEditor);
 	}
 	public static final int ORDER_MODE_NONE=0;
 	public static final int ORDER_MODE_EDIT=1;
@@ -155,6 +203,7 @@ public class TextureFrameEditor extends VerticalPanel implements Editor<TextureF
 
 
 	private UpDwonPanel<String> updownPanel;
+	private CheckBox resetState;
 	
 	
 	@Override
@@ -198,11 +247,29 @@ public class TextureFrameEditor extends VerticalPanel implements Editor<TextureF
 		
 		TextureFrame textureFrame=null;
 		if(order!=null){
+			
+			
+			
+			
 			textureFrame=new TextureFrame(order, null);
 		}else if(orderReset){
 			textureFrame=new TextureFrame(false, true);
 		}
 		
+		
+		if(resetState.getValue()){
+			textureFrame.setNeedResetState(true);
+		}else{
+			for(List<TextureState> states:value.getTextureUpdates().asSet()){
+			textureFrame.setTextureUpdates(states);
+			}
+		}
+		
+		
+		
+		
+		
+		value=textureFrame;
 		//TODO compare & undo
 		
 		frame.setTextureFrame(textureFrame);
@@ -218,7 +285,7 @@ public class TextureFrameEditor extends VerticalPanel implements Editor<TextureF
 
 	@Override
 	public void setValue(TextureFrame value) {
-		checkNotNull(value,"TextureFrameEditor:value not null,if real value is null make them before call");
+		this.value=checkNotNull(value,"TextureFrameEditor:value not null,if real value is null make them before call");
 		
 		
 		SkeletalAnimation animation=checkNotNull(currentAnimation.get(),"TextureFrameEditor:need animation");

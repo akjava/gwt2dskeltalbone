@@ -171,11 +171,17 @@ public class AnimationConverter extends Converter<SkeletalAnimation,List<String>
 		
 		//parsing texture frame
 		for(String[] data:textureFrameCsv){
+			
+			if(data[0].equals(TEXTURE_FRAME_FORMAT_KEY)){
+				//first line ,future modify
+				continue;
+			}
+			
 			int index=-1;
 			try{
 			index=Integer.parseInt(data[0]);
 			}catch (Exception e) {
-				LogUtils.log("parse-frame index faild input=:"+data[0]);
+				LogUtils.log("parse-texture-frame index faild input=:"+data[0]);
 				continue;
 			}
 			

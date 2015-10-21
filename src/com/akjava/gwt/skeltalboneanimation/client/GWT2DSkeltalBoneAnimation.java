@@ -2,6 +2,7 @@ package com.akjava.gwt.skeltalboneanimation.client;
 
 import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneAndAnimationData;
+import com.akjava.gwt.skeltalboneanimation.client.converters.AnimationConverter;
 import com.akjava.gwt.skeltalboneanimation.client.converters.BoneAndAnimationConverter;
 import com.akjava.gwt.skeltalboneanimation.client.page.animation.AnimationPage;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.BonePage;
@@ -10,6 +11,7 @@ import com.akjava.gwt.skeltalboneanimation.client.page.colorpick.ColorPickPage;
 import com.akjava.gwt.skeltalboneanimation.client.page.html5app.TransparentItPage;
 import com.akjava.gwt.skeltalboneanimation.client.page.texture.TexturePage;
 import com.akjava.lib.common.utils.CSVUtils;
+import com.akjava.lib.common.utils.ValuesUtils;
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.http.client.Request;
@@ -33,6 +35,9 @@ public class GWT2DSkeltalBoneAnimation implements EntryPoint {
 	 * This is the entry point method.
 	 */
 	public void onModuleLoad() {
+		
+		
+		
 		
 		DockLayoutPanel root=new DockLayoutPanel(Unit.PX);
 		

@@ -49,6 +49,7 @@ import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationFrame;
 import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationFrameCopyFunction;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneAndAnimationData;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneControlRange;
+import com.akjava.gwt.skeltalboneanimation.client.bones.TextureFrame;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneControlRange.BoneControlListener;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneFrame;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneWithXYAngle;
@@ -63,6 +64,8 @@ import com.akjava.gwt.skeltalboneanimation.client.converters.TextureDataConverte
 import com.akjava.gwt.skeltalboneanimation.client.page.AbstractPage;
 import com.akjava.gwt.skeltalboneanimation.client.page.CircleLineBonePainter;
 import com.akjava.gwt.skeltalboneanimation.client.page.HasSelectionName;
+import com.akjava.gwt.skeltalboneanimation.client.page.animation.textureframe.TextureFrameEditor;
+import com.akjava.gwt.skeltalboneanimation.client.page.animation.textureframe.Updater;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.BoneControler;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.CanvasDrawingDataControlCanvas;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.CanvasDrawingDataControlCanvas.ZoomListener;
@@ -77,6 +80,8 @@ import com.akjava.lib.common.utils.FileNames;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.base.Stopwatch;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
 import com.google.gwt.canvas.client.Canvas;
@@ -94,6 +99,7 @@ import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Panel;
+import com.google.gwt.user.client.ui.TabPanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 
@@ -112,8 +118,11 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 	private CheckBox allowLockedBone;
 	
 
+	/*
+	 * called when new data loaded & range moved
+	 */
 	private void onAnimationRangeChanged(int index){
-		
+		//LogUtils.log("on animation range changed");
 		for(AnimationFrame frame:animationControler.getFrame(index).asSet()){
 			//currentSelectionFrame=frame;
 			
@@ -126,6 +135,15 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 			boneControlerRange.setFrame(frame);
 			
 			boneControler.getBonePositionControler().updateBoth(frame);
+			
+			texturePainter.setAnimationFrame(frame);
+			
+			TextureFrame textureFrame=frame.getTextureFrame();
+			if(textureFrame==null){
+				textureFrame=new TextureFrame(false, false);
+			}
+			textureFrameEditor.setValue(textureFrame);
+			
 			updateCanvas();
 			return;
 		}
@@ -510,20 +528,25 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 		
 		AnimationFrame currentSelectionFrame = animations.getFrames().get(0);
 		
-		animationControler.setSelection(currentSelectionFrame, true);
+		animationControler.setSelection(currentSelectionFrame, false);//usually not fire,call onAnimationRangeChanged later
+		
+		animationControler.syncRangeMaxAndInvalidIndex();
+		
 		
 		boneControlerRange.setRootBone(newRoot);//reset
-		boneControlerRange.setFrame(currentSelectionFrame);
+		//boneControlerRange.setFrame(currentSelectionFrame);
 		
 		//int index=animationControler.getSelectedIndex();
 		
-		animationControler.syncRangeMaxAndInvalidIndex();
+		
 		
 		//no need always first frame would be selected.
 		//animationControler.setSelection(animations.getFrames().get(0), false);
 		
-		boneControler.getBonePositionControler().updateBoth(currentSelectionFrame);
-		updateCanvas();
+		onAnimationRangeChanged(0);
+		
+		//boneControler.getBonePositionControler().updateBoth(currentSelectionFrame);
+		//updateCanvas();
 	}
 	private void setNewRootBone(TwoDimensionBone newRoot) {
 		SkeletalAnimation animations=new SkeletalAnimation();
@@ -1150,7 +1173,8 @@ public  class AnimationPage extends AbstractPage implements HasSelectionName,Bon
 		//painter.paintBone(currentSelectionFrame);
 		//TODO paint textures
 		
-		drawTextureData(canvas);
+		texturePainter.draw(canvas);
+		//drawTextureData(canvas);
 		
 		drawBones();
 		
@@ -1507,6 +1531,7 @@ public void drawImageAt(Canvas canvas,CanvasElement image,double canvasX,double 
 		// TODO support later
 		
 	}
+	private TexturePainter texturePainter;
 	@Override
 	protected void initialize() {
 
@@ -1571,6 +1596,8 @@ public void drawImageAt(Canvas canvas,CanvasElement image,double canvasX,double 
 				writeToDataList();
 			}
 		});
+		
+		texturePainter=new TexturePainter(boneControler);
 	
 	}
 	protected void doZoom() {
@@ -1783,6 +1810,9 @@ upper.add(new UndoButtons(undoControler));
 	}
 	
 	private Widget createRightPanel() {
+		
+		TabPanel tab=new TabPanel();
+		
 		VerticalPanel panel=new VerticalPanel();
 		
 
@@ -1827,7 +1857,44 @@ upper.add(new UndoButtons(undoControler));
 		SimpleUndoControler undoControler=new SimpleUndoControler();
 		dataList.setUndoControler(undoControler);
 		
-		return panel;
+		tab.add(panel, "DataList");
+		
+		
+		Supplier<TextureData> textureDataSupplier=new Supplier<TextureData>() {
+			@Override
+			public TextureData get() {
+				
+				return textureData;
+			}
+		};
+		
+		Supplier<SkeletalAnimation> animationSupplier=new Supplier<SkeletalAnimation>() {
+			@Override
+			public SkeletalAnimation get() {
+				return animationControler.getAnimation();
+			}
+		};
+		Supplier<AnimationFrame> animationFrameSupplier=new Supplier<AnimationFrame>() {
+			@Override
+			public AnimationFrame get() {
+				return animationControler.getSelection();
+			}
+		};
+		
+		textureFrameEditor = new TextureFrameEditor(new Updater() {
+			
+			@Override
+			public void update() {
+				updateCanvas();
+				
+			}
+		},textureDataSupplier,animationFrameSupplier,animationSupplier);
+		
+		tab.add(textureFrameEditor, "texture-frame");
+		
+		tab.selectTab(1);
+		
+		return tab;
 	}
 	
 	private void loadFromDataList(Optional<SimpleTextData> hv){
@@ -2040,6 +2107,8 @@ upper.add(new UndoButtons(undoControler));
 
 	private CheckBox showPrevBone;
 	private CheckBox showNextBone;
+
+	private TextureFrameEditor textureFrameEditor;
 	
 	
 	private void syncClipDataAndTextureDataFileName(ClipImageData clipImageData,TextureData textureData){
@@ -2123,6 +2192,7 @@ upper.add(new UndoButtons(undoControler));
 	protected void onTextureDataChanged(final TextureData textureData) {
 		//TODO create TextureControler
 		this.textureData = textureData;
+		texturePainter.setTextureData(textureData);
 		convertedDatas=null;
 		
 		List<String> urls=Lists.newArrayList();
@@ -2140,7 +2210,7 @@ upper.add(new UndoButtons(undoControler));
 			public void onLoad(List<String> successPaths, List<ImageElement> imageElements) {
 				//LogUtils.log("image loaded");
 				convertedDatas=null;//super class call updateCanvas first,need remake after loading. //TODO class
-				
+				texturePainter.clearConvertedDatas();
 				
 				updateCanvas();
 				

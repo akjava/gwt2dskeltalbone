@@ -13,16 +13,34 @@ import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.dom.client.CanvasElement;
 
 public class TexturePainter{
-	private TextureData texture;
-	private AnimationFrame frame;
+	private TextureData textureData;
+	public TextureData getTextureData() {
+		return textureData;
+	}
+	public void setTextureData(TextureData textureData) {
+		this.textureData = textureData;
+	}
+
+	private AnimationFrame animationFrame;
+	public AnimationFrame getAnimationFrame() {
+		return animationFrame;
+	}
+	public void setAnimationFrame(AnimationFrame animationFrame) {
+		this.animationFrame = animationFrame;
+	}
+
 	private BoneControler boneControler;
 	
+	public TexturePainter(BoneControler boneControler) {
+		super();
+		this.boneControler = boneControler;
+	}
 	public void draw(Canvas canvas){
-		if(texture==null){
+		if(textureData==null){
 			LogUtils.log("TexturePainter:no texture");
 			return;
 		}
-		if(frame==null){
+		if(animationFrame==null){
 			LogUtils.log("TexturePainter:no frame");
 			return;
 		}
@@ -33,15 +51,15 @@ public class TexturePainter{
 		}
 		
 
-		double scaleX=frame.getScaleX();
-		double scaleY=frame.getScaleY();
+		double scaleX=animationFrame.getScaleX();
+		double scaleY=animationFrame.getScaleY();
 		//LogUtils.log("drawTextureData:"+scaleX+","+scaleY);
 	/*	double scaleX=1;
 		double scaleY=1;*/
 		
 		
 		
-		boneControler.getBonePositionControler().updateBoth(frame);//TODO update on value changed only
+		boneControler.getBonePositionControler().updateBoth(animationFrame);//TODO update on value changed only
 		//TODO add show bone check
 		//TODO make class,it's hard to understand
 		 List<BoneWithXYAngle> initialBonePosition=boneControler.getBonePositionControler().getRawInitialData();
@@ -52,14 +70,14 @@ public class TexturePainter{
 		//int offsetX=painter.getOffsetX();
 		//int offsetY=painter.getOffsetY();
 		
-		int offsetX=texture.getOffsetX();
-		int offsetY=texture.getOffsetY();
+		int offsetX=textureData.getOffsetX();
+		int offsetY=textureData.getOffsetY();
 		
 		int canvasCenterX=boneControler.getBonePositionControler().getSettings().getOffsetX();
 		int canvasCenterY=boneControler.getBonePositionControler().getSettings().getOffsetY();
 		
 		initializeConvetedCanvas();
-		List<ImageDrawingData> imageDrawingDatas=texture.getImageDrawingDatas();
+		List<ImageDrawingData> imageDrawingDatas=textureData.getImageDrawingDatas();
 		for(int i=0;i<imageDrawingDatas.size();i++){
 			ImageDrawingData data=imageDrawingDatas.get(i);
 			if(!data.isVisible()){
@@ -139,19 +157,22 @@ public class TexturePainter{
 	}
 	
 	private List<Canvas> convertedDatas;//initialized when new texture loaded.
+	public void clearConvertedDatas(){
+		convertedDatas=null;
+	}
 	public void initializeConvetedCanvas(){
-		if(texture==null){
+		if(textureData==null){
 			return;
 		}
 		if(convertedDatas==null){
 		//	LogUtils.log("convertedDatas");
 			convertedDatas=new ArrayList<Canvas>();
-			for(ImageDrawingData data:texture.getImageDrawingDatas()){
+			for(ImageDrawingData data:textureData.getImageDrawingDatas()){
 				convertedDatas.add(data.convertToCanvas());
 			}
 		
 			//LogUtils.log("debug");
-			for(ImageDrawingData data:texture.getDatas()){
+			for(ImageDrawingData data:textureData.getDatas()){
 				//test validate image?
 				//LogUtils.log(data.getConvertedCanvas().get().toDataUrl());
 				

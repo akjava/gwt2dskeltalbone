@@ -8,11 +8,20 @@ import java.util.Map;
 import java.util.Set;
 
 import com.akjava.gwt.skeltalboneanimation.client.BoneUtils;
+import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
 
 public class AnimationFrame {
 	private double scaleX=1;
 	private double scaleY=1;
+	
+	private TextureFrame textureFrame;
+	public void setTextureFrame(TextureFrame textureFrame) {
+		this.textureFrame = textureFrame;
+	}
+	public TextureFrame getTextureFrame(){
+		return textureFrame;
+	}
 /*
  * not sure need this
 */

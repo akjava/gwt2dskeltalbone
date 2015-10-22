@@ -43,7 +43,7 @@ public TextureStateEditor(){
 	HorizontalPanel visiblePanel=new HorizontalPanel();
 	visiblePanel.setVerticalAlignment(ALIGN_MIDDLE);
 	add(visiblePanel);
-	visibleCheck=new CheckBox("show");
+	visibleCheck=new CheckBox("switch visible");
 	visiblePanel.add(visibleCheck);
 	visibleCheck.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
 
@@ -57,7 +57,7 @@ public TextureStateEditor(){
 	HorizontalPanel checks=new HorizontalPanel();
 	add(checks);
 	checks.setVerticalAlignment(ALIGN_MIDDLE);
-	flipHorizontalCheck=new CheckBox("flip horizontal");
+	flipHorizontalCheck=new CheckBox("switch flip horizontal");
 	checks.add(flipHorizontalCheck);
 	flipHorizontalCheck.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
 
@@ -66,7 +66,7 @@ public TextureStateEditor(){
 			flush();
 		}
 	});
-	flipVerticalCheck=new CheckBox("flip vertical");
+	flipVerticalCheck=new CheckBox("switch flip vertical");
 	checks.add(flipVerticalCheck);
 	flipVerticalCheck.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
 
@@ -197,13 +197,14 @@ public TextureStateEditor(){
 		this.value=value;
 		if(value==null){
 			LogUtils.log("setValue:null");
-			this.setVisible(false);
+			
+			//setVisible(false);
 			return;
 		}
 		//oldValue=value.copy();
 		//LogUtils.log("update old-value");
 		
-		this.setVisible(true);
+		
 		
 		flipHorizontalCheck.setValue(value.isFlipHorizontal());
 		flipVerticalCheck.setValue(value.isFlipVertical());

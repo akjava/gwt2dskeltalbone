@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.akjava.gwt.lib.client.LogUtils;
+import com.akjava.gwt.skeltalboneanimation.client.BoneUtils;
+import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingData;
 import com.google.common.base.Equivalence;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
@@ -15,7 +17,9 @@ import com.google.common.collect.Maps;
 public class TextureFrame {
 	
 	
-	
+	public TextureFrame() {
+		this(false,false);
+	}
 	public TextureFrame(boolean needResetState, boolean needResetOrder) {
 		super();
 		this.needResetState = needResetState;
@@ -51,10 +55,20 @@ public class TextureFrame {
 	public boolean needResetOrder;
 	
 	
+	public boolean isValid(){
+		if( needResetState || needResetOrder){
+			return true;
+		}
+		if( textureUpdates!=null || textureOrder!=null){
+			return true;
+		}
+		
+		return false;
+	}
 	
 	
-	private List<TextureState> textureUpdates;
-	private List<String> textureOrder;
+	private List<TextureState> textureUpdates=null;
+	private List<String> textureOrder=null;
 	
 	public Optional<List<String>> getTextureOrder(){
 		return Optional.fromNullable(textureOrder);
@@ -79,6 +93,7 @@ public class TextureFrame {
 	
 	public void updateTextureState(TextureState state){
 		if(textureUpdates==null){
+			//LogUtils.log("null-textureState");
 			textureUpdates=Lists.newArrayList();
 		}
 		int index=-1;
@@ -91,7 +106,7 @@ public class TextureFrame {
 		
 		//replace
 		if(index!=-1){
-			LogUtils.log("updateTextureState");
+			//LogUtils.log("updateTextureState");
 			textureUpdates.remove(index);
 			textureUpdates.add(index, state);
 		}else{
@@ -102,6 +117,7 @@ public class TextureFrame {
 	}
 	
 	public TextureState getTextureState(String id){
+		
 		if(textureUpdates==null){
 			return null;
 		}
@@ -251,6 +267,44 @@ public class TextureFrame {
 		private boolean flipVertical;
 		private boolean visible;
 		
+		
+		public void effectTo(ImageDrawingData data){
+			data.setX(data.getX()+x);
+			data.setY(data.getY()+y);
+			
+			double newAngle=data.getAngle()+angle;
+			BoneUtils.clampAngle(newAngle);
+			data.setAngle(newAngle);
+			
+			data.setScaleX(data.getScaleX()+scaleX);
+			data.setScaleY(data.getScaleY()+scaleY);
+			
+			double newAlpha=data.getAlpha()+alpha;
+			newAlpha=Math.min(newAlpha,1.0);
+			newAlpha=Math.max(newAlpha,0);
+			
+			data.setAlpha(newAlpha);
+			
+			if(flipHorizontal){
+				data.setFlipHorizontal(!data.isFlipHorizontal());
+			}
+			if(flipVertical){
+				data.setFlipVertical(!data.isFlipVertical());
+			}
+			if(visible){
+				data.setVisible(!data.isVisible());
+			}
+			
+			
+			/*
+			 * 	map.put("scaleX", scaleX);
+			map.put("scaleY", scaleY);
+			map.put("alpha", alpha);
+			map.put("flipHorizontal", flipHorizontal);
+			map.put("flipVertical", flipVertical);
+			map.put("visible", visible);
+			 */
+		}
 		
 		public boolean isModified(){
 			if(x!=0){

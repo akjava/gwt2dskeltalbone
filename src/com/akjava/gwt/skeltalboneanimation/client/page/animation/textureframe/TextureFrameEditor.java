@@ -45,6 +45,25 @@ public class TextureFrameEditor extends VerticalPanel implements Editor<TextureF
 	private Updater updater;
 	
 	private TextureStateEditor textureStateEditor;
+	
+	private void onSelectId(String selection){
+		if(value==null){
+			LogUtils.log("onSelectId:never happen");
+		}
+		TextureState textureState=value.getTextureState(selection);
+		
+		if(textureState==null){
+			//LogUtils.log("onSelect:null selection.create");
+			textureState=new TextureState(selection);
+		}
+		
+		if(!resetStateAllCheck.getValue()){
+			textureStateEditor.setVisible(true);
+		}
+		
+		textureStateEditor.setValue(textureState);
+	}
+	
 	public TextureFrameEditor(final Updater updater,Supplier<TextureData> currentTextureData, Supplier<AnimationFrame> currnetFrame, Supplier<SkeletalAnimation> currentAnimation) {
 		
 		super();
@@ -77,15 +96,8 @@ public class TextureFrameEditor extends VerticalPanel implements Editor<TextureF
 			@Override
 			public void onSelect(String selection) {
 				
+				onSelectId(selection);
 				
-				TextureState textureState=value.getTextureState(selection);
-				
-				if(textureState==null){
-					LogUtils.log("onSelect:null selection.create");
-					textureState=new TextureState(selection);
-				}
-				
-				textureStateEditor.setValue(textureState);
 				
 			}
 		};
@@ -147,15 +159,16 @@ public class TextureFrameEditor extends VerticalPanel implements Editor<TextureF
 		
 		this.add(orderTable);
 		
-		this.add(new Label("Texture state"));
+		this.add(new Label("Texture relative changes"));
 		
-		resetState = new CheckBox("Reset all");
-		this.add(resetState);
-		resetState.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
+		resetStateAllCheck = new CheckBox("Reset all");
+		this.add(resetStateAllCheck);
+		resetStateAllCheck.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
 
 			@Override
 			public void onValueChange(ValueChangeEvent<Boolean> event) {
 				textureStateEditor.setVisible(!event.getValue());
+				flush();
 			}
 			
 		});
@@ -173,7 +186,7 @@ public class TextureFrameEditor extends VerticalPanel implements Editor<TextureF
 				if(!state.isModified()){
 					value.removeTextureState(state.getId());
 				}else{
-					LogUtils.log("textureStateEditor-update");
+					//LogUtils.log("textureStateEditor-update");
 					value.updateTextureState(state);
 				}
 				flush();
@@ -182,6 +195,7 @@ public class TextureFrameEditor extends VerticalPanel implements Editor<TextureF
 			}
 		});
 		this.add(textureStateEditor);
+		textureStateEditor.setVisible(false);//no need not selected
 	}
 	public static final int ORDER_MODE_NONE=0;
 	public static final int ORDER_MODE_EDIT=1;
@@ -203,7 +217,7 @@ public class TextureFrameEditor extends VerticalPanel implements Editor<TextureF
 
 
 	private UpDwonPanel<String> updownPanel;
-	private CheckBox resetState;
+	private CheckBox resetStateAllCheck;
 	
 	
 	@Override
@@ -232,7 +246,7 @@ public class TextureFrameEditor extends VerticalPanel implements Editor<TextureF
 	
 	@Override
 	public void flush() {
-		LogUtils.log("flush");
+		//LogUtils.log("flush");
 		
 		boolean orderReset=false;
 		List<String> order=null;
@@ -245,19 +259,16 @@ public class TextureFrameEditor extends VerticalPanel implements Editor<TextureF
 		
 		AnimationFrame frame=checkNotNull(currentFrame.get(),"TextureFrameEditor:need frame");
 		
-		TextureFrame textureFrame=null;
+		TextureFrame textureFrame=new TextureFrame();
+		
 		if(order!=null){
-			
-			
-			
-			
-			textureFrame=new TextureFrame(order, null);
+			textureFrame.setTextureOrder(order);
 		}else if(orderReset){
-			textureFrame=new TextureFrame(false, true);
+			textureFrame.setNeedResetOrder(true);
 		}
 		
 		
-		if(resetState.getValue()){
+		if(resetStateAllCheck.getValue()){
 			textureFrame.setNeedResetState(true);
 		}else{
 			for(List<TextureState> states:value.getTextureUpdates().asSet()){
@@ -267,9 +278,12 @@ public class TextureFrameEditor extends VerticalPanel implements Editor<TextureF
 		
 		
 		
-		
-		
 		value=textureFrame;
+		
+		if(!textureFrame.isValid()){
+			textureFrame=null;
+		}
+		
 		//TODO compare & undo
 		
 		frame.setTextureFrame(textureFrame);
@@ -277,6 +291,11 @@ public class TextureFrameEditor extends VerticalPanel implements Editor<TextureF
 		updater.update();
 	}
 
+	
+	public void unselect(){
+		orderEditor.unselect();
+	}
+	
 	@Override
 	public void onPropertyChange(String... paths) {
 		// TODO Auto-generated method stub
@@ -337,10 +356,16 @@ public class TextureFrameEditor extends VerticalPanel implements Editor<TextureF
 			order=Lists.newArrayList();//for dummy
 		}
 		
+		resetStateAllCheck.setValue(value.isNeedResetState(),true);
 		
 		//possible immutable
 		orderEditor.setDatas(Lists.newArrayList(order));
 		orderEditor.update();
+		
+		String id=orderEditor.getSelection();
+		if(id!=null){
+			onSelectId(id);
+		}
 		
 	}
 

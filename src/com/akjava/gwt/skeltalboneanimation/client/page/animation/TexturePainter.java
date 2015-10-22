@@ -12,7 +12,9 @@ import com.akjava.gwt.skeltalboneanimation.client.bones.AnimationFrame;
 import com.akjava.gwt.skeltalboneanimation.client.bones.BoneWithXYAngle;
 import com.akjava.gwt.skeltalboneanimation.client.bones.SkeletalAnimation;
 import com.akjava.gwt.skeltalboneanimation.client.bones.TextureFrame;
+import com.akjava.gwt.skeltalboneanimation.client.bones.TextureFrame.TextureState;
 import com.akjava.gwt.skeltalboneanimation.client.page.bone.BoneControler;
+import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
 import com.google.common.collect.Lists;
 import com.google.gwt.canvas.client.Canvas;
@@ -94,8 +96,9 @@ public class TexturePainter{
 		
 		List<ImageDrawingData> sorted=imageDrawingDatas;
 		
+		Optional<TextureFrame> textureFrameOptional=animation.getMergedTextureFrameAt(animationFrame);
 		//sort order
-		for(TextureFrame textureFrame:animation.getMergedTextureFrameAt(animationFrame).asSet()){
+		for(TextureFrame textureFrame:textureFrameOptional.asSet()){
 			for(List<String> order:textureFrame.getTextureOrder().asSet()){
 				sorted=sort(imageDrawingDatas, order);
 			}
@@ -103,9 +106,26 @@ public class TexturePainter{
 		
 		
 		
+		List<Canvas> modifiedCanvas=Lists.newArrayList(convertedDatas);
+		
 		List<ImageDrawingData> finalDatas=Lists.newArrayList();
 		
 		for(ImageDrawingData data:sorted){
+			
+			if(textureFrameOptional.isPresent()){
+				TextureState state=textureFrameOptional.get().getTextureState(data.getId());
+				if(state!=null){
+				//	LogUtils.log("effected");
+					//LogUtils.log("before:"+data.toString());
+					data=data.copy();
+					
+					state.effectTo(data);
+					//LogUtils.log("after:"+data.toString());
+					
+					int textureIndex=textureData.indexOf(data.getId());
+					modifiedCanvas.set(textureIndex,data.convertToCanvas());
+				}
+			}
 		//	LogUtils.log("texture-painter:"+data.getId());
 			//update & use copy
 			
@@ -155,7 +175,7 @@ public class TexturePainter{
 			
 			
 			//texture
-			Canvas converted=convertedDatas.get(textureIndex);
+			Canvas converted=modifiedCanvas.get(textureIndex);
 			
 			double halfConvertedImageWidth=converted.getCoordinateSpaceWidth()/2*scaleX;
 			double halfConvertedImageHeighth=converted.getCoordinateSpaceHeight()/2*scaleY;

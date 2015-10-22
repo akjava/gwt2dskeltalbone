@@ -374,7 +374,7 @@ public Canvas convertToCanvas(){
 		CanvasUtils.drawCenter(convertedCanvas, flipped.getCanvasElement(),0,0,scaleX,scaleY,angle,alpha);
 		}else{
 			if(imageElement.getWidth()==0 || imageElement.getHeight()==0){
-				LogUtils.log("convertToCanvas:invalid image :"+getBoneName());
+				LogUtils.log("[confirm] convertToCanvas:invalid image "+getBoneName()+",onAnimationPage onTextureChange call convertToCanvas() before imageloader finished by abstractclass.usually this problem is controled.if no proble on visual");
 			}
 			
 		CanvasUtils.drawCenter(convertedCanvas, imageElement,0,0,scaleX,scaleY,angle,alpha);

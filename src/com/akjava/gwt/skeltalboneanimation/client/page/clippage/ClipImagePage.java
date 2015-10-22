@@ -1505,6 +1505,53 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 			
 			add(new Label("high-Green dot is last point.insert at white box"));
 			
+			HorizontalPanel movePointPanel=new HorizontalPanel();
+			add(movePointPanel);
+			movePointPanel.add(new Label("Move corner:"));
+			Button topPoint=new Button("top",new ClickHandler() {
+				
+				@Override
+				public void onClick(ClickEvent event) {
+					doMovePointTop();
+					
+				}
+			});
+			movePointPanel.add(topPoint);
+			
+			
+			Button bottomPoint=new Button("bottom",new ClickHandler() {
+				
+				@Override
+				public void onClick(ClickEvent event) {
+					doMovePointBottom();
+					
+				}
+			});
+			movePointPanel.add(bottomPoint);
+			
+			
+			Button leftPoint=new Button("left",new ClickHandler() {
+				
+				@Override
+				public void onClick(ClickEvent event) {
+					doMovePointLeft();
+					
+				}
+			});
+			movePointPanel.add(leftPoint);
+			
+			
+			Button rightPoint=new Button("right",new ClickHandler() {
+				
+				@Override
+				public void onClick(ClickEvent event) {
+					doMovePointRight();
+					
+				}
+			});
+			movePointPanel.add(rightPoint);
+			
+			
 			HorizontalPanel panel=new HorizontalPanel();
 			panel.setVerticalAlignment(ALIGN_MIDDLE);
 			Button insertPointBt=new Button("Insert Point",new ClickHandler() {
@@ -1548,6 +1595,62 @@ Button removeAllBt=new Button("Remove All",new ClickHandler() {
 		}
 		
 		
+
+		protected void doMovePointTop() {
+			Point beforePosition=getSelectedPoint().copy();
+			
+			if(beforePosition.getY()!=0){
+				Point afterPoisition=new Point(beforePosition.getX(),0);
+				
+				getSelectedPoint().set(afterPoisition);
+				undoControler.execMovePoint(getDataIndex(),pointSelectionIndex, beforePosition, afterPoisition);
+				updateCanvas();
+			}
+			
+				
+		}
+		protected void doMovePointBottom() {
+			Point beforePosition=getSelectedPoint().copy();
+			int max=boneControler.getCanvas().getCoordinateSpaceHeight();
+			if(beforePosition.getY()!=max){
+				Point afterPoisition=new Point(beforePosition.getX(),max);
+				
+				getSelectedPoint().set(afterPoisition);
+				undoControler.execMovePoint(getDataIndex(),pointSelectionIndex, beforePosition, afterPoisition);
+				updateCanvas();
+			}
+			
+				
+		}
+		
+		protected void doMovePointLeft() {
+			Point beforePosition=getSelectedPoint().copy();
+			
+			if(beforePosition.getX()!=0){
+				Point afterPoisition=new Point(0,beforePosition.getY());
+				
+				getSelectedPoint().set(afterPoisition);
+				undoControler.execMovePoint(getDataIndex(),pointSelectionIndex, beforePosition, afterPoisition);
+				updateCanvas();
+			}
+			
+				
+		}
+		protected void doMovePointRight() {
+			Point beforePosition=getSelectedPoint().copy();
+			int max=boneControler.getCanvas().getCoordinateSpaceWidth();
+			if(beforePosition.getX()!=max){
+				Point afterPoisition=new Point(max,beforePosition.getY());
+				
+				getSelectedPoint().set(afterPoisition);
+				undoControler.execMovePoint(getDataIndex(),pointSelectionIndex, beforePosition, afterPoisition);
+				updateCanvas();
+			}
+			
+				
+		}
+
+
 
 		protected void doInsertPoint() {
 			if(!isClipDataSelected() || getSelectedPoint()==null){

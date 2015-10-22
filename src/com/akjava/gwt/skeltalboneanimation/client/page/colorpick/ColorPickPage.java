@@ -14,13 +14,13 @@ import com.akjava.gwt.html5.client.download.HTML5Download;
 import com.akjava.gwt.html5.client.file.File;
 import com.akjava.gwt.html5.client.file.FileUploadForm;
 import com.akjava.gwt.html5.client.file.FileUtils;
-import com.akjava.gwt.html5.client.file.FileUtils.DataURLListener;
+import com.akjava.gwt.html5.client.file.FileUtils.ImageFileListener;
 import com.akjava.gwt.lib.client.CanvasUtils;
-import com.akjava.gwt.lib.client.ImageElementUtils;
 import com.akjava.gwt.lib.client.LogUtils;
-import com.akjava.gwt.lib.client.experimental.CanvasDragMoveControler.KeyDownState;
+import com.akjava.gwt.lib.client.experimental.AsyncMultiCaller;
 import com.akjava.gwt.lib.client.experimental.ExecuteButton;
 import com.akjava.gwt.lib.client.experimental.ImageDataUtils;
+import com.akjava.gwt.lib.client.experimental.LoggingImageElementLoader;
 import com.akjava.gwt.lib.client.experimental.RectCanvasUtils;
 import com.akjava.gwt.lib.client.graphics.Graphics;
 import com.akjava.gwt.skeltalboneanimation.client.ImageDrawingData;
@@ -40,6 +40,9 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.canvas.dom.client.ImageData;
+import com.google.gwt.core.client.JavaScriptObject;
+import com.google.gwt.core.client.JsArray;
+import com.google.gwt.dom.client.ImageElement;
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -49,6 +52,7 @@ import com.google.gwt.event.dom.client.MouseDownHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.text.shared.Renderer;
+import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.ui.Anchor;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.CheckBox;
@@ -147,10 +151,21 @@ public class ColorPickPage extends AbstractPage{
 	
 	private ImageSender imageSender;
 	private String senderDataId;
-	protected void onLoadImage(String fileName, String text) {
+	protected void onLoadImage(final String fileName, String text) {
+		
+		new LoggingImageElementLoader(){
+
+			@Override
+			public void onLoad(ImageElement imageElement) {
+				onLoadImage(fileName,imageElement);
+				
+			}}.load(text);
+		
+	}
+	protected void onLoadImage(String fileName, ImageElement loadedImageElement) {
 		initDatas();
 		//not resize yet
-		CanvasUtils.copyTo(ImageElementUtils.create(text), inputCanvas);
+		CanvasUtils.copyTo(loadedImageElement, inputCanvas);
 		imageData = inputCanvas.getContext2d().getImageData(0, 0, inputCanvas.getCoordinateSpaceWidth(), inputCanvas.getCoordinateSpaceHeight());
 	
 		CanvasUtils.copyToSizeOnly(inputCanvas, resultCanvas);
@@ -440,13 +455,14 @@ public class ColorPickPage extends AbstractPage{
 			
 		});
 		
-		FileUploadForm imageUpload=FileUtils.createSingleFileUploadForm(new DataURLListener() {
+		FileUploadForm imageUpload=FileUtils.createImageFileUploadForm(new ImageFileListener() {
 			
 			@Override
-			public void uploaded(File file, String text) {
-				onLoadImage(file.getFileName(),text);
+			public void uploaded(File file, ImageElement imageElement) {
+				
+				onLoadImage(file.getFileName(),imageElement);
 			}
-		});
+		}, true, true);
 		h0.add(imageUpload);
 		
 		//loadImage();
@@ -805,20 +821,101 @@ public class ColorPickPage extends AbstractPage{
 		return result.getW(0)>result.getW(1);
 	}
 	
+	public static class Luv extends JavaScriptObject{
+		protected Luv(){}
+		public final  native double getRed()/*-{
+		return this.red;
+		}-*/;
+		public final  native void setRed(double  red)/*-{
+		this.red=red;
+		}-*/;
+		public final  native double getGreen()/*-{
+		return this.green;
+		}-*/;
+		public final  native void setGreen(double  green)/*-{
+		this.green=green;
+		}-*/;
+		public final  native double getBlue()/*-{
+		return this.blue;
+		}-*/;
+		public final  native void setBlue(double  blue)/*-{
+		this.blue=blue;
+		}-*/;
+	}
+	
 	
 	public class LuvData{
 		ImageData imageData;
-		List<double[]> luvValues;
+		JsArray<Luv> luvValues;
+		//List<double[]> luvValues;
 		public LuvData(ImageData imageData) {
 			super();
 			this.imageData = imageData;
 			
-			luvValues=new ArrayList<double[]>(imageData.getWidth()*imageData.getHeight());
+			//luvValues=new ArrayList<double[]>(imageData.getWidth()*imageData.getHeight());
+			luvValues=JsArray.createArray().cast();
 			convertDatas();
 			
+			/*JsArray<Luv> test=JsArray.createArray(imageData.getWidth()*imageData.getHeight()).cast();
+			
+			for(int i=0;i<imageData.getWidth();i++){
+				LogUtils.log(i);
+				for(int j=0;j<imageData.getHeight();j++){
+					Luv luv=Luv.createObject().cast();
+					luv.setRed(i*2);
+					luv.setGreen(j*2);
+					luv.setBlue(0);
+				}
+			}
+			LogUtils.log("luv-done?");*/
+			//convertAsyncDatas();
 		}
-		private void convertDatas() {
+		
+		public Luv toLuv(double[] value){
+			Luv luv=Luv.createObject().cast();
+			luv.setRed(value[0]);
+			luv.setGreen(value[1]);
+			luv.setBlue(value[2]);
+			return luv;
+		}
+		
+/*		private void convertAsyncDatas() {
+			
+			List<Integer> index=Lists.newArrayList();
+			for(int i=0;i<imageData.getHeight();i++){
+				index.add(i);
+			}
+			
+			AsyncMultiCaller<Integer> caller=new AsyncMultiCaller<Integer>(index) {
+				
+				@Override
+				public void execAsync(Integer data) {
+					int y=data;
+					for(int x=0;x<imageData.getWidth();x++){
+						
+						if(imageData.getAlphaAt(x, y)==255){
+							luvValues.push(toLuv(
+									LuvUtils.toLuv(imageData.getRedAt(x, y), imageData.getGreenAt(x, y), imageData.getBlueAt(x, y))
+									));
+						}else{
+							luvValues.push(toLuv(new double[3]));
+						}
+					}
+					done(data, true);
+				}
+				
+				@Override
+				public void doFinally(boolean cancelled) {
+					LogUtils.log("convertDatas:"+imageData.getWidth()+"x"+imageData.getHeight());
+				}
+			};
+			
+			caller.execAsync(1);
+		}*/
+		
+	/*	private void convertDatas() {
 			for(int y=0;y<imageData.getHeight();y++){
+				LogUtils.log("y:"+y);
 			for(int x=0;x<imageData.getWidth();x++){
 				
 					if(imageData.getAlphaAt(x, y)==255){
@@ -830,6 +927,26 @@ public class ColorPickPage extends AbstractPage{
 					}
 				}
 			}
+			LogUtils.log("convertDatas:"+imageData.getWidth()+"x"+imageData.getHeight());
+		}*/
+		private void convertDatas() {
+			for(int y=0;y<imageData.getHeight();y++){
+			//	LogUtils.log("y:"+y);
+			for(int x=0;x<imageData.getWidth();x++){
+				
+					if(imageData.getAlphaAt(x, y)==255){
+						luvValues.push(toLuv(
+								LuvUtils.toLuv(imageData.getRedAt(x, y), imageData.getGreenAt(x, y), imageData.getBlueAt(x, y))
+								));
+					}else{
+						Luv luv=toLuv(new double[3]);
+						
+						luvValues.push(luv);
+					}
+				}
+			}
+			//LogUtils.log("convertDatas:"+imageData.getWidth()+"x"+imageData.getHeight()+","+luvValues.length());
+			//LogUtils.log(luvValues.get(0));
 		}
 		public int getAlphaAt(int x, int y){
 			return imageData.getAlphaAt(x, y);
@@ -837,27 +954,44 @@ public class ColorPickPage extends AbstractPage{
 		
 		public double getRedAt(int x, int y){
 			int index=y*imageData.getWidth()+x;
-			return luvValues.get(index)[0];
+			return luvValues.get(index).getRed();
 		}
 		
 		public double getGreenAt(int x, int y){
 			int index=y*imageData.getWidth()+x;
-			return luvValues.get(index)[1];
+			return luvValues.get(index).getGreen();
 		}
 		
 		public double getBlueAt(int x, int y){
 			int index=y*imageData.getWidth()+x;
-			return luvValues.get(index)[2];
+			return luvValues.get(index).getBlue();
 		}
 	}
 	
 	protected void paintResult() {
+		//LogUtils.log("paint1");
+		
+		/*Timer timer=new Timer(){
+			public void run(){
+				LuvData data=new LuvData(imageData);
+				
+			}
+		};
+		timer.schedule(1);
+		
+		
+		if(true)
+		return;*/
+		
 		resultData = ImageDataUtils.copySizeOnly(inputCanvas);
 		Map<String,Boolean> colorResult=new HashMap<String, Boolean>();
+		VolRGB rgb;
 		for(int x=0;x<imageData.getWidth();x++){
+			//LogUtils.log("paintResult-x"+x);
 			for(int y=0;y<imageData.getHeight();y++){
+				
 				if(imageData.getAlphaAt(x, y)==255){
-					VolRGB rgb=new VolRGB(
+					rgb=new VolRGB(
 							imageData.getRedAt(x, y),
 							imageData.getGreenAt(x, y),
 							imageData.getBlueAt(x, y)
@@ -872,13 +1006,20 @@ public class ColorPickPage extends AbstractPage{
 					}else if(strategy==LENGTH_RGB){
 						isShow=isShowVolLengthRGB(rgb);
 					}else if(strategy==LENGTH_LUV){
+						
 						LuvData data=luvDataSupplier.get();
+						
+						//LogUtils.log("red:"+data);
+						//LogUtils.log(data.getRedAt(x, y));
+						
+					
 						isShow=isShowVolLengthLuv(
 								data.getRedAt(x, y),
 								data.getGreenAt(x, y),
 								data.getBlueAt(x, y),
 								false
 								);
+						
 					}else if(strategy==DEEP_LEARNING_LUV){
 						isShow=isShowVolDeepLearningLuv(rgb);
 					}
@@ -894,7 +1035,7 @@ public class ColorPickPage extends AbstractPage{
 				}
 			}
 		}
-		
+		//LogUtils.log("paint2");
 		//LogUtils.log("done");
 		CanvasUtils.clear(resultCanvas);
 		

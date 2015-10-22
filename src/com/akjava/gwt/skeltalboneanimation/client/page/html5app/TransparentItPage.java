@@ -4,9 +4,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.akjava.gwt.html5.client.HTML5InputRange;
-import com.akjava.gwt.html5.client.InputRangeListener;
-import com.akjava.gwt.html5.client.InputRangeWidget;
 import com.akjava.gwt.html5.client.download.HTML5Download;
 import com.akjava.gwt.html5.client.file.Blob;
 import com.akjava.gwt.html5.client.file.File;
@@ -18,8 +15,8 @@ import com.akjava.gwt.html5.client.file.Uint8Array;
 import com.akjava.gwt.html5.client.file.ui.DropDockDataUrlRootPanel;
 import com.akjava.gwt.html5.client.input.ColorBox;
 import com.akjava.gwt.inpaint.client.InpaintEngine;
-import com.akjava.gwt.inpaint.client.MaskData;
 import com.akjava.gwt.inpaint.client.InpaintEngine.InpaintListener;
+import com.akjava.gwt.inpaint.client.MaskData;
 import com.akjava.gwt.lib.client.CanvasUtils;
 import com.akjava.gwt.lib.client.GWTHTMLUtils;
 import com.akjava.gwt.lib.client.GWTUtils;
@@ -53,6 +50,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.canvas.dom.client.Context2d.Composite;
+import com.google.gwt.canvas.dom.client.Context2d.LineCap;
 import com.google.gwt.canvas.dom.client.Context2d.LineJoin;
 import com.google.gwt.canvas.dom.client.ImageData;
 import com.google.gwt.cell.client.Cell;
@@ -97,7 +95,6 @@ import com.google.gwt.text.shared.Renderer;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.TextColumn;
-import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Anchor;
 import com.google.gwt.user.client.ui.Button;
@@ -598,7 +595,7 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 			@Override
 			public void onMouseDown(MouseDownEvent event) {
 			
-				if(penMode==MODE_PICK){
+				if(penMode==MODE_PICK || event.getNativeButton()==NativeEvent.BUTTON_RIGHT){
 					doPick(event.getX(), event.getY());
 					startCreateCommand();
 					return ;
@@ -1343,6 +1340,8 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 		return null;
 	}
 	
+	private List<XYPoint> drawLinePoints=Lists.newArrayList();
+	private ImageData drawLineImageData;
 	private void perfomeMoveEvent(int mx,int my){
 
 		mx/=currentScale;
@@ -1369,7 +1368,22 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 			drawLine(lastPoint,newPoint,"#fff");
 			break;
 		case MODE_COLOR:
-			drawLine(lastPoint,newPoint,colorPicker.getValue());
+			
+			if(drawLinePoints.size()==1){
+				drawLineImageData=CanvasUtils.getImageData(pixelCanvas, true);
+			}
+			drawLinePoints.add(newPoint);
+			
+			if(drawLinePoints.size()>1){
+				if(drawLineImageData==null){
+					LogUtils.log("some how null");
+					break;
+				}
+				ImageDataUtils.putImageData(drawLineImageData, pixelCanvas);
+			}
+			drawLine(drawLinePoints,colorPicker.getValue());
+			
+			//drawLine(lastPoint,newPoint,colorPicker.getValue());
 			break;
 		}
 		
@@ -1404,6 +1418,9 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 		
 		startCreateCommand();//stop using timer,some time end command called before start command;
 		
+		
+		drawLinePoints.clear();
+		drawLinePoints.add(lastPoint);
 		/*
 		//don't do heavy things in onStart
 		Timer timer=new Timer(){//TODO fix it
@@ -1472,10 +1489,15 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 				drawLine(lastPoint,dummyPt,"#fff");
 				break;
 			case MODE_COLOR:
-				drawLine(lastPoint,dummyPt,colorPicker.getValue());
+				drawLinePoints.add(dummyPt);
+				drawLine(drawLinePoints,colorPicker.getValue());
+				//drawLine(lastPoint,dummyPt,colorPicker.getValue());
 				break;
 			}
 			}
+		}else{
+			//ImageDataUtils.putImageData(drawLineImageData, pixelCanvas);
+			//drawLine(drawLinePoints,colorPicker.getValue());
 		}
 		
 		mouseMoved=false;
@@ -1638,6 +1660,34 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 		pixelCanvas.getContext2d().save();
 		pixelCanvas.getContext2d().drawImage(overlayCanvas.getCanvasElement(), 0, 0);
 		pixelCanvas.getContext2d().restore();
+	}
+
+	private void drawLine(List<XYPoint> points,String color){
+		double alpha=colorTransparent.getValue()/100;
+		
+		
+		
+		//LogUtils.log("drawLine-before:"+canvas.getContext2d().getGlobalCompositeOperation());
+		pixelCanvas.getContext2d().save();
+		pixelCanvas.getContext2d().setLineWidth(penSize);
+		pixelCanvas.getContext2d().setLineCap(LineCap.ROUND);
+		pixelCanvas.getContext2d().setLineJoin(LineJoin.ROUND);
+		pixelCanvas.getContext2d().setStrokeStyle(ColorUtils.toCssColor(color,alpha));
+		pixelCanvas.getContext2d().setGlobalCompositeOperation(Composite.SOURCE_OVER);
+		
+		pixelCanvas.getContext2d().beginPath();
+		
+		XYPoint p1=points.get(0);
+		
+		pixelCanvas.getContext2d().moveTo(p1.getX(),p1.getY());
+		for(int i=1;i<points.size();i++){
+			XYPoint p2=points.get(i);
+			pixelCanvas.getContext2d().lineTo(p2.getX(),p2.getY());
+			}
+		//pixelCanvas.getContext2d().closePath();
+		pixelCanvas.getContext2d().stroke();
+		pixelCanvas.getContext2d().restore();
+		//LogUtils.log("drawLine-after:"+canvas.getContext2d().getGlobalCompositeOperation());
 	}
 	
 	private void drawLine(XYPoint p1,XYPoint p2,String color){
@@ -2034,45 +2084,59 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 	 * only need when export,usually css draw backgorund
 	 * @param withBg
 	 */
-	public void updateDrawingCanvas(boolean withBg){
+	public void updateDrawingCanvas(final boolean withBg){
 		if(selection==null){
 			return;
 		}
-		ImageElement selectionImage=ImageElementUtils.create(selection.getDataUrl());
-		ImageElementUtils.copytoCanvas(selectionImage, pixelCanvas,false);//just same size
 		
-		CanvasUtils.copyToSizeOnly(pixelCanvas, canvas);
-		
-		//change scale
-		if(currentScale!=1){
-			canvas.setWidth((pixelCanvas.getCoordinateSpaceWidth()*currentScale)+"px");
-			canvas.setHeight((pixelCanvas.getCoordinateSpaceHeight()*currentScale)+"px");
-		}
-		
-		CanvasUtils.clear(pixelCanvas);
-		CanvasUtils.clear(overlayCanvas);//should clear for old bg
-		
-		if(withBg){
-		if(bgImage!=null){
-			//bugs,not effect on bgcolor with bgimage,bgimage not repeated like css
-			CanvasUtils.drawImage(pixelCanvas, bgImage);
-		}else{
-			if(!isTransparent()){
-				pixelCanvas.getContext2d().setFillStyle(getBgColor());
+		ImageElementUtils.createWithLoader(selection.getDataUrl(),new ImageElementListener() {
+			
+			@Override
+			public void onLoad(ImageElement selectionImage) {
 				
-				pixelCanvas.getContext2d().fillRect(0, 0, pixelCanvas.getCoordinateSpaceWidth(), pixelCanvas.getCoordinateSpaceHeight());
+				ImageElementUtils.copytoCanvas(selectionImage, pixelCanvas,false);//just same size
+				
+				CanvasUtils.copyToSizeOnly(pixelCanvas, canvas);
+				
+				//change scale
+				if(currentScale!=1){
+					canvas.setWidth((pixelCanvas.getCoordinateSpaceWidth()*currentScale)+"px");
+					canvas.setHeight((pixelCanvas.getCoordinateSpaceHeight()*currentScale)+"px");
+				}
+				
+				CanvasUtils.clear(pixelCanvas);
+				CanvasUtils.clear(overlayCanvas);//should clear for old bg
+				
+				if(withBg){
+				if(bgImage!=null){
+					//bugs,not effect on bgcolor with bgimage,bgimage not repeated like css
+					CanvasUtils.drawImage(pixelCanvas, bgImage);
+				}else{
+					if(!isTransparent()){
+						pixelCanvas.getContext2d().setFillStyle(getBgColor());
+						
+						pixelCanvas.getContext2d().fillRect(0, 0, pixelCanvas.getCoordinateSpaceWidth(), pixelCanvas.getCoordinateSpaceHeight());
+					}
+				}
+				}
+				
+				
+				
+				CanvasUtils.drawImage(pixelCanvas, selectionImage);
+			
+				
+				ImageElementUtils.copytoCanvas(selectionImage, overlayCanvas,false);
+				
+				updateCanvas();
 			}
-		}
-		}
+			
+			@Override
+			public void onError(String url, ErrorEvent event) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
 		
-		
-		
-		CanvasUtils.drawImage(pixelCanvas, selectionImage);
-	
-		
-		ImageElementUtils.copytoCanvas(selectionImage, overlayCanvas,false);
-		
-		updateCanvas();
 	}
 
 	public abstract class HtmlColumn<T> extends Column<T,SafeHtml>{

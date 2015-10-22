@@ -370,59 +370,9 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 		});
 		sizes.add(sizeListBox);
 		
-		sizes.add(new Label(textConstants.Similar_Color()+":"));
-		
-		final Label rangeLabel=new Label();
-		rangeLabel.setText("10");
-		rangeLabel.setWidth("20px");
-		final InputRangeWidget colorRange=HTML5InputRange.createInputRange(1, 80, 10);
-		colorRange.addInputRangeListener(new InputRangeListener() {
-			@Override
-			public void changed(int newValue) {
-				rangeLabel.setText(""+newValue);
-			}
-		});
-		sizes.add(rangeLabel);
-		colorRange.setWidth("80px");
-		sizes.add(colorRange);
-		 execTransparentBt = new Button(textConstants.ExecTransparent(),new ClickHandler() {
-			
-			@Override
-			public void onClick(ClickEvent event) {
-				Timer timer=new Timer(){
-					@Override
-					public void run() {
-						execTransparentBt.setEnabled(false);
-						startCreateCommand();
-						
-						//convert to imagedata
-						ImageData imageData=CanvasUtils.getImageData(pixelCanvas, true);
-						//do transparnet
-						int[] rgb=ColorUtils.toRGB(colorPicker.getValue());
-						
-						Uint8Array maskArray=createMaskBySimilarColor(imageData, rgb[0],rgb[1],rgb[2], colorRange.getValue());
-						for(int x=0;x<imageData.getWidth();x++){
-							for(int y=0;y<imageData.getHeight();y++){
-								int mask=maskArray.get(y*imageData.getWidth()+x);
-								if(mask==1){
-									imageData.setAlphaAt(0, x, y);
-								}
-							}
-						}
-						//set imagedata
-						CanvasUtils.copyTo(imageData, pixelCanvas);
-						
-						//store
-						String dataUrl=pixelCanvas.toDataUrl();
-						endCreateCommand(dataUrl);
-						updateCurrentSelectionDataUrl(dataUrl);
-						execTransparentBt.setEnabled(true);
-					}
-				};
-				timer.schedule(50);
-			}
-		});
-		sizes.add(execTransparentBt);
+		colorTransparent = new LabeledInputRangeWidget("color-transparent", 0, 100, 1);
+		colorTransparent.getRange().setWidth("100px");
+		sizes.add(colorTransparent);
 		
 		//pen choose
 		HorizontalPanel pens=new HorizontalPanel();
@@ -1691,11 +1641,15 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 	}
 	
 	private void drawLine(XYPoint p1,XYPoint p2,String color){
+		double alpha=colorTransparent.getValue()/100;
+		
+		
+		
 		//LogUtils.log("drawLine-before:"+canvas.getContext2d().getGlobalCompositeOperation());
 		pixelCanvas.getContext2d().save();
 		pixelCanvas.getContext2d().setLineWidth(penSize);
 		pixelCanvas.getContext2d().setLineJoin(LineJoin.ROUND);
-		pixelCanvas.getContext2d().setStrokeStyle(color);
+		pixelCanvas.getContext2d().setStrokeStyle(ColorUtils.toCssColor(color,alpha));
 		pixelCanvas.getContext2d().setGlobalCompositeOperation(Composite.SOURCE_OVER);
 		
 		pixelCanvas.getContext2d().beginPath();
@@ -2072,6 +2026,9 @@ public class TransparentItPage extends Html5DemoEntryPoint {
 
 
 	private int fade;
+
+
+	private LabeledInputRangeWidget colorTransparent;
 
 	/**
 	 * only need when export,usually css draw backgorund
